@@ -1,0 +1,19 @@
+{
+  "__type__": "cc.Material",
+  "_name": "MovingBG",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "5dfc7c8f-ccdb-4647-a7a1-771f871f0430"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "texture": {
+          "__uuid__": "a8027877-d8d6-4645-97a0-52d4a0123dba"
+        }
+      }
+    }
+  }
+}
