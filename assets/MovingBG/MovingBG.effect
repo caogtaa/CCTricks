@@ -19,9 +19,6 @@ CCProgram vs %{
   #include <cc-local>
 
   in vec3 a_position;
-  // in vec4 a_color;
-  // out vec4 v_color;
-
   in vec2 a_uv0;
   in vec2 a_uv1;
 
@@ -29,14 +26,10 @@ CCProgram vs %{
   out vec2 v_uv1;
   
   void main() {
-    vec4 pos = vec4(a_position, 1); // 转换为齐次坐标？
+    vec4 pos = vec4(a_position, 1);
     pos = cc_matViewProj * pos;
     v_uv0 = a_uv0;
     v_uv1 = a_uv1;
-    // v_uv1.y = 1.0-v_uv1.y;        // 目测uv1没有主动倒置，为了和uv0统一，这里手工处理下 （实测，uv1也颠倒了）
-    // v_uv0.y = -v_uv0.y;          // ccc v2.2.2，uv坐标以左上角为原点，如需和opengl统一为左下角则颠倒y
-
-    // v_color = a_color;
     gl_Position = pos;
   }
 }%
@@ -48,32 +41,21 @@ CCProgram fs %{
   #include <cc-global>
   #include <cc-local>
 
-  // in vec4 v_color;
   in vec2 v_uv0;
   in vec2 v_uv1;
 
   uniform sampler2D texture;
-
-  float Remap01(float a, float b, float t) {
-    return (t-a) / (b-a);
-  }
-
-  float Remap(float a, float b, float c, float d, float t) {
-    return Remap01(a, b, t) * (d-c) + c;
-  }
 
   void main()
   {
     vec2 uv = v_uv0.xy;
     float t = cc_time.x * 0.15;
 
-    // to topright
+    // todo: get value from v_uv1
     uv.x = fract(uv.x - t);
     uv.y = fract(uv.y + t);
     vec4 col = texture(texture, uv);
-    // vec4 col = vec4(vec3(distance(uv, v_uv1.xy) * 5.0), 1.0);
-    // vec4 col =  vec4(v_uv0.xy, 0.0, 1.0);
-    
+
     gl_FragColor = col;
   }
 }%
