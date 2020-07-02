@@ -10,7 +10,7 @@ var vfmtCustom = new gfx.VertexFormat([
 
 const VEC2_ZERO = cc.Vec2.ZERO;
 
-export default class MovingBGAssembler extends GTSimpleSpriteAssembler2D {
+export default class PieceMaskAssembler extends GTSimpleSpriteAssembler2D {
     verticesCount = 4;
     indicesCount = 6;
     uvOffset = 2;

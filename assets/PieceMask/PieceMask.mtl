@@ -1,6 +1,6 @@
 {
   "__type__": "cc.Material",
-  "_name": "MovingBG",
+  "_name": "PieceMask",
   "_objFlags": 0,
   "_native": "",
   "_effectAsset": {
