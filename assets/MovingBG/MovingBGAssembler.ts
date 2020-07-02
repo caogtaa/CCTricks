@@ -19,7 +19,7 @@ export default class MovingBGAssembler extends GTSimpleSpriteAssembler2D {
     floatsPerVert = 6;
 
     // 自定义数据，将被写入uv1的位置
-    public bgOffset: cc.Vec2 = VEC2_ZERO;
+    public moveSpeed: cc.Vec2 = VEC2_ZERO;
     initData() {
         let data = this._renderData;
         // createFlexData支持创建指定格式的renderData
@@ -54,14 +54,6 @@ export default class MovingBGAssembler extends GTSimpleSpriteAssembler2D {
     // updateVerts(sprite) {
     // }
 
-    updateUVs(sprite) {
-        // uv0调用基类方法写入
-        super.updateUVs(sprite);
-        // 填入自己的uv1数据
-        // ...
-        // 见Demo
-    }
-
     updateColor(sprite) {
         // 由于已经去掉了color字段，这里重载原方法，并且不做任何事
     }
@@ -80,16 +72,13 @@ export default class MovingBGAssembler extends GTSimpleSpriteAssembler2D {
             verts[dstOffset + 1] = uv[srcOffset + 1];
         }
 
-        let bgx = this.bgOffset.x;
-        let bgy = this.bgOffset.y;
-        srcOffset = 3 * 2;
+        let sx = this.moveSpeed.x;
+        let sy = this.moveSpeed.y;
         for (let i = 0; i < 4; ++i) {
-            let dstOffset = floatsPerVert * i + uvOffset;
+            dstOffset = floatsPerVert * i + uvOffset;
             // fill uv1
-            verts[dstOffset + 2] = uv[srcOffset];
-            verts[dstOffset + 3] = uv[srcOffset + 1];
-            // verts[dstOffset + 2] = bgx;
-            // verts[dstOffset + 3] = bgy;
+            verts[dstOffset + 2] = sx;
+            verts[dstOffset + 3] = sy;
         }
     }
 

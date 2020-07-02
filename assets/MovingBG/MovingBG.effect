@@ -49,11 +49,11 @@ CCProgram fs %{
   void main()
   {
     vec2 uv = v_uv0.xy;
-    float t = cc_time.x * 0.15;
+    float tx = cc_time.x * v_uv1.x;
+    float ty = cc_time.x * v_uv1.y;
 
-    // todo: get value from v_uv1
-    uv.x = fract(uv.x - t);
-    uv.y = fract(uv.y + t);
+    uv.x = fract(uv.x - tx);
+    uv.y = fract(uv.y + ty);
     vec4 col = texture(texture, uv);
 
     gl_FragColor = col;

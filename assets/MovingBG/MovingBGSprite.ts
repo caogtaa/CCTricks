@@ -6,7 +6,16 @@ const {ccclass, property} = cc._decorator;
 @ccclass
 export default class MovingBGSprite extends cc.Sprite {
     @property(cc.Vec2)
-    bgOffset: cc.Vec2 = cc.Vec2.ZERO;
+    set moveSpeed(value: cc.Vec2) {
+        this._moveSpeed = value;
+        this.FlushProperties();
+    }
+    get moveSpeed() {
+        return this._moveSpeed;
+    }
+
+    @property(cc.Vec2)
+    _moveSpeed: cc.Vec2 = cc.Vec2.ZERO;
 
     public FlushProperties() {
         //@ts-ignore
@@ -14,7 +23,7 @@ export default class MovingBGSprite extends cc.Sprite {
         if (!assembler)
             return;
 
-        assembler.bgOffset = this.bgOffset;
+        assembler.moveSpeed = this._moveSpeed;
         this.setVertsDirty();
     }
 
