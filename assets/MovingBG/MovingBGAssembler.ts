@@ -5,7 +5,9 @@ let gfx = cc.gfx;
 var vfmtCustom = new gfx.VertexFormat([
     { name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
     { name: gfx.ATTR_UV0, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },        // texture纹理uv
-    { name: gfx.ATTR_UV1, type: gfx.ATTR_TYPE_FLOAT32, num: 2 }         // uv起点坐标
+    { name: gfx.ATTR_UV1, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },        // uv起点坐标
+    { name: gfx.ATTR_UV2, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },        // uv1起点坐标
+    { name: gfx.ATTR_UV3, type: gfx.ATTR_TYPE_FLOAT32, num: 2 }         // uv2起点坐标
 ]);
 
 const VEC2_ZERO = cc.Vec2.ZERO;
@@ -16,7 +18,9 @@ export default class MovingBGAssembler extends GTSimpleSpriteAssembler2D {
     indicesCount = 6;
     uvOffset = 2;
     uv1Offset = 4;
-    floatsPerVert = 6;
+    uv2Offset = 6;
+    uv3Offset = 8;
+    floatsPerVert = 10;
 
     // 自定义数据，将被写入uv1的位置
     public moveSpeed: cc.Vec2 = VEC2_ZERO;
@@ -60,17 +64,23 @@ export default class MovingBGAssembler extends GTSimpleSpriteAssembler2D {
 
 
     updateUVs(sprite) {
+        super.updateUVs(sprite);
         let uv = sprite._spriteFrame.uv;
         let uvOffset = this.uvOffset;
         let floatsPerVert = this.floatsPerVert;
         let verts = this._renderData.vDatas[0];
-        let srcOffset, dstOffset;
-        for (let i = 0; i < 4; i++) {
-            srcOffset = i * 2;
-            dstOffset = floatsPerVert * i + uvOffset;
-            verts[dstOffset] = uv[srcOffset];
-            verts[dstOffset + 1] = uv[srcOffset + 1];
-        }
+        let dstOffset;
+
+        let l = uv[0],
+            r = uv[2],
+            t = uv[5],
+            b = uv[1];
+
+        let px = 1.0 / (r-l),
+            qx = -l * px;   // l / (l-r);
+
+        let py = 1.0 / (b-t),
+            qy = -t * py;   // t / (t-b);
 
         let sx = this.moveSpeed.x;
         let sy = this.moveSpeed.y;
@@ -79,13 +89,14 @@ export default class MovingBGAssembler extends GTSimpleSpriteAssembler2D {
             // fill uv1
             verts[dstOffset + 2] = sx;
             verts[dstOffset + 3] = sy;
+
+            // fill uv2
+            verts[dstOffset + 4] = px;
+            verts[dstOffset + 5] = qx;
+
+            // fill uv3
+            verts[dstOffset + 6] = py;
+            verts[dstOffset + 7] = qy;
         }
     }
-
 }
-
-// cc.game.on(cc.game.EVENT_ENGINE_INITED, function () {
-//     // 不管是否原生环境，都进行替换
-//     //@ts-ignore
-//     MovingBGAssembler.prototype.updateWorldVerts = cc.Sprite.__assembler__.Tiled.prototype.updateWorldVerts;
-// });
