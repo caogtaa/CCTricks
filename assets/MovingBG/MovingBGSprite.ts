@@ -32,7 +32,7 @@ export default class MovingBGSprite extends cc.Sprite {
     }
 
     // // 使用cc.Sprite默认逻辑
-    _resetAssembler () {
+    _resetAssembler() {
         this.setVertsDirty();
         let assembler = this._assembler = new MovingBGAssembler();
         this.FlushProperties();
