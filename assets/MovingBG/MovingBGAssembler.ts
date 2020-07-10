@@ -1,13 +1,14 @@
 import GTSimpleSpriteAssembler2D from "../GTSimpleSpriteAssembler2D";
 
 // 自定义顶点格式，在vfmtPosUvColor基础上，加入gfx.ATTR_UV1，去掉gfx.ATTR_COLOR
+// 20200703 增加了uv2, uv3用于处理uv在图集里的映射
 let gfx = cc.gfx;
 var vfmtCustom = new gfx.VertexFormat([
     { name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
     { name: gfx.ATTR_UV0, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },        // texture纹理uv
-    { name: gfx.ATTR_UV1, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },        // uv起点坐标
-    { name: gfx.ATTR_UV2, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },        // uv1起点坐标
-    { name: gfx.ATTR_UV3, type: gfx.ATTR_TYPE_FLOAT32, num: 2 }         // uv2起点坐标
+    { name: gfx.ATTR_UV1, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },        // uv1，控制图片滚动方向 & 速度
+    { name: gfx.ATTR_UV2, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },        // uv2, uv normalize中间变量，可看成是uv在大纹理内的坐标
+    { name: gfx.ATTR_UV3, type: gfx.ATTR_TYPE_FLOAT32, num: 2 }         // 同上
 ]);
 
 const VEC2_ZERO = cc.Vec2.ZERO;
@@ -76,6 +77,8 @@ export default class MovingBGAssembler extends GTSimpleSpriteAssembler2D {
             t = uv[5],
             b = uv[1];
 
+        // px, qx用于x轴的uv映射
+        // py, qy同理，公式推导过程略...
         let px = 1.0 / (r-l),
             qx = -l * px;   // l / (l-r);
 
