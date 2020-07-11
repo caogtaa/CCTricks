@@ -72,7 +72,7 @@ CCProgram fs %{
     float x = v_uv0.x * resolution.x;
 	float y = resolution.y - v_uv0.y * resolution.y;
 	float v = 0.0;
-	for(int i = 0;i < 500;i++){
+	for(int i = 0;i < 1;i++){
 		vec4 mb = metaballs[i];
 		float cx = mb.x - x;
 		float cy = mb.y - y;

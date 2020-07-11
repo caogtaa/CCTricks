@@ -1,3 +1,4 @@
+import MetaBallsRenderer from "../../Shader/MetaBalls/MetaBallsRenderer";
 
 const { ccclass, property } = cc._decorator;
 
@@ -14,6 +15,9 @@ export default class SceneMetaBalls extends cc.Component {
 
 	@property(cc.Node)
 	waterRenderer: cc.Node = null;
+
+	@property(MetaBallsRenderer)
+	metaBallsRenderer: MetaBallsRenderer = null;
 
 	protected _started: boolean = false;
 	protected pymanager: cc.PhysicsManager = null;
@@ -57,11 +61,14 @@ export default class SceneMetaBalls extends cc.Component {
 
 		this.particleSystem.SetRadius(0.35);
 		this.particleGroup = this.particleSystem.CreateParticleGroup(particleGroupDef);
+
+		this.metaBallsRenderer.SetXX(this.particleSystem);
+
 		let vertsCount = this.particleSystem.GetParticleCount();
-		this.totalCount = vertsCount;
-		this._mat = this.sp_water_show.getMaterial(0);
-		this._mat.setProperty('resolution',new Float32Array(4));
-		this._mat.setProperty('metaballs',new Float32Array(vertsCount * 4));
+		// this.totalCount = vertsCount;
+		// this._mat = this.sp_water_show.getMaterial(0);
+		// this._mat.setProperty('resolution',new Float32Array(4));
+		// this._mat.setProperty('metaballs',new Float32Array(vertsCount * 4));
 		console.log(vertsCount);
 	}
 
@@ -70,7 +77,7 @@ export default class SceneMetaBalls extends cc.Component {
         this.resetWater();
 		setTimeout(()=>{
 			this.initParticle();
-			this.schedule(this.scheduleWater, 0.01);
+			// this.schedule(this.scheduleWater, 0.01);
 		},500);
 	}
 	
@@ -99,7 +106,7 @@ export default class SceneMetaBalls extends cc.Component {
     }
 
     resetWater() {
-        this.unschedule(this.scheduleWater);
+        // this.unschedule(this.scheduleWater);
 		/*
 		if(this._mat){
 			this._mat.setProperty('metaballs',new Float32Array(this.totalCount * 4));
