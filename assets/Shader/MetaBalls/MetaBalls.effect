@@ -69,8 +69,14 @@ CCProgram fs %{
     // col.a = step(radius, distance(v_pos, v_center));
     // vec4 col = vec4(0., 0., 0., 1.0);
     // col.b = distance(uv, center) * 20.;
-    float mask = 1.0 - step(radius, distance(uv, center));
-    vec4 col = mix(vec4(0.), vec4(0., 0.553, 1.0, 1.0), mask);
+
+
+    // float mask = 1.0 - step(radius, distance(uv, center));
+    // vec4 col = mix(vec4(0.), vec4(0., 0.553, 1.0, 1.0), mask);
+
+    float mask = smoothstep(radius * 3., radius, distance(uv, center));
+    vec4 col = vec4(1.0);
+    col.a = mask;
     gl_FragColor = col;
   }
 }%

@@ -72,4 +72,8 @@ declare namespace cc {
 		_infos;
 		_flexBuffer;
 	}
+
+	declare interface PhysicsManager {
+		_world: b2.World;
+	}
 }

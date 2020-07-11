@@ -1,5 +1,4 @@
-import GTAssembler2D from "../GTAssembler2D";
-
+//@ts-ignore
 let gfx = cc.gfx;
 var vfmtPos = new gfx.VertexFormat([
     { name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },   // 粒子顶点（1个粒子有3个或4个顶点）
@@ -53,7 +52,7 @@ export default class MetaBallsAssembler extends cc.Assembler {
         let indicesCount = particleCount * 6;
         let PTM_RATIO = cc.PhysicsManager.PTM_RATIO;
 		let posBuff = particles.GetPositionBuffer();
-        let r = particles.GetRadius() * PTM_RATIO;
+        let r = particles.GetRadius() * PTM_RATIO * 3;      // 倍数扩大渲染距离，超出r的范围颜色衰减
         
         //@ts-ignore
         let buffer = this.getBuffer(/*renderer*/);

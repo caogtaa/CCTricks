@@ -2,11 +2,16 @@
   "collision-matrix": [
     [
       true
+    ],
+    [
+      false,
+      false
     ]
   ],
   "excluded-modules": [],
   "group-list": [
-    "default"
+    "default",
+    "water"
   ],
   "design-resolution-width": 960,
   "design-resolution-height": 640,
