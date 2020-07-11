@@ -19,10 +19,19 @@ CCProgram vs %{
   #include <cc-local>
 
   in vec3 a_position;
+  in vec2 a_center;
+  out vec2 v_pos;
+  out vec2 v_center;
    
   void main() {
-    vec4 pos = vec4(a_position, 1);
+    vec4 pos = vec4(a_position, 1.0);
     pos = cc_matViewProj * pos;
+
+    vec4 center = vec4(a_center, 0.0, 1.0);
+    center = cc_matViewProj * center;
+
+    v_pos = pos.xy;
+    v_center = center.xy;
     gl_Position = pos;
   }
 }%
@@ -34,11 +43,34 @@ CCProgram fs %{
   #include <cc-global>
   #include <cc-local>
 
+  in vec2 v_pos;
+  in vec2 v_center;
+
+  uniform ARGS {
+    float yratio;   // Y轴坐标需要乘以的比例，即iResolution.y / iResolution.x
+    float radius;   // X轴方向上的半径，外部通过box2d世界大小和粒子大小计算获得
+  };
   uniform sampler2D texture;
 
   void main()
   {
-    vec4 col = vec4(1.0);
+    // todo: X、Y长度不一，但是v_pos，v_center都已经单元化。所以粒子在Y方向上单元化的长度不一样
+    // todo: radius未经过同比例单元化转换
+    // vec4 col = vec4(1.0);
+
+    // 当前uv是原点屏幕居中的，范围[-1, 1]
+    vec2 uv = v_pos;
+    uv.y *= yratio;
+
+    vec2 center = v_center;
+    center.y *= yratio;
+
+    // vec4 col = vec4(uv.x, uv.y, 0., 1.0);
+    // col.a = step(radius, distance(v_pos, v_center));
+    // vec4 col = vec4(0., 0., 0., 1.0);
+    // col.b = distance(uv, center) * 20.;
+    float mask = 1.0 - step(radius, distance(uv, center));
+    vec4 col = mix(vec4(0.), vec4(0., 0.553, 1.0, 1.0), mask);
     gl_FragColor = col;
   }
 }%

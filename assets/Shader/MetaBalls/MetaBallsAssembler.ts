@@ -2,7 +2,8 @@ import GTAssembler2D from "../GTAssembler2D";
 
 let gfx = cc.gfx;
 var vfmtPos = new gfx.VertexFormat([
-    { name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 }
+    { name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },   // 粒子顶点（1个粒子有3个或4个顶点）
+    { name: "a_center", type: gfx.ATTR_TYPE_FLOAT32, num: 2 }           // 原粒子中心（每个顶点相同数据）
 ]);
 
 export default class MetaBallsAssembler extends cc.Assembler {
@@ -40,6 +41,7 @@ export default class MetaBallsAssembler extends cc.Assembler {
         return cc.renderer._handle.getBuffer("mesh", this.getVfmt());
     }
 
+    // TODO: 兼容native需要降级使用RenderData缓存
     fillBuffers(comp, renderer) {
         let particles = this.particles;
         let particleCount = particles?.GetParticleCount();
@@ -69,18 +71,26 @@ export default class MetaBallsAssembler extends cc.Assembler {
             // left-bottom
             vbuf[vertexOffset++] = x - r;
             vbuf[vertexOffset++] = y + r;
+            vbuf[vertexOffset++] = x;
+            vbuf[vertexOffset++] = y;
 
             // right-bottom
             vbuf[vertexOffset++] = x + r;
             vbuf[vertexOffset++] = y + r;
+            vbuf[vertexOffset++] = x;
+            vbuf[vertexOffset++] = y;
 
             // left-top
             vbuf[vertexOffset++] = x - r;
             vbuf[vertexOffset++] = y - r;
+            vbuf[vertexOffset++] = x;
+            vbuf[vertexOffset++] = y;
 
             // right-top
             vbuf[vertexOffset++] = x + r;
             vbuf[vertexOffset++] = y - r;
+            vbuf[vertexOffset++] = x;
+            vbuf[vertexOffset++] = y;
         }
 
         // 仅当顶点索引发生变化时计算? 
