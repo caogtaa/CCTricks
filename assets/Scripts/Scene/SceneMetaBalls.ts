@@ -12,6 +12,10 @@ export default class SceneMetaBalls extends cc.Component {
 	@property(cc.Node)
 	shuiLongTou: cc.Node = null;
 
+	@property(cc.Node)
+	waterRenderer: cc.Node = null;
+
+	protected _started: boolean = false;
 	protected pymanager: cc.PhysicsManager = null;
 	protected particleSystem: cc.ParticleSystem = null;
 
@@ -29,19 +33,29 @@ export default class SceneMetaBalls extends cc.Component {
         this.sp_water_show.spriteFrame = spriteFrame;
 	}
 
-	initParticle(){
+	initParticle() {
 		let PTM_RATIO = cc.PhysicsManager.PTM_RATIO;
 		var shuiLongTouSize = this.shuiLongTou.getContentSize();
 		var shuiLongTouPos = this.shuiLongTou.getPosition();
 		var size = cc.winSize;
 		this.particleSystem = this.pymanager._particles;
 		var box = new b2.PolygonShape();
-		box.SetAsBox(shuiLongTouSize.width/2/PTM_RATIO, (shuiLongTouSize.height * 1.8)/PTM_RATIO, new b2.Vec2(0, 0), 0);
+
+		// https://google.github.io/liquidfun/API-Ref/html/classb2_polygon_shape.html#a890690250115483da6c7d69829be087e
+		// Build vertices to represent an oriented box.
+		// box的大小影响粒子的数量？？？
+		box.SetAsBox(
+			shuiLongTouSize.width/2/PTM_RATIO,
+			(shuiLongTouSize.height * 1.8) / PTM_RATIO);
 
 		var particleGroupDef = new b2.ParticleGroupDef();
 		particleGroupDef.shape = box;
 		particleGroupDef.flags = b2.waterParticle;
-		particleGroupDef.position.Set((shuiLongTouPos.x + size.width/2)/PTM_RATIO,(shuiLongTouPos.y + size.height/2 + shuiLongTouSize.height* 1.2)/PTM_RATIO);
+		particleGroupDef.position.Set(
+			(shuiLongTouPos.x + size.width/2) / PTM_RATIO,
+			(shuiLongTouPos.y + size.height/2 + shuiLongTouSize.height* 1.2) / PTM_RATIO);
+
+		this.particleSystem.SetRadius(0.35);
 		this.particleGroup = this.particleSystem.CreateParticleGroup(particleGroupDef);
 		let vertsCount = this.particleSystem.GetParticleCount();
 		this.totalCount = vertsCount;
@@ -52,6 +66,7 @@ export default class SceneMetaBalls extends cc.Component {
 	}
 
     generateWater() {
+		this._started = true;
         this.resetWater();
 		setTimeout(()=>{
 			this.initParticle();
@@ -60,15 +75,19 @@ export default class SceneMetaBalls extends cc.Component {
 	}
 	
     scheduleWater() {
+		if (!this._started)
+			return;
+
 		let PTM_RATIO = cc.PhysicsManager.PTM_RATIO;
 		if(this.particleSystem != null){
 			let tmp = [];
 			let vertsCount = this.particleSystem.GetParticleCount();
 			let posVerts = this.particleSystem.GetPositionBuffer();
+			let r = this.particleSystem.GetRadius() * PTM_RATIO;
 			for (let i = 0; i < vertsCount; i++) {
 				tmp.push(posVerts[i].x * PTM_RATIO);
 				tmp.push(posVerts[i].y * PTM_RATIO);
-				tmp.push(0.35 * PTM_RATIO);
+				tmp.push(r);
 				tmp.push(0.0);
 			}
 			let size = this.shuiLongTou.getContentSize();

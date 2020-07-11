@@ -6,7 +6,7 @@ const PROP_DIRTY_MASK = cc.RenderFlow.FLAG_OPACITY | cc.RenderFlow.FLAG_WORLD_TR
 
 // 通过开关控制仅在拥有该Assembler的根节点开启合批优化
 // 用于避免该Assembler被嵌套使用
-let BATCH_OPTIMIZE_SIWTCH: boolean = true;
+let BATCH_OPTIMIZE_SWITCH: boolean = true;
 
 export default class LayeredBatchingAssembler extends GTSimpleSpriteAssembler2D {
     protected _layers: Array<Array<cc.Node>>;
@@ -17,7 +17,7 @@ export default class LayeredBatchingAssembler extends GTSimpleSpriteAssembler2D 
         if (CC_EDITOR || CC_NATIVERENDERER)
             return;
 
-        if (!BATCH_OPTIMIZE_SIWTCH)
+        if (!BATCH_OPTIMIZE_SWITCH)
             return;
 
         let layer = [];
@@ -72,11 +72,11 @@ export default class LayeredBatchingAssembler extends GTSimpleSpriteAssembler2D 
     postFillBuffers(comp, renderer) {
         // 记录worldMatDirty，函数退出时重置回去
         let originWorldMatDirty = renderer.worldMatDirty;
-        if (!BATCH_OPTIMIZE_SIWTCH || !this._layers)
+        if (!BATCH_OPTIMIZE_SWITCH || !this._layers)
             return;
 
         // off优化开关，避免嵌套
-        BATCH_OPTIMIZE_SIWTCH = false;
+        BATCH_OPTIMIZE_SWITCH = false;
         let gtRenderFlag;
         let gtDirtyFlag;
 
@@ -99,7 +99,7 @@ export default class LayeredBatchingAssembler extends GTSimpleSpriteAssembler2D 
         }
 
         this._layers = null;
-        BATCH_OPTIMIZE_SIWTCH = true;
+        BATCH_OPTIMIZE_SWITCH = true;
         renderer.worldMatDirty = originWorldMatDirty;
     }
 }

@@ -78,10 +78,8 @@ CCProgram fs %{
 		float cy = mb.y - y;
 		float r = mb.z;
 		float ss = r * r / (cx * cx + cy * cy);
-		v += ss;
-		//if(ss >= v){
-		//	v = ss;
-		//}
+    v += step(0.99, ss);
+		// v += ss;
 	}
 	if(v >= 1.0 && y <= resolution[3]){
 		gl_FragColor = vec4(0.0,141.0/255.0,255.0/255.0,1.0);
