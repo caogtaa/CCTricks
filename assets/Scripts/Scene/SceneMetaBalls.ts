@@ -4,14 +4,8 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class SceneMetaBalls extends cc.Component {
-	@property(cc.Camera)
-	camera_water: cc.Camera = null;
-
-	@property(cc.Sprite)
-	sp_water_show: cc.Sprite = null;
-
 	@property(cc.Node)
-	shuiLongTou: cc.Node = null;
+	hydrovalve: cc.Node = null;
 
 	@property(cc.Camera)
 	waterRendererCamera: cc.Camera = null;
@@ -25,7 +19,8 @@ export default class SceneMetaBalls extends cc.Component {
 	@property(MetaBallsRenderer)
 	metaBallsRenderer: MetaBallsRenderer = null;
 
-	protected _started: boolean = false;
+	@property(cc.Node)
+	particleBox: cc.Node = null;
 
 	protected _world = null;
 	protected _particles = null;
@@ -60,45 +55,49 @@ export default class SceneMetaBalls extends cc.Component {
 		this._particles = world.CreateParticleSystem(psd);
 	}
 
-	initParticle() {
+	CreateParticlesGroup() {
 		let PTM_RATIO = cc.PhysicsManager.PTM_RATIO;
-		var shuiLongTouSize = this.shuiLongTou.getContentSize();
-		var shuiLongTouPos = this.shuiLongTou.getPosition();
+		var boxSize = this.particleBox.getContentSize();
+		var boxPos = this.particleBox.getPosition();
 		var size = cc.winSize;
 		var box = new b2.PolygonShape();
 
 		// https://google.github.io/liquidfun/API-Ref/html/classb2_polygon_shape.html#a890690250115483da6c7d69829be087e
 		// Build vertices to represent an oriented box.
-		// box的大小影响粒子的数量？？？
+		// box的大小影响粒子的数量
 		box.SetAsBox(
-			shuiLongTouSize.width/2/PTM_RATIO,
-			(shuiLongTouSize.height * 1.8) / PTM_RATIO);
+			boxSize.width / 2 / PTM_RATIO,
+			boxSize.height / 2 / PTM_RATIO)
 
 		var particleGroupDef = new b2.ParticleGroupDef();
 		particleGroupDef.shape = box;
 		particleGroupDef.flags = b2.waterParticle;
 		particleGroupDef.position.Set(
-			(shuiLongTouPos.x + size.width/2) / PTM_RATIO,
-			(shuiLongTouPos.y + size.height/2 + shuiLongTouSize.height* 1.2) / PTM_RATIO);
+			(boxPos.x + size.width/2) / PTM_RATIO,
+			(boxPos.y + size.height/2) / PTM_RATIO);
 
-		// this._particles.SetRadius(0.35);
 		this._particleGroup = this._particles.CreateParticleGroup(particleGroupDef);
-
 		this.metaBallsRenderer.SetParticles(this._particles);
 
 		let vertsCount = this._particles.GetParticleCount();
 		console.log(vertsCount);
 	}
 
-    generateWater() {
-		this._started = true;
-		this.resetWater();
-		this.initParticle();
+    GenerateWater() {
+		this.ResetParticleGroup();
+
+		// re-create particles in next tick
+		// otherwise old particle system is not correctly released
+		// this is a non-repeat schedule
+		let that = this;
+		cc.director.getScheduler().schedule(() => {
+			that.CreateParticlesGroup();
+		}, this.node, 0, 0, 0, false);
 	}
 
-    resetWater() {
+    ResetParticleGroup() {
 		if (this._particleGroup != null) {
-			this._particleGroup.DestroyParticles(null);
+			this._particleGroup.DestroyParticles(false);
 			this._particles.DestroyParticleGroup(this._particleGroup);
 
 			this._particleGroup = null;
