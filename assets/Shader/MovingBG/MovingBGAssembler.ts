@@ -2,6 +2,7 @@ import GTSimpleSpriteAssembler2D from "../GTSimpleSpriteAssembler2D";
 
 // 自定义顶点格式，在vfmtPosUvColor基础上，加入gfx.ATTR_UV1，去掉gfx.ATTR_COLOR
 // 20200703 增加了uv2, uv3用于处理uv在图集里的映射
+//@ts-ignore
 let gfx = cc.gfx;
 var vfmtCustom = new gfx.VertexFormat([
     { name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
@@ -52,6 +53,7 @@ export default class MovingBGAssembler extends GTSimpleSpriteAssembler2D {
     // 重载getBuffer(), 返回一个能容纳自定义顶点数据的buffer
     // 默认fillBuffers()方法中会调用到
     getBuffer() {
+        //@ts-ignore
         return cc.renderer._handle.getBuffer("mesh", this.getVfmt());
     }
 

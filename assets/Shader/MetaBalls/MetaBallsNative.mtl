@@ -1,0 +1,15 @@
+{
+  "__type__": "cc.Material",
+  "_name": "MetaBalls",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "47b94ccc-24dc-48e1-89cd-bcefeade8b68"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {}
+    }
+  }
+}

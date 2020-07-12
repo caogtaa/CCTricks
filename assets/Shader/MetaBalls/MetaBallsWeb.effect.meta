@@ -1,0 +1,17 @@
+{
+  "ver": "1.0.25",
+  "uuid": "b3f86304-9658-4bb5-ae5e-53972602b043",
+  "compiledShaders": [
+    {
+      "glsl1": {
+        "vert": "\nprecision highp float;\nuniform mat4 cc_matViewProj;\nuniform vec2 offset;\nuniform vec2 reverseRes;\nuniform float yratio;\nattribute vec2 a_position;\nattribute vec2 a_center;\nvarying vec2 v_corner;\nvarying vec2 v_center;\nvoid main() {\n  vec4 pos = vec4(a_position, 0.0, 1.0);\n  gl_Position = cc_matViewProj * pos;\n  v_corner = a_position.xy * reverseRes + offset;\n  v_center = a_center.xy * reverseRes + offset;\n  v_corner.y *= yratio;\n  v_center.y *= yratio;\n}",
+        "frag": "\nprecision highp float;\nvarying vec2 v_corner;\nvarying vec2 v_center;\nuniform float radius;\nuniform sampler2D texture;\nvoid main()\n{\n  vec2 uv = v_corner;\n  vec2 center = v_center;\n  float mask = smoothstep(radius * 3., radius, distance(uv, center));\n  vec4 col = vec4(1.0);\n  col.a = mask;\n  gl_FragColor = col;\n}"
+      },
+      "glsl3": {
+        "vert": "\nprecision highp float;\nuniform CCGlobal {\n  mat4 cc_matView;\n  mat4 cc_matViewInv;\n  mat4 cc_matProj;\n  mat4 cc_matProjInv;\n  mat4 cc_matViewProj;\n  mat4 cc_matViewProjInv;\n  vec4 cc_cameraPos;\n  vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nuniform VSARGS {\n  vec2 offset;\n  vec2 reverseRes;\n  float yratio;\n};\nin vec2 a_position;\nin vec2 a_center;\nout vec2 v_corner;\nout vec2 v_center;\nvoid main() {\n  vec4 pos = vec4(a_position, 0.0, 1.0);\n  gl_Position = cc_matViewProj * pos;\n  v_corner = a_position.xy * reverseRes + offset;\n  v_center = a_center.xy * reverseRes + offset;\n  v_corner.y *= yratio;\n  v_center.y *= yratio;\n}",
+        "frag": "\nprecision highp float;\nuniform CCGlobal {\n  mat4 cc_matView;\n  mat4 cc_matViewInv;\n  mat4 cc_matProj;\n  mat4 cc_matProjInv;\n  mat4 cc_matViewProj;\n  mat4 cc_matViewProjInv;\n  vec4 cc_cameraPos;\n  vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nin vec2 v_corner;\nin vec2 v_center;\nuniform FSARGS {\n  float radius;\n};\nuniform sampler2D texture;\nvoid main()\n{\n  vec2 uv = v_corner;\n  vec2 center = v_center;\n  float mask = smoothstep(radius * 3., radius, distance(uv, center));\n  vec4 col = vec4(1.0);\n  col.a = mask;\n  gl_FragColor = col;\n}"
+      }
+    }
+  ],
+  "subMetas": {}
+}
