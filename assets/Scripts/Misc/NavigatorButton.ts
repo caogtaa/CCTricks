@@ -2,7 +2,7 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class NavigatorButton extends cc.Component {
-    @property(String)
+    @property(cc.String)
     sceneName: string = "SceneWelcome";
 
     onLoad() {
