@@ -4,9 +4,6 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class SceneMetaBalls extends cc.Component {
-	@property(cc.Node)
-	hydrovalve: cc.Node = null;
-
 	@property(cc.Camera)
 	waterRendererCamera: cc.Camera = null;
 
