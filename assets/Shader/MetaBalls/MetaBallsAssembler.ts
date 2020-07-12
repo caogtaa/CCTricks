@@ -1,15 +1,20 @@
 //@ts-ignore
 let gfx = cc.gfx;
-var vfmtPos = new gfx.VertexFormat([
+var vfmtPosCenterWeb = new gfx.VertexFormat([
     { name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },   // 粒子顶点（1个粒子有3个或4个顶点）
-    { name: "a_corner", type: gfx.ATTR_TYPE_FLOAT32, num: 2 },   // 粒子顶点（1个粒子有3个或4个顶点）
+    { name: "a_center", type: gfx.ATTR_TYPE_FLOAT32, num: 2 }           // 原粒子中心（每个顶点相同数据）
+]);
+
+var vfmtPosCenterNative = new gfx.VertexFormat([
+    { name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },   // 粒子顶点（1个粒子有3个或4个顶点）
+    { name: "a_corner", type: gfx.ATTR_TYPE_FLOAT32, num: 2 },          // a_position的冗余，a_position在native是个大坑
     { name: "a_center", type: gfx.ATTR_TYPE_FLOAT32, num: 2 }           // 原粒子中心（每个顶点相同数据）
 ]);
 
 export default class MetaBallsAssembler extends cc.Assembler {
     verticesCount = 0;
     indicesCount = 0;
-    floatsPerVert = 6;
+    floatsPerVert = CC_NATIVERENDERER ? 6 : 4;
 
     public particles;
 
@@ -36,6 +41,11 @@ export default class MetaBallsAssembler extends cc.Assembler {
     }
 
     updateVerts(comp) {
+        if (!CC_NATIVERENDERER) {
+            // web模式直接在fillbuffer里做所有操作，不经过RenderData缓存
+            return;
+        }
+
         let particles = this.particles;
         let PTM_RATIO = cc.PhysicsManager.PTM_RATIO;
 		let posBuff = particles.GetPositionBuffer();
@@ -49,95 +59,48 @@ export default class MetaBallsAssembler extends cc.Assembler {
         // fill vertices
         // 暂时不考虑buffer满的情况
         let vertexOffset = 0;
-        if (CC_NATIVERENDERER) {
-            // let vl = local[0],
-            // vr = local[2],
-            // vb = local[1],
-            // vt = local[3];
-            for (let i = 0; i < particleCount; ++i) {
-                let x = posBuff[i].x * PTM_RATIO - xoffset;
-                let y = posBuff[i].y * PTM_RATIO - yoffset;
+        for (let i = 0; i < particleCount; ++i) {
+            let x = posBuff[i].x * PTM_RATIO - xoffset;
+            let y = posBuff[i].y * PTM_RATIO - yoffset;
 
-                // left-bottom
-                verts[vertexOffset++] = x - r;
-                verts[vertexOffset++] = y + r;
-                verts[vertexOffset++] = x - r;
-                verts[vertexOffset++] = y + r;
-                verts[vertexOffset++] = x;
-                verts[vertexOffset++] = y;
+            // left-bottom
+            verts[vertexOffset++] = x - r;
+            verts[vertexOffset++] = y + r;
+            verts[vertexOffset++] = x - r;
+            verts[vertexOffset++] = y + r;
+            verts[vertexOffset++] = x;
+            verts[vertexOffset++] = y;
 
-                // right-bottom
-                verts[vertexOffset++] = x + r;
-                verts[vertexOffset++] = y + r;
-                verts[vertexOffset++] = x + r;
-                verts[vertexOffset++] = y + r;
-                verts[vertexOffset++] = x;
-                verts[vertexOffset++] = y;
+            // right-bottom
+            verts[vertexOffset++] = x + r;
+            verts[vertexOffset++] = y + r;
+            verts[vertexOffset++] = x + r;
+            verts[vertexOffset++] = y + r;
+            verts[vertexOffset++] = x;
+            verts[vertexOffset++] = y;
 
-                // left-top
-                verts[vertexOffset++] = x - r;
-                verts[vertexOffset++] = y - r;
-                verts[vertexOffset++] = x - r;
-                verts[vertexOffset++] = y - r;
-                verts[vertexOffset++] = x;
-                verts[vertexOffset++] = y;
+            // left-top
+            verts[vertexOffset++] = x - r;
+            verts[vertexOffset++] = y - r;
+            verts[vertexOffset++] = x - r;
+            verts[vertexOffset++] = y - r;
+            verts[vertexOffset++] = x;
+            verts[vertexOffset++] = y;
 
-                // right-top
-                verts[vertexOffset++] = x + r;
-                verts[vertexOffset++] = y - r;
-                verts[vertexOffset++] = x + r;
-                verts[vertexOffset++] = y - r;
-                verts[vertexOffset++] = x;
-                verts[vertexOffset++] = y;
-            }
-        } else {
-            // local[0] = l;
-            // local[1] = b;
-            // local[2] = r;
-            // local[3] = t;
-            for (let i = 0; i < particleCount; ++i) {
-                let x = posBuff[i].x * PTM_RATIO;
-                let y = posBuff[i].y * PTM_RATIO;
-    
-                // left-bottom
-                verts[vertexOffset++] = x - r;
-                verts[vertexOffset++] = y + r;
-                verts[vertexOffset++] = x - r;
-                verts[vertexOffset++] = y + r;
-                verts[vertexOffset++] = x;
-                verts[vertexOffset++] = y;
-    
-                // right-bottom
-                verts[vertexOffset++] = x + r;
-                verts[vertexOffset++] = y + r;
-                verts[vertexOffset++] = x + r;
-                verts[vertexOffset++] = y + r;
-                verts[vertexOffset++] = x;
-                verts[vertexOffset++] = y;
-    
-                // left-top
-                verts[vertexOffset++] = x - r;
-                verts[vertexOffset++] = y - r;
-                verts[vertexOffset++] = x - r;
-                verts[vertexOffset++] = y - r;
-                verts[vertexOffset++] = x;
-                verts[vertexOffset++] = y;
-    
-                // right-top
-                verts[vertexOffset++] = x + r;
-                verts[vertexOffset++] = y - r;
-                verts[vertexOffset++] = x + r;
-                verts[vertexOffset++] = y - r;
-                verts[vertexOffset++] = x;
-                verts[vertexOffset++] = y;
-            }
+            // right-top
+            verts[vertexOffset++] = x + r;
+            verts[vertexOffset++] = y - r;
+            verts[vertexOffset++] = x + r;
+            verts[vertexOffset++] = y - r;
+            verts[vertexOffset++] = x;
+            verts[vertexOffset++] = y;
         }
     }
 
     updateRenderData(comp) {
-        // if (!CC_NATIVERENDERER) {
-        //     return;
-        // }
+        if (!CC_NATIVERENDERER) {
+            return;
+        }
 
         let particleCount = this.particles?.GetParticleCount();
         if (!particleCount)
@@ -166,15 +129,17 @@ export default class MetaBallsAssembler extends cc.Assembler {
             }
         }
 
-        // ignore verts dirty and update each frame
-
-
-        // todo: make sure FLAG_UPDATE_RENDER_DATA is set each frame
-        this.updateVerts(comp);
+        if (comp._vertsDirty) {
+            this.updateVerts(comp);
+            comp._vertsDirty = false;
+        }        
     }
 
     getVfmt() {
-        return vfmtPos;
+        if (CC_NATIVERENDERER)
+            return vfmtPosCenterNative;
+        
+        return vfmtPosCenterWeb;
     }
 
     getBuffer() {
@@ -182,11 +147,10 @@ export default class MetaBallsAssembler extends cc.Assembler {
         return cc.renderer._handle.getBuffer("mesh", this.getVfmt());
     }
 
-    // TODO: 兼容native需要降级使用RenderData缓存
-    fillBuffersWebgl(comp, renderer) {
-        return; // TODO: 注意顶点格式
+    fillBuffers(comp, renderer) {
         if (CC_NATIVERENDERER) {
-            // fill buffers implemented in native code
+            // 仅对web实现
+            // native由于fillBuffer实现在了C++层，需要使用RenderData做缓存
             return;
         }
 
@@ -254,39 +218,6 @@ export default class MetaBallsAssembler extends cc.Assembler {
             ibuf[indiceOffset++] = vertexId + 3;
             ibuf[indiceOffset++] = vertexId + 2;
             vertexId += 4;
-        }
-    }
-
-    // 将准备好的顶点数据填充进 VertexBuffer 和 IndiceBuffer
-    fillBuffers(comp, renderer) {
-        if (this.verticesCount <= 0)
-            return;
-
-        let renderData = this._renderData;
-        let vData = renderData.vDatas[0];
-        let iData = renderData.iDatas[0];
-
-        let buffer = this.getBuffer(/*renderer*/);
-        let offsetInfo = buffer.request(this.verticesCount, this.indicesCount);
-
-        // buffer data may be realloc, need get reference after request.
-
-        // fill vertices
-        let vertexOffset = offsetInfo.byteOffset >> 2,
-            vbuf = buffer._vData;
-
-        if (vData.length + vertexOffset > vbuf.length) {
-            vbuf.set(vData.subarray(0, vbuf.length - vertexOffset), vertexOffset);
-        } else {
-            vbuf.set(vData, vertexOffset);
-        }
-
-        // fill indices
-        let ibuf = buffer._iData,
-            indiceOffset = offsetInfo.indiceOffset,
-            vertexId = offsetInfo.vertexOffset;             // vertexId是已经在buffer里的顶点数，也是当前顶点序号的基数
-        for (let i = 0, l = iData.length; i < l; i++) {
-            ibuf[indiceOffset++] = vertexId + iData[i];
         }
     }
 }

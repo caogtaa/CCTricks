@@ -20,9 +20,8 @@ CCProgram vs %{
 
   uniform VSARGS {
     vec2 offset;
-    float reverseResX;
-    float reverseResY;
-    float yratio;
+    vec2 reverseRes;
+    float yratio;       // Y轴坐标需要乘以的比例，即iResolution.y / iResolution.x
   };
 
   in vec2 a_position;
@@ -38,18 +37,8 @@ CCProgram vs %{
 
     gl_Position = cc_matViewProj * pos;
 
-    v_corner = a_corner.xy;
-    v_center = a_center.xy;
-
-    v_corner.x *= reverseResX;
-    v_corner.y *= reverseResY;
-    //v_uv0 += 0.5;
-
-    v_center.x *= reverseResX;
-    v_center.y *= reverseResY;
-
-    v_corner += offset;
-    v_center += offset;
+    v_corner = a_corner.xy * reverseRes + offset;
+    v_center = a_center.xy * reverseRes + offset;
 
     v_corner.y *= yratio;
     v_center.y *= yratio;
@@ -70,32 +59,15 @@ CCProgram fs %{
   in vec2 v_center;
 
   uniform FSARGS {
-    // float yratio;   // Y轴坐标需要乘以的比例，即iResolution.y / iResolution.x
     float radius;   // X轴方向上的半径，外部通过box2d世界大小和粒子大小计算获得
   };
   uniform sampler2D texture;
 
   void main()
   {
-    // todo: X、Y长度不一，但是v_pos，v_center都已经单元化。所以粒子在Y方向上单元化的长度不一样
-    // todo: radius未经过同比例单元化转换
-    // vec4 col = vec4(1.0);
-
-    // 当前uv是原点屏幕居中的，范围[-1, 1]
+    // 当前uv原点是左下，范围[0, 1]
     vec2 uv = v_corner;
-    // uv.y *= yratio;
-
     vec2 center = v_center;
-    // center.y *= yratio;
-
-    // vec4 col = vec4(uv.x, uv.y, 0., 1.0);
-    // col.a = step(radius, distance(v_pos, v_center));
-    // vec4 col = vec4(0., 0., 0., 1.0);
-    // col.b = distance(uv, center) * 20.;
-
-
-    // float mask = 1.0 - step(radius, distance(uv, center));
-    // vec4 col = mix(vec4(0.), vec4(0., 0.553, 1.0, 1.0), mask);
 
     float mask = smoothstep(radius * 3., radius, distance(uv, center));
     // float mask = smoothstep(0., 1., distance(uv, center));

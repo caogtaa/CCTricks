@@ -448,7 +448,7 @@
     "_enabled": true,
     "_materials": [
       {
-        "__uuid__": "5f6e5219-492c-42aa-ae2d-ff230a35bd03"
+        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
       }
     ],
     "_srcBlendFactor": 770,
@@ -468,6 +468,12 @@
     "_fillRange": 0,
     "_isTrimmedMode": true,
     "_atlas": null,
+    "materialWeb": {
+      "__uuid__": "dc4e48b1-5c31-433b-a5d3-56d4403f6a4c"
+    },
+    "materialNative": {
+      "__uuid__": "5f6e5219-492c-42aa-ae2d-ff230a35bd03"
+    },
     "_id": "30pXnRAqdKI5to7vwXswbS"
   },
   {
