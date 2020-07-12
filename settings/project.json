@@ -13,10 +13,10 @@
     "default",
     "water"
   ],
-  "design-resolution-width": 960,
-  "design-resolution-height": 640,
-  "fit-width": false,
-  "fit-height": true,
+  "design-resolution-width": 720,
+  "design-resolution-height": 1280,
+  "fit-width": true,
+  "fit-height": false,
   "use-project-simulator-setting": false,
   "simulator-orientation": false,
   "use-customize-simulator": true,
@@ -34,5 +34,6 @@
     "live": {
       "enable": false
     }
-  }
+  },
+  "last-module-event-record-time": 1594571194348
 }
