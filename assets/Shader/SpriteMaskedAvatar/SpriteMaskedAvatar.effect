@@ -1,0 +1,78 @@
+// Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.  
+ 
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+        mask: { value: white }
+        alphaThreshold: { value: 0.5 }
+}%
+ 
+ 
+CCProgram vs %{
+  precision highp float;
+ 
+  #include <cc-global>
+  #include <cc-local>
+ 
+  in vec3 a_position;
+  in vec2 a_mask_uv;
+  in vec2 a_uv0;
+  in vec2 a_xmap;
+  in vec2 a_ymap;
+  out vec2 v_uv0;
+  out vec2 v_mask_uv;
+  out vec2 v_xmap;
+  out vec2 v_ymap;
+ 
+  void main () {
+    vec4 pos = vec4(a_position, 1);
+    pos = cc_matViewProj * pos;
+ 
+    v_uv0 = a_uv0;
+    v_mask_uv = a_mask_uv;
+    v_xmap = a_xmap;
+    v_ymap = a_ymap; 
+    gl_Position = pos;
+  }
+}%
+ 
+ 
+CCProgram fs %{
+  precision highp float;
+  
+  #include <alpha-test>
+  #include <texture>
+  #include <cc-global>
+  #include <cc-local>
+ 
+  in vec2 v_mask_uv;
+  in vec2 v_uv0;
+  in vec2 v_xmap;
+  in vec2 v_ymap;
+  uniform sampler2D texture;
+  uniform sampler2D mask;
+
+  void main () {
+    vec2 uv = v_uv0.xy;
+    vec4 col = texture(texture, uv);
+
+    uv.x = uv.x * v_xmap.x + v_xmap.y;
+    uv.y = uv.y * v_ymap.x + v_ymap.y;
+
+    float d = distance(uv, vec2(0.5, 0.5));
+    vec4 maskCol = texture(mask, v_mask_uv);
+    col.a = 1.0 - step(0.01, length(maskCol - vec4(0., 0., 0., 1.)));
+ 
+    gl_FragColor = col;
+  }
+}%
+ 

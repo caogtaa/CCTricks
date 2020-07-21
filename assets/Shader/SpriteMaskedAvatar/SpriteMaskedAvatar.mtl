@@ -1,0 +1,15 @@
+{
+  "__type__": "cc.Material",
+  "_name": "SpriteMaskedAvatar",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "7666fb72-54b8-4756-ab6c-d380cc6160f7"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {}
+    }
+  }
+}
