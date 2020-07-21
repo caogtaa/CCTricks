@@ -61,7 +61,7 @@ export default class MovingBGAssembler extends GTSimpleSpriteAssembler2D {
     // updateVerts(sprite) {
     // }
 
-    updateColor(sprite) {
+    updateColor(sprite, color) {
         // 由于已经去掉了color字段，这里重载原方法，并且不做任何事
     }
 
