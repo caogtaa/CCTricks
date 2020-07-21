@@ -1,11 +1,14 @@
-import GTSimpleSpriteAssembler2D from "../GTSimpleSpriteAssembler2D";
+/****************************************************************************
+ Author: GT <caogtaa@gmail.com>
+ https://caogtaa.github.io
+****************************************************************************/
 
+import GTSimpleSpriteAssembler2D from "../GTSimpleSpriteAssembler2D";
 
 export default class EqualScalingAssembler extends GTSimpleSpriteAssembler2D {
     private _uv = [];
 
     updateUVs(sprite) {
-        // uv顺序和rect已经旋转对齐，此处不需要主动考虑旋转
         let rect: cc.Rect = sprite._spriteFrame.getRect();
         let node: cc.Node = sprite.node;
         if (!rect.width || !rect.height || !node.width || !node.height) {
@@ -18,22 +21,25 @@ export default class EqualScalingAssembler extends GTSimpleSpriteAssembler2D {
         let uv = this._uv;
         let wscale = rect.width / node.width;
         let hscale = rect.height / node.height;
+        let ratio: number = 1.0;
         if (wscale > hscale) {
             // fit height
-            let ratio = hscale / wscale;
-            let l = uv[0], r = uv[2];
+            ratio = hscale / wscale;
+            let ro = sprite._spriteFrame.isRotated() ? 1 : 0;
+            let l = uv[0+ro], r = uv[2+ro];
             let c = (l+r) * 0.5;
             let half = (r-l) * 0.5 * ratio;
-            uv[0] = uv[4] = c - half;
-            uv[2] = uv[6] = c + half;
+            uv[0+ro] = uv[4+ro] = c - half;
+            uv[2+ro] = uv[6+ro] = c + half;
         } else {
             // fit width
-            let ratio = wscale / hscale;
-            let b = uv[1], t = uv[5];
+            ratio = wscale / hscale;
+            let ro = sprite._spriteFrame.isRotated() ? -1 : 0;
+            let b = uv[1+ro], t = uv[5+ro];
             let c = (b+t) * 0.5;
             let half = (b-t) * 0.5 * ratio;
-            uv[1] = uv[3] = c + half;
-            uv[5] = uv[7] = c - half;
+            uv[1+ro] = uv[3+ro] = c + half;
+            uv[5+ro] = uv[7+ro] = c - half;
         }
 
         let uvOffset = this.uvOffset;

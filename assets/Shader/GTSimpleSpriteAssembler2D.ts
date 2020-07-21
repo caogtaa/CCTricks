@@ -1,3 +1,8 @@
+/****************************************************************************
+ Author: GT <caogtaa@gmail.com>
+ https://caogtaa.github.io
+****************************************************************************/
+
 import GTAssembler2D from "./GTAssembler2D";
 
 export default class GTSimpleSpriteAssembler2D extends GTAssembler2D {
