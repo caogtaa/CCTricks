@@ -21,6 +21,20 @@ export default class SpriteMaskedAvatarSprite extends cc.Sprite {
     @property(cc.SpriteFrame)
     protected _mask: cc.SpriteFrame = null;
 
+    @property(cc.Boolean)
+    set enableMask(value: boolean) {
+        this._enableMask = value;
+        let mat = this.getMaterial(0);
+        if (mat)
+            mat.setProperty("enableMask", value ? 1.0 : 0.0);
+    }
+    get enableMask() {
+        return this._enableMask;
+    }
+
+    @property(cc.Boolean)
+    protected _enableMask = true;
+
     _resetAssembler() {
         this.setVertsDirty();
         let assembler = this._assembler = new SpriteMaskedAvatarAssembler();
@@ -28,8 +42,10 @@ export default class SpriteMaskedAvatarSprite extends cc.Sprite {
 
         let mask = this._mask;
         let mat = this.getMaterial(0);
-        if (mat && mask)
+        if (mat && mask) {
             mat.setProperty("mask", mask.getTexture());
+            mat.setProperty("enableMask", this._enableMask ? 1.0 : 0.0);
+        }
     }
 
     // 注意事项：业务上保证
