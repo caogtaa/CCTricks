@@ -10,8 +10,8 @@ let gfx = cc.gfx;
 var vfmtCustom = new gfx.VertexFormat([
     { name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
     { name: gfx.ATTR_UV0, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
-    { name: "a_xrange", type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
-    { name: "a_yrange", type: gfx.ATTR_TYPE_FLOAT32, num: 2 }
+    { name: "a_xmap", type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
+    { name: "a_ymap", type: gfx.ATTR_TYPE_FLOAT32, num: 2 }
 ]);
 
 export default class AvatarAssembler extends GTSimpleSpriteAssembler2D {
@@ -96,6 +96,11 @@ export default class AvatarAssembler extends GTSimpleSpriteAssembler2D {
             t = uv[5+ro] = uv[7+ro] = c - half;
         }
 
+        let px = 1.0 / (r-l),
+        qx = -l * px;   // l / (l-r);
+
+        let py = 1.0 / (b-t),
+        qy = -t * py;   // t / (t-b);
 
         let uvOffset = this.uvOffset;
         let floatsPerVert = this.floatsPerVert;
@@ -106,15 +111,15 @@ export default class AvatarAssembler extends GTSimpleSpriteAssembler2D {
             verts[dstOffset] = uv[srcOffset];
             verts[dstOffset + 1] = uv[srcOffset + 1];
             if (isRotated) {
-                verts[dstOffset + 2] = b;
-                verts[dstOffset + 3] = t;
-                verts[dstOffset + 4] = l;
-                verts[dstOffset + 5] = r;
+                verts[dstOffset + 2] = py;
+                verts[dstOffset + 3] = qy;
+                verts[dstOffset + 4] = px;
+                verts[dstOffset + 5] = qx;
             } else {
-                verts[dstOffset + 2] = l;
-                verts[dstOffset + 3] = r;
-                verts[dstOffset + 4] = b;
-                verts[dstOffset + 5] = t;
+                verts[dstOffset + 2] = px;
+                verts[dstOffset + 3] = qx;
+                verts[dstOffset + 4] = py;
+                verts[dstOffset + 5] = qy;
             }
         }
     }

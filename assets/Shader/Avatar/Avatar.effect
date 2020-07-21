@@ -24,19 +24,19 @@ CCProgram vs %{
  
   in vec3 a_position;
   in vec2 a_uv0;
-  in vec2 a_xrange;
-  in vec2 a_yrange;
+  in vec2 a_xmap;
+  in vec2 a_ymap;
   out vec2 v_uv0;
-  out vec2 v_xrange;
-  out vec2 v_yrange;
+  out vec2 v_xmap;
+  out vec2 v_ymap;
  
   void main () {
     vec4 pos = vec4(a_position, 1);
     pos = cc_matViewProj * pos;
  
     v_uv0 = a_uv0;
-    v_xrange = a_xrange;
-    v_yrange = a_yrange; 
+    v_xmap = a_xmap;
+    v_ymap = a_ymap; 
     gl_Position = pos;
   }
 }%
@@ -51,25 +51,25 @@ CCProgram fs %{
   #include <cc-local>
  
   in vec2 v_uv0;
-  in vec2 v_xrange;
-  in vec2 v_yrange;
+  in vec2 v_xmap;
+  in vec2 v_ymap;
   uniform sampler2D texture;
 
-  float Remap01(float a, float b, float t) {
-    return (t-a) / (b-a);
-  }
+  // float Remap01(float a, float b, float t) {
+  //   return (t-a) / (b-a);
+  // }
 
-  float Remap(float a, float b, float c, float d, float t) {
-    return Remap01(a, b, t) * (d-c) + c;
-  }
-   
+  // float Remap(float a, float b, float c, float d, float t) {
+  //   return Remap01(a, b, t) * (d-c) + c;
+  // }
+
   void main () {
     vec2 uv = v_uv0.xy;
     vec4 col = texture(texture, uv);
- 
-    // uv *= v_ratio;
-    uv.x = Remap(v_xrange.x, v_xrange.y, 0., 1., uv.x);
-    uv.y = Remap(v_yrange.x, v_yrange.y, 0., 1., uv.y);
+
+    uv.x = uv.x * v_xmap.x + v_xmap.y;
+    uv.y = uv.y * v_ymap.x + v_ymap.y;
+
     float d = distance(uv, vec2(0.5, 0.5));
     float mask = smoothstep(0.51, 0.49, d);
     col.a = mask;
