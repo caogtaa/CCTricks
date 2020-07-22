@@ -35,8 +35,8 @@ CCProgram vs %{
   in vec3 a_position;
   in vec2 a_mask_uv;
   in vec2 a_uv0;
-  in vec2 a_xmap;
-  in vec2 a_ymap;
+  in vec2 a_xmap; // useless remove later
+  in vec2 a_ymap; // useless remove later
   out vec2 v_uv0;
   out vec2 v_mask_uv;
   out vec2 v_xmap;
@@ -48,8 +48,8 @@ CCProgram vs %{
  
     v_uv0 = a_uv0;
     v_mask_uv = a_mask_uv;
-    v_xmap = a_xmap;
-    v_ymap = a_ymap; 
+    // v_xmap = a_xmap;
+    // v_ymap = a_ymap; 
     gl_Position = pos;
   }
 }%
@@ -65,8 +65,6 @@ CCProgram fs %{
  
   in vec2 v_mask_uv;
   in vec2 v_uv0;
-  in vec2 v_xmap;
-  in vec2 v_ymap;
   uniform sampler2D texture;
   uniform sampler2D mask;
   uniform UARGS {
@@ -77,10 +75,6 @@ CCProgram fs %{
     vec2 uv = v_uv0.xy;
     vec4 col = texture(texture, uv);
 
-    uv.x = uv.x * v_xmap.x + v_xmap.y;
-    uv.y = uv.y * v_ymap.x + v_ymap.y;
-
-    float d = distance(uv, vec2(0.5, 0.5));
     vec4 maskCol = texture(mask, v_mask_uv);
     col.a = 1.0 - enableMask * step(0.01, length(maskCol - vec4(0., 0., 0., 1.)));
  
