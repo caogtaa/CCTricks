@@ -1,3 +1,8 @@
+/****************************************************************************
+ Author: GT <caogtaa@gmail.com>
+ https://caogtaa.github.io
+****************************************************************************/
+
 import GTSimpleSpriteAssembler2D from "../GTSimpleSpriteAssembler2D";
 
 // 自定义顶点格式，在vfmtPosUvColor基础上，加入gfx.ATTR_UV1，去掉gfx.ATTR_COLOR

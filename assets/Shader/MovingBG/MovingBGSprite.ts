@@ -1,3 +1,7 @@
+/****************************************************************************
+ Author: GT <caogtaa@gmail.com>
+ https://caogtaa.github.io
+****************************************************************************/
 
 import MovingBGAssembler from "./MovingBGAssembler";
 

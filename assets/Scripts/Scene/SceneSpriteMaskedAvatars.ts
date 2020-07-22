@@ -1,3 +1,8 @@
+/****************************************************************************
+ Author: GT <caogtaa@gmail.com>
+ https://caogtaa.github.io
+****************************************************************************/
+
 import SpriteMaskedAvatarSprite from "../../Shader/SpriteMaskedAvatar/SpriteMaskedAvatarSprite";
 
 const { ccclass, property } = cc._decorator;

@@ -1,3 +1,8 @@
+/****************************************************************************
+ Author: GT <caogtaa@gmail.com>
+ https://caogtaa.github.io
+****************************************************************************/
+
 import LayeredBatchingAssembler from "./LayeredBatchingAssembler";
 
 

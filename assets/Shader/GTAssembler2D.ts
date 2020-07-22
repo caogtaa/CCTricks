@@ -1,3 +1,8 @@
+/****************************************************************************
+ Author: GT <caogtaa@gmail.com>
+ https://caogtaa.github.io
+****************************************************************************/
+
 // 自定义渲染
 // https://docs.cocos.com/creator/manual/zh/advanced-topics/custom-render.html#%E8%87%AA%E5%AE%9A%E4%B9%89-assembler
 export default class GTAssembler2D extends cc.Assembler {

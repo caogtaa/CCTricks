@@ -1,3 +1,8 @@
+/****************************************************************************
+ Author: GT <caogtaa@gmail.com>
+ https://caogtaa.github.io
+****************************************************************************/
+
 import GTSimpleSpriteAssembler2D from "../GTSimpleSpriteAssembler2D";
 
 // RenderFlow遍历过程中，需要防止子节点进入的函数

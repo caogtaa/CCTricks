@@ -1,3 +1,8 @@
+/****************************************************************************
+ Author: GT <caogtaa@gmail.com>
+ https://caogtaa.github.io
+****************************************************************************/
+
 //@ts-ignore
 let gfx = cc.gfx;
 var vfmtPosCenterWeb = new gfx.VertexFormat([

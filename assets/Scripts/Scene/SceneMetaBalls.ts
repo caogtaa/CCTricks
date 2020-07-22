@@ -1,3 +1,8 @@
+/****************************************************************************
+ Author: GT <caogtaa@gmail.com>
+ https://caogtaa.github.io
+****************************************************************************/
+
 import MetaBallsRenderer from "../../Shader/MetaBalls/MetaBallsRenderer";
 
 const { ccclass, property } = cc._decorator;
