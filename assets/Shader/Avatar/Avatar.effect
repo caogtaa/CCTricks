@@ -71,7 +71,9 @@ CCProgram fs %{
     uv.y = uv.y * v_ymap.x + v_ymap.y;
 
     float d = distance(uv, vec2(0.5, 0.5));
-    float mask = smoothstep(0.51, 0.49, d);
+
+    float r = 0.5 - abs(sin(cc_time.x * 2.) * 0.02);    // some trivial animation
+    float mask = smoothstep(r + 0.01, r - 0.01, d);
     col.a = mask;
  
     gl_FragColor = col;
