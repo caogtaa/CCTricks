@@ -63,21 +63,24 @@ CCProgram fs %{
   #include <cc-global>
   #include <cc-local>
  
-  in vec2 v_mask_uv;
-  in vec2 v_uv0;
-  uniform sampler2D texture;
-  uniform sampler2D mask;
+  in vec2 v_uv0;              // 底图uv
+  uniform sampler2D texture;  // 底图纹理
+  in vec2 v_mask_uv;          // 遮罩图uv，通过顶点属性传入
+  uniform sampler2D mask;     // 遮罩图纹理，通过材质属性传入
   uniform UARGS {
-    float enableMask;
+    float enableMask;         // 遮罩图开关控制，通过材质属性传入
   };
 
   void main () {
-    vec2 uv = v_uv0.xy;
-    vec4 col = texture(texture, uv);
+    // 对底图采样
+    vec4 col = texture(texture, v_uv0);
 
+    // 对遮罩图采样
     vec4 maskCol = texture(mask, v_mask_uv);
-    col.a = 1.0 - enableMask * step(0.01, length(maskCol - vec4(0., 0., 0., 1.)));
- 
+
+    // 片元透明度使用遮罩图透明度
+    // enableMask控制是否让遮罩生效
+    col.a = mix(col.a, maskCol.a, enableMask);
     gl_FragColor = col;
   }
 }%
