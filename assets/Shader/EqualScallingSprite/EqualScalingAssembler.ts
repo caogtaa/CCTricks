@@ -1,7 +1,13 @@
-/****************************************************************************
- Author: GT <caogtaa@gmail.com>
- https://caogtaa.github.io
-****************************************************************************/
+// Copyright 2020 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2020-07-21 16:23:10
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2020-07-22 14:00:52
+*/ 
 
 import GTSimpleSpriteAssembler2D from "../GTSimpleSpriteAssembler2D";
 

@@ -1,9 +1,14 @@
-/****************************************************************************
- Author: GT <caogtaa@gmail.com>
- https://caogtaa.github.io
-****************************************************************************/
+// Copyright 2020 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
 
-import GTSimpleSpriteAssembler2D from "../GTSimpleSpriteAssembler2D";
+/*
+ * Date: 2020-07-22 01:42:00
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2020-07-22 14:03:56
+*/ 
+
 import AvatarAssembler from "../Avatar/AvatarAssembler";
 
 //@ts-ignore
