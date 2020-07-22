@@ -16,7 +16,8 @@ https://forum.cocos.org/t/topic/92305/36</br>
 
 
 ## Attributions
-https://opengameart.org/content/buttons-with-hover
+https://opengameart.org/content/buttons-with-hover</br>
+https://opengameart.org/content/sprite-fonts-64x64-abblv-by-raid
 
 
 ## License
