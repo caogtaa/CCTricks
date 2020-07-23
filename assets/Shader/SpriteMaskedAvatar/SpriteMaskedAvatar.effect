@@ -4,9 +4,9 @@
 // License text available at https://opensource.org/licenses/MIT
 
 /*
- * Date: 2020-07-22 01:42:00
+ * Date: 2020-07-22 20:37:58
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2020-07-22 14:03:48
+ * LastEditTime: 2020-07-23 16:48:49
 */ 
  
 CCEffect %{
@@ -35,12 +35,8 @@ CCProgram vs %{
   in vec3 a_position;
   in vec2 a_mask_uv;
   in vec2 a_uv0;
-  in vec2 a_xmap; // useless remove later
-  in vec2 a_ymap; // useless remove later
   out vec2 v_uv0;
   out vec2 v_mask_uv;
-  out vec2 v_xmap;
-  out vec2 v_ymap;
  
   void main () {
     vec4 pos = vec4(a_position, 1);
@@ -48,8 +44,6 @@ CCProgram vs %{
  
     v_uv0 = a_uv0;
     v_mask_uv = a_mask_uv;
-    // v_xmap = a_xmap;
-    // v_ymap = a_ymap; 
     gl_Position = pos;
   }
 }%
