@@ -60,6 +60,8 @@ export default class AvatarAssembler extends GTAutoFitSpriteAssembler2D {
     updateUVs(sprite) {
         super.updateUVs(sprite);
 
+        // this._uv可以用sprite._spriteFrame.uv代替
+        // this._uv是spriteFrame对node大小自适应缩放后的uv
         let uv = this._uv;
         let isRotated = sprite._spriteFrame.isRotated();
         let l = uv[0],
