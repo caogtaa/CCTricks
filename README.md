@@ -13,7 +13,8 @@ https://forum.cocos.org/t/postrender-demo/95201
 https://forum.cocos.org/t/topic/92305/36</br>
 优化后调试模式下华为P9手机浏览器1000+个粒子可在60fps下运行</br>
 
-
+* 自定义渲染应用——图片遮罩合批</br>
+https://forum.cocos.org/t/topic/95986
 
 ## Attributions
 https://opengameart.org/content/buttons-with-hover</br>
