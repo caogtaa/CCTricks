@@ -4,11 +4,11 @@
 // License text available at https://opensource.org/licenses/MIT
 
 /*
- * Date: 2020-07-22 20:37:58
+ * Date: 2020-07-24 11:44:36
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2020-07-23 16:48:49
+ * LastEditTime: 2020-07-24 19:37:35
 */ 
- 
+
 CCEffect %{
   techniques:
   - passes:
@@ -69,12 +69,12 @@ CCProgram fs %{
     // 对底图采样
     vec4 col = texture(texture, v_uv0);
 
-    // 对遮罩图采样
-    vec4 maskCol = texture(mask, v_mask_uv);
-
-    // 片元透明度使用遮罩图透明度
     // enableMask控制是否让遮罩生效
-    col.a = mix(col.a, maskCol.a, enableMask);
+    if (enableMask == 1.0) {
+      // 使用遮罩图的透明度
+      col.a = texture(mask, v_mask_uv).a;
+    }
+
     gl_FragColor = col;
   }
 }%
