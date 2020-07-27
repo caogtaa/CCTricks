@@ -1,0 +1,77 @@
+// Copyright 2020 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2020-07-27 15:00:04
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2020-07-27 15:01:50
+*/ 
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+        alphaThreshold: { value: 0.5 }
+}%
+ 
+ 
+CCProgram vs %{
+  precision highp float;
+ 
+  #include <cc-global>
+  #include <cc-local>
+ 
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+ 
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+ 
+  void main () {
+    vec4 pos = vec4(a_position, 1);
+ 
+    pos = cc_matViewProj * pos;
+    v_uv0 = a_uv0;
+    v_color = a_color;
+ 
+    gl_Position = pos;
+  }
+}%
+ 
+ 
+CCProgram fs %{
+  precision highp float;
+  
+  #include <alpha-test>
+  #include <texture>
+  #include <cc-global>
+  #include <cc-local>
+ 
+  in vec4 v_color;
+  in vec2 v_uv0;
+  uniform sampler2D texture;
+
+  const vec2 repeat = vec2(2.5, 3.5);
+   
+  void main () {
+    vec2 grid_uv = fract(v_uv0 * repeat);
+    // grid_uv = fract(grid_uv - cc_time.x * 0.2);
+    grid_uv.x = fract(grid_uv.x - cc_time.x * 0.2);
+    grid_uv.y = fract(grid_uv.y + sin(cc_time.x) * 0.1);
+ 
+    vec4 color = texture(texture, grid_uv);
+    gl_FragColor = color;
+  }
+}%
+ 
