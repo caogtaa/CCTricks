@@ -1,16 +1,17 @@
+// Copyright 2020 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2020-07-13 02:44:17
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2020-07-28 16:47:00
+*/ 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class SceneTest extends cc.Component {
-    @property(cc.Node)
-    avatar: cc.Node = null;
-
     onLoad() {
-    }
-
-    onBtnClick() {
-        if (this.avatar) {
-            this.avatar.position = this.avatar.position.add(cc.v2(10, 10));
-        }
     }
 }

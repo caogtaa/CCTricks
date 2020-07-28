@@ -1,0 +1,21 @@
+{
+  "__type__": "cc.Material",
+  "_name": "CircleMelt",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "06b15b26-3faf-4cd8-ba91-9b79b83cab84"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "xres": 390,
+        "yres": 540
+      },
+      "defines": {
+        "USE_TEXTURE": false
+      }
+    }
+  }
+}
