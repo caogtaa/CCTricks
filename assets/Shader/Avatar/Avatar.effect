@@ -33,19 +33,19 @@ CCProgram vs %{
  
   in vec3 a_position;
   in vec2 a_uv0;
-  in vec2 a_xmap;
-  in vec2 a_ymap;
+  in vec2 a_p;
+  in vec2 a_q;
   out vec2 v_uv0;
-  out vec2 v_xmap;
-  out vec2 v_ymap;
+  out vec2 v_p;
+  out vec2 v_q;
  
   void main () {
     vec4 pos = vec4(a_position, 1);
     pos = cc_matViewProj * pos;
  
     v_uv0 = a_uv0;
-    v_xmap = a_xmap;
-    v_ymap = a_ymap; 
+    v_p = a_p;
+    v_q = a_q; 
     gl_Position = pos;
   }
 }%
@@ -60,8 +60,8 @@ CCProgram fs %{
   #include <cc-local>
  
   in vec2 v_uv0;
-  in vec2 v_xmap;
-  in vec2 v_ymap;
+  in vec2 v_p;
+  in vec2 v_q;
   uniform sampler2D texture;
 
   // float Remap01(float a, float b, float t) {
@@ -76,9 +76,9 @@ CCProgram fs %{
     vec2 uv = v_uv0.xy;
     vec4 col = texture(texture, uv);
 
-    uv.x = uv.x * v_xmap.x + v_xmap.y;
-    uv.y = uv.y * v_ymap.x + v_ymap.y;
-
+    // remap to [0, 1]
+    uv = uv * v_p + v_q;
+    
     float d = distance(uv, vec2(0.5, 0.5));
 
     float r = 0.5 - abs(sin(cc_time.x * 2.) * 0.02);    // some trivial animation

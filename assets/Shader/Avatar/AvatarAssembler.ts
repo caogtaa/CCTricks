@@ -17,8 +17,8 @@ let gfx = cc.gfx;
 var vfmtCustom = new gfx.VertexFormat([
     { name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
     { name: gfx.ATTR_UV0, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
-    { name: "a_xmap", type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
-    { name: "a_ymap", type: gfx.ATTR_TYPE_FLOAT32, num: 2 }
+    { name: "a_p", type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
+    { name: "a_q", type: gfx.ATTR_TYPE_FLOAT32, num: 2 }
 ]);
 
 export default class AvatarAssembler extends GTAutoFitSpriteAssembler2D {
@@ -88,13 +88,13 @@ export default class AvatarAssembler extends GTAutoFitSpriteAssembler2D {
             let dstOffset = floatsPerVert * i + uvOffset;
             if (isRotated) {
                 verts[dstOffset + 2] = py;
-                verts[dstOffset + 3] = qy;
-                verts[dstOffset + 4] = px;
+                verts[dstOffset + 3] = px;
+                verts[dstOffset + 4] = qy;
                 verts[dstOffset + 5] = qx;
             } else {
                 verts[dstOffset + 2] = px;
-                verts[dstOffset + 3] = qx;
-                verts[dstOffset + 4] = py;
+                verts[dstOffset + 3] = py;
+                verts[dstOffset + 4] = qx;
                 verts[dstOffset + 5] = qy;
             }
         }
