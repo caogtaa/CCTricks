@@ -20,8 +20,8 @@ var vfmtCustom = new gfx.VertexFormat([
     { name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
     { name: gfx.ATTR_UV0, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },        // texture纹理uv
     { name: gfx.ATTR_UV1, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },        // uv1，控制图片滚动方向 & 速度
-    { name: gfx.ATTR_UV2, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },        // uv2, uv normalize中间变量，可看成是uv在大纹理内的坐标
-    { name: gfx.ATTR_UV3, type: gfx.ATTR_TYPE_FLOAT32, num: 2 }         // 同上
+    { name: "a_p", type: gfx.ATTR_TYPE_FLOAT32, num: 2 },               // uv remap到 [0, 1]区间用的中间变量
+    { name: "a_q", type: gfx.ATTR_TYPE_FLOAT32, num: 2 }                // 同上
 ]);
 
 const VEC2_ZERO = cc.Vec2.ZERO;
@@ -109,10 +109,10 @@ export default class MovingBGAssembler extends GTSimpleSpriteAssembler2D {
 
             // fill uv2
             verts[dstOffset + 4] = px;
-            verts[dstOffset + 5] = qx;
+            verts[dstOffset + 5] = py;
 
             // fill uv3
-            verts[dstOffset + 6] = py;
+            verts[dstOffset + 6] = qx;
             verts[dstOffset + 7] = qy;
         }
     }
