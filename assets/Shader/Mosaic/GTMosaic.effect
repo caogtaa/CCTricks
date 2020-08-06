@@ -88,33 +88,24 @@ CCProgram fs %{
     return smoothstep(r + blur, r - blur, d);
   }
 
-  const float grids = 25.;
+  // const float grids = 50.;
 
   void main () {
     vec2 uv = v_uv0.xy;
 
     // uv变化前先采样
-    vec3 color = texture(texture, uv).rgb;
+    // vec3 color = texture(texture, uv).rgb;
 
     // 居中后拉伸，中心区域uv范围变为[-0.5, 0.5]
-    uv -= 0.5;
-    uv.y *= yres / xres;
+    // uv -= 0.5;
+    // uv.y *= yres / xres;
+    float grids = fract(cc_time.x) * 100.;
 
     vec2 grid_uv = fract(uv * grids);
     vec2 grid_id = floor(uv * grids);
 
-    // 因为uv居中了，这里的length等价于distance(uv, vec2(0, 0))
-    float d = length(uv);
-
-    // 半径r以sin波形波动，效果从中心开始往外圈散播
-    // sin振幅是0.35时，出现、消失动画无缝衔接
-    float r = 0.35 + sin(d + cc_time.x * 2.) * 0.8;
-    
-    // 半径掺入随机增量
-    // r = r + (random(grid_id / 25.) - 0.5) * 0.1;
-    float mask = Circle(grid_uv, vec2(0.5, 0.5), r, 0.01);
-    color *= mask;
- 
+    vec3 color = texture(texture, grid_id / grids).rgb;
+    // vec3 color = vec3(c); 
     gl_FragColor = vec4(color, 1.0);
   }
 }%
