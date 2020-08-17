@@ -1,6 +1,6 @@
 ## 简介
 Demo用于展示Cocos Creator中的合批技巧</br>
-请使用Cocos Creator 2.4.0版本打开
+请使用Cocos Creator 2.4.0或以上版本打开
 
 * 自定义顶点格式</br>
 https://forum.cocos.org/t/topic/95087
