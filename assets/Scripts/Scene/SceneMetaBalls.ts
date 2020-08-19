@@ -114,93 +114,159 @@ export default class SceneMetaBalls extends cc.Component {
     }
 }
 
+var enableLowLevelOptimize = true;
+if (enableLowLevelOptimize) {
+	cc.game.once(cc.game.EVENT_ENGINE_INITED, () => {
+		// b2ParticleSystem.prototype.FindContacts_Reference = function (contacts) {
+		//@ts-ignore
+		b2.ParticleSystem.prototype.FindContacts_Reference = function (contacts) {
+			if (!this.m_flagsBuffer.data) {
+				throw new Error();
+			}
+			if (!this.m_positionBuffer.data) {
+				throw new Error();
+			}
 
-cc.game.once(cc.game.EVENT_ENGINE_INITED, () => {
-	// b2ParticleSystem.prototype.FindContacts_Reference = function (contacts) {
-	b2.ParticleSystem.prototype.FindContacts_Reference = function (contacts) {
-		if (!this.m_flagsBuffer.data) {
-			throw new Error();
-		}
-		if (!this.m_positionBuffer.data) {
-			throw new Error();
-		}
+			var pos_data = this.m_positionBuffer.data;
+			var squaredDiameter = this.m_squaredDiameter;
+			var inverseDiameter = this.m_inverseDiameter;
 
-		// DEBUG: b2Assert(contacts === this.m_contactBuffer);
-		var beginProxy = 0;
-		var endProxy = this.m_proxyBuffer.count;
-		this.m_contactBuffer.count = 0;
-		let contactBuffer = this.m_contactBuffer;
-		var proxyData = this.m_proxyBuffer.data;
-		var count = 0;
-		var computeRelativeTag = b2.ParticleSystem.computeRelativeTag;
-		var AddContact = this.AddContact2.bind(this);
-		for (var a = beginProxy, c = beginProxy; a < endProxy; a++) {
-			var dataA = proxyData[a];
-			var tagA = dataA.tag;
-			var indexA = dataA.index;
-			var rightTag = computeRelativeTag(tagA, 1, 0);
-			for (var b = a + 1; b < endProxy; b++) {
-				++ count;
-				if (rightTag < proxyData[b].tag) {
-					break;
+			// DEBUG: b2Assert(contacts === this.m_contactBuffer);
+			var beginProxy = 0;
+			var endProxy = this.m_proxyBuffer.count;
+			this.m_contactBuffer.count = 0;
+			// let contactBuffer = this.m_contactBuffer;
+			var proxyData = this.m_proxyBuffer.data;
+			//@ts-ignore
+			var computeRelativeTag = b2.ParticleSystem.computeRelativeTag;
+			// var AddContact = this.AddContact2.bind(this);
+
+			var dataA;
+			var tagA = 0;
+			var indexA = 0;
+			var rightTag = 0;
+			var dataB;
+
+			var pos_data = this.m_positionBuffer.data;
+			var flagBufferData = this.m_flagsBuffer.data;
+			var flagBufferDataA;
+			var indexB = 0;
+			var pos_dataA;
+			var pos_dataB;
+
+			var ax = 0, ay = 0, bx = 0, by = 0, dx = 0, dy = 0;
+			var distBtParticlesSq = 0;
+
+			var bottomLeftTag = 0;
+			var bottomRightTag = 0;
+
+			var isFin = isFinite;
+
+			for (var a = beginProxy, c = beginProxy; a < endProxy; ++a) {
+				dataA = proxyData[a];
+				tagA = dataA.tag;
+				indexA = dataA.index;
+				pos_dataA = pos_data[indexA];
+				flagBufferDataA = flagBufferData[indexA];
+
+				rightTag = computeRelativeTag(tagA, 1, 0);
+				for (var b = a + 1; b < endProxy; ++b) {
+					dataB = proxyData[b];
+					if (rightTag < dataB.tag) {
+						break;
+					}
+					
+					// ------- AddContact(indexA, proxyData[b].index, contactBuffer);
+					indexB = dataB.index;
+					// pos_dataA = pos_data[indexA];
+					pos_dataB = pos_data[indexB];
+					
+					// DEBUG: b2Assert(contacts === this.m_contactBuffer);
+					///b2Vec2 d = m_positionBuffer.data[b] - m_positionBuffer.data[a];
+
+					bx = pos_dataB.x;
+					by = pos_dataB.y;
+					ax = pos_dataA.x;
+					ay = pos_dataA.y;
+
+					dx = bx - ax;
+					dy = by - ay;
+					// var d = b2.Vec2.SubVV(pos_data[b], pos_data[a], s_d);
+
+					distBtParticlesSq = dx * dx + dy * dy;
+					// var distBtParticlesSq = b2.Vec2.DotVV(d, d);
+					if (distBtParticlesSq < squaredDiameter) {
+						var invD = 1 / Math.sqrt(distBtParticlesSq);
+						// var invD = b2.InvSqrt(distBtParticlesSq);
+						if (!isFin(invD)) {
+							invD = 1.98177537e+019;
+						}
+						///b2ParticleContact& contact = contacts.Append();
+						var contact = this.m_contactBuffer.data[this.m_contactBuffer.Append()];
+						contact.indexA = indexA;
+						contact.indexB = indexB;
+						contact.flags = flagBufferDataA | flagBufferData[indexB];
+						contact.weight = 1 - distBtParticlesSq * invD * inverseDiameter;
+						///contact.SetNormal(invD * d);
+
+						contact.normal.x = invD * dx;
+						contact.normal.y = invD * dy;
+						// b2.Vec2.MulSV(invD, d, contact.normal);
+					}
+					// end ------- AddContact(indexA, proxyData[b].index, contactBuffer);
 				}
-				AddContact(indexA, proxyData[b].index, contactBuffer);
-			}
-			var bottomLeftTag = computeRelativeTag(tagA, -1, 1);
-			for (; c < endProxy; c++) {
-				++ count;
-				if (bottomLeftTag <= proxyData[c].tag) {
-					break;
+				bottomLeftTag = computeRelativeTag(tagA, -1, 1);
+				for (; c < endProxy; ++c) {
+					if (bottomLeftTag <= proxyData[c].tag) {
+						break;
+					}
+				}
+				bottomRightTag = computeRelativeTag(tagA, 1, 1);
+				for (var b = c; b < endProxy; ++b) {
+					dataB = proxyData[b];
+					if (bottomRightTag < dataB.tag) {
+						break;
+					}
+					
+					// ------- AddContact(indexA, proxyData[b].index, contactBuffer);
+					indexB = dataB.index;
+					// pos_dataA = pos_data[indexA];
+					pos_dataB = pos_data[indexB];
+					// DEBUG: b2Assert(contacts === this.m_contactBuffer);
+					///b2Vec2 d = m_positionBuffer.data[b] - m_positionBuffer.data[a];
+
+					bx = pos_dataB.x;
+					by = pos_dataB.y;
+					ax = pos_dataA.x;
+					ay = pos_dataA.y;
+
+					dx = bx - ax;
+					dy = by - ay;
+					// var d = b2.Vec2.SubVV(pos_data[b], pos_data[a], s_d);
+
+					distBtParticlesSq = dx * dx + dy * dy;
+					// var distBtParticlesSq = b2.Vec2.DotVV(d, d);
+					if (distBtParticlesSq < squaredDiameter) {
+						var invD = 1 / Math.sqrt(distBtParticlesSq);
+						// var invD = b2.InvSqrt(distBtParticlesSq);
+						if (!isFin(invD)) {
+							invD = 1.98177537e+019;
+						}
+						///b2ParticleContact& contact = contacts.Append();
+						var contact = this.m_contactBuffer.data[this.m_contactBuffer.Append()];
+						contact.indexA = indexA;
+						contact.indexB = indexB;
+						contact.flags = flagBufferDataA | flagBufferData[indexB];
+						contact.weight = 1 - distBtParticlesSq * invD * inverseDiameter;
+						///contact.SetNormal(invD * d);
+
+						contact.normal.x = invD * dx;
+						contact.normal.y = invD * dy;
+						// b2.Vec2.MulSV(invD, d, contact.normal);
+					}
+					// end ------- AddContact(indexA, proxyData[b].index, contactBuffer);
 				}
 			}
-			var bottomRightTag = computeRelativeTag(tagA, 1, 1);
-			for (var b = c; b < endProxy; b++) {
-				++ count;
-				if (bottomRightTag < proxyData[b].tag) {
-					break;
-				}
-				AddContact(indexA, proxyData[b].index, contactBuffer);
-			}
-		}
-	};
-
-	//@ts-ignore
-	var AddContact_s_d = new b2.Vec2();
-	//@ts-ignore
-	b2.ParticleSystem.prototype.AddContact2 = function (a, b, contacts) {
-		var s_d = AddContact_s_d;
-		var pos_data = this.m_positionBuffer.data;
-		// DEBUG: b2Assert(contacts === this.m_contactBuffer);
-		///b2Vec2 d = m_positionBuffer.data[b] - m_positionBuffer.data[a];
-
-		var ax = pos_data[a].x;
-		var ay = pos_data[a].y;
-		var bx = pos_data[b].x;
-		var by = pos_data[b].y;
-
-		var dx = bx - ax;
-		var dy = by - ay;
-		// var d = b2.Vec2.SubVV(pos_data[b], pos_data[a], s_d);
-
-		var distBtParticlesSq = dx * dx + dy * dy;
-		// var distBtParticlesSq = b2.Vec2.DotVV(d, d);
-		if (distBtParticlesSq < this.m_squaredDiameter) {
-			var invD = 1 / Math.sqrt(distBtParticlesSq);
-			// var invD = b2.InvSqrt(distBtParticlesSq);
-			if (!isFinite(invD)) {
-				invD = 1.98177537e+019;
-			}
-			///b2ParticleContact& contact = contacts.Append();
-			var contact = this.m_contactBuffer.data[this.m_contactBuffer.Append()];
-			contact.indexA = a;
-			contact.indexB = b;
-			contact.flags = this.m_flagsBuffer.data[a] | this.m_flagsBuffer.data[b];
-			contact.weight = 1 - distBtParticlesSq * invD * this.m_inverseDiameter;
-			///contact.SetNormal(invD * d);
-
-			contact.normal.x = invD * dx;
-			contact.normal.y = invD * dy;
-			// b2.Vec2.MulSV(invD, d, contact.normal);
-		}
-	};
-});
+		};
+	});
+}
