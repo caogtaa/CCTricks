@@ -1,3 +1,5 @@
+### Cocos Creator如何实现自定义渲染合批？
+
 ## 简介
 Demo用于展示Cocos Creator中的合批技巧</br>
 请使用Cocos Creator 2.4.0或以上版本打开
