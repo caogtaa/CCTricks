@@ -1,0 +1,143 @@
+// Copyright 2020 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2020-07-13 02:44:17
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2020-07-22 14:03:10
+*/ 
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+}%
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+  
+  void main() {
+    vec4 pos = vec4(a_position, 1);
+    pos = cc_matViewProj * pos;
+    v_uv0 = a_uv0;
+    //v_uv0.y = 1.0-v_uv0.y;
+    gl_Position = pos;
+  }
+}%
+
+// by caogtaa
+CCProgram fs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec2 v_uv0;
+  uniform sampler2D texture;
+
+  #define E	2.718281828459045
+  #define PI	3.141592653589793
+  #define A	c.x
+  #define B	c.y
+  #define X	z.x
+  #define Y	z.y
+  //#define ROTATE_ANGLE (PI / 12.)
+  #define ROTATE_ANGLE (PI / 45.)
+
+  float Circle(vec2 uv, vec2 o, float r, float blur) {
+      return smoothstep(0., blur, distance(uv, o) - r);
+  }
+
+  mat2 R2(float angle){
+      float c = cos(angle);
+      float s = sin(angle);
+      return mat2(c, -s, s, c);
+  }
+
+  vec2 PowZC(vec2 z, vec2 c) {
+      float zlen = sqrt(dot(z, z));		// |z|
+      float t = atan(Y, X);
+      
+      float p1 = pow(zlen, A) * pow(E, -B*t);
+      
+      float ex2 = log(zlen) * B;
+      vec2 p2 = vec2(cos(ex2), sin(ex2));
+      float ex3 = A * t;
+      vec2 p3 = vec2(cos(ex3), sin(ex3));
+      
+      vec2 p2xp3 = vec2(
+          p2.x * p3.x - p2.y * p3.y,
+          p2.x * p3.y + p2.y * p3.x);
+      
+      return p1 * p2xp3;
+  }
+
+  float Band(float v, float start, float end) {
+      float up = step(start, v);
+      float down = 1.0 - step(end, v);
+      return up * down;
+  }
+
+  float Rect(vec2 uv, float l, float b, float r, float t) {
+      float x = Band(uv.x, l, r);
+      float y = Band(uv.y, b, t);
+      return x * y;
+  }
+
+  void main()
+  {
+    // Normalized pixel coordinates (from 0 to 1)
+    vec2 uv = v_uv0.xy;
+    uv = uv * 2. - 1.;
+    uv.y *= 540. / 390.;
+    
+    float s = 10.0;
+    float a = 1.;//mouse.x;
+    // float b = fract(iTime /s) * s;
+    float b = 0.111111;//mouse.y;
+    
+    // vec2 uv1 = R2(PI / 6.) * uv;
+    
+    float scale = 2.;
+
+    float mask = 1.;
+    vec3 finalc = texture(texture, PowZC(uv, vec2(a, b)) * 0.5 + 0.5).rgb;
+    vec2 puv;
+    for (int i = 0; i < 4; ++i) {
+        uv = R2(ROTATE_ANGLE) * uv * scale;
+        puv = PowZC(uv, vec2(a, b));
+        // mask = Circle(puv, vec2(0.), 1.0, 0.02);
+        mask = 1.0 - Rect(puv, -0.5, -0.5, 0.5, 0.5);
+        
+        // vec3 c = vec3((float(i)+1.) * 1./4.);
+        // vec3 c = vec3(0., puv.x * 0.5 + 0.5, 0.);
+        vec3 c = texture(texture, puv * 0.5 + 0.5).rgb;
+        finalc = mix(c, finalc, mask);
+    }
+   
+    
+
+    // Output to screen
+    gl_FragColor = vec4(finalc, 1.0);
+
+    // vec4 col = texture(texture, uv);
+    // gl_FragColor = col;
+  }
+}%
