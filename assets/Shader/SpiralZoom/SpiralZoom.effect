@@ -21,8 +21,11 @@ CCEffect %{
         cullMode: none
       properties:
         texture: { value: white }
-        C: { value: [1.0, 0.0] }
-        R: { value: 0.8 }
+        C: { value: [1.0, 0.0], inspector: { displayName: '复数幂' } }
+        R: { value: 0.9, inspector: { displayName: '圆半径' } }
+        scale: { value: 2.5, inspector: { displayName: '同心圆缩小系数' } }
+        angle: { value: 0.13659, inspector: { displayName: '同心圆旋转角(radius)' } }
+        speed: { value: 1.0, inspector: { displayName: '动画速度' } }
 }%
 
 CCProgram vs %{
@@ -56,6 +59,9 @@ CCProgram fs %{
   uniform FARGS {
       vec2 C;
       float R;
+      float scale;
+      float angle;
+      float speed;
   };
 
   #define E	2.718281828459045
@@ -100,18 +106,21 @@ CCProgram fs %{
       // 初始图形放大，避免原图形变后边缘片元采样超出图片
       uv *= 0.5;
 
-      // 同心圆旋转角度
-      float angle = PI / 23.;
+      // 同心圆旋转角度，通过uniform传入
+      // float angle = PI / 23.;
 
-      // 同心圆缩放比率
-      float scale = 2.5;
+      // 同心圆缩放系数，通过uniform传入
+      // float scale = 2.5;
+
+      // 动画速度，通过uniform传入
+      // float speed = 1.0;
 
       // 整体动画缩放比例，scale值和同心圆的缩放系数保持一致，这样动画循环可以对接
-      float zoom = pow(scale, fract(cc_time.x));
+      float zoom = pow(scale, fract(cc_time.x * speed));
       uv /= zoom;
 
       // 当前动画循环次数
-      float loop = floor(cc_time.x);
+      float loop = floor(cc_time.x * speed);
 
       // 每个动画循环起始帧做整体旋转，对接上一个循环的末尾
       uv = R2(angle * loop) * uv;
