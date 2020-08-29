@@ -21,7 +21,7 @@ CCEffect %{
         cullMode: none
       properties:
         texture: { value: white }
-        C: { value: [1.0, 0.0], inspector: { displayName: '复数幂' } }
+        C: { value: [1.0, 0.0], inspector: { displayName: '指数' } }
         R: { value: 0.9, inspector: { displayName: '圆半径' } }
         scale: { value: 2.5, inspector: { displayName: '同心圆缩小系数' } }
         angle: { value: 0.13659, inspector: { displayName: '同心圆旋转角(radius)' } }
@@ -134,7 +134,7 @@ CCProgram fs %{
       // 边缘模糊长度
       float blur = 0.01;
       
-      // 复数幂，目前从uniform中获取
+      // 指数，目前从uniform中获取
       // vec2 C = vec2(1., 0.);
 
       // 当前图形遮罩
