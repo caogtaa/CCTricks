@@ -21,6 +21,8 @@ CCEffect %{
         cullMode: none
       properties:
         texture: { value: white }
+        C: { value: [1.0, 0.0] }
+        R: { value: 0.8 }
 }%
 
 CCProgram vs %{
@@ -37,7 +39,7 @@ CCProgram vs %{
     vec4 pos = vec4(a_position, 1);
     pos = cc_matViewProj * pos;
     v_uv0 = a_uv0;
-    //v_uv0.y = 1.0-v_uv0.y;
+    v_uv0.y = 1.0-v_uv0.y;
     gl_Position = pos;
   }
 }%
@@ -51,6 +53,10 @@ CCProgram fs %{
 
   in vec2 v_uv0;
   uniform sampler2D texture;
+  uniform FARGS {
+      vec2 C;
+      float R;
+  };
 
   #define E	2.718281828459045
   #define PI	3.141592653589793
@@ -58,8 +64,6 @@ CCProgram fs %{
   #define B	c.y
   #define X	z.x
   #define Y	z.y
-  //#define ROTATE_ANGLE (PI / 12.)
-  #define ROTATE_ANGLE (PI / 45.)
 
   float Circle(vec2 uv, vec2 o, float r, float blur) {
       return smoothstep(0., blur, distance(uv, o) - r);
@@ -71,73 +75,90 @@ CCProgram fs %{
       return mat2(c, -s, s, c);
   }
 
-  vec2 PowZC(vec2 z, vec2 c) {
-      float zlen = sqrt(dot(z, z));		// |z|
+  vec2 ComplexPow(vec2 z, vec2 c) {
+      float zmod = sqrt(dot(z, z));		// |z|
       float t = atan(Y, X);
       
-      float p1 = pow(zlen, A) * pow(E, -B*t);
+      float part1 = pow(zmod, A) * pow(E, -B*t);
+      float exp2 = log(zmod) * B;
+      vec2 part2 = vec2(cos(exp2), sin(exp2));
+      float exp3 = A * t;
+      vec2 part3 = vec2(cos(exp3), sin(exp3));
       
-      float ex2 = log(zlen) * B;
-      vec2 p2 = vec2(cos(ex2), sin(ex2));
-      float ex3 = A * t;
-      vec2 p3 = vec2(cos(ex3), sin(ex3));
+      vec2 part2x3 = vec2(
+          part2.x * part3.x - part2.y * part3.y,
+          part2.x * part3.y + part2.y * part3.x);
       
-      vec2 p2xp3 = vec2(
-          p2.x * p3.x - p2.y * p3.y,
-          p2.x * p3.y + p2.y * p3.x);
-      
-      return p1 * p2xp3;
-  }
-
-  float Band(float v, float start, float end) {
-      float up = step(start, v);
-      float down = 1.0 - step(end, v);
-      return up * down;
-  }
-
-  float Rect(vec2 uv, float l, float b, float r, float t) {
-      float x = Band(uv.x, l, r);
-      float y = Band(uv.y, b, t);
-      return x * y;
+      return part1 * part2x3;
   }
 
   void main()
   {
-    // Normalized pixel coordinates (from 0 to 1)
-    vec2 uv = v_uv0.xy;
-    uv = uv * 2. - 1.;
-    uv.y *= 540. / 390.;
-    
-    float s = 10.0;
-    float a = 1.;//mouse.x;
-    // float b = fract(iTime /s) * s;
-    float b = 0.111111;//mouse.y;
-    
-    // vec2 uv1 = R2(PI / 6.) * uv;
-    
-    float scale = 2.;
+      // uv原点居中
+      vec2 uv = v_uv0.xy * 2. - 1.;
 
-    float mask = 1.;
-    vec3 finalc = texture(texture, PowZC(uv, vec2(a, b)) * 0.5 + 0.5).rgb;
-    vec2 puv;
-    for (int i = 0; i < 4; ++i) {
-        uv = R2(ROTATE_ANGLE) * uv * scale;
-        puv = PowZC(uv, vec2(a, b));
-        // mask = Circle(puv, vec2(0.), 1.0, 0.02);
-        mask = 1.0 - Rect(puv, -0.5, -0.5, 0.5, 0.5);
-        
-        // vec3 c = vec3((float(i)+1.) * 1./4.);
-        // vec3 c = vec3(0., puv.x * 0.5 + 0.5, 0.);
-        vec3 c = texture(texture, puv * 0.5 + 0.5).rgb;
-        finalc = mix(c, finalc, mask);
-    }
-   
-    
+      // 初始图形放大，避免原图形变后边缘片元采样超出图片
+      uv *= 0.5;
 
-    // Output to screen
-    gl_FragColor = vec4(finalc, 1.0);
+      // 同心圆旋转角度
+      float angle = PI / 23.;
 
-    // vec4 col = texture(texture, uv);
-    // gl_FragColor = col;
+      // 同心圆缩放比率
+      float scale = 2.5;
+
+      // 整体动画缩放比例，scale值和同心圆的缩放系数保持一致，这样动画循环可以对接
+      float zoom = pow(scale, fract(cc_time.x));
+      uv /= zoom;
+
+      // 当前动画循环次数
+      float loop = floor(cc_time.x);
+
+      // 每个动画循环起始帧做整体旋转，对接上一个循环的末尾
+      uv = R2(angle * loop) * uv;
+
+      // 圆心坐标
+      vec2 origin = vec2(0.);
+
+      // 圆半径，从uniform中获取
+      float r = R;
+
+      // 边缘模糊长度
+      float blur = 0.01;
+      
+      // 复数幂，目前从uniform中获取
+      // vec2 C = vec2(1., 0.);
+
+      // 当前图形遮罩
+      float mask = 1.0;
+      
+      // 旋转矩阵，每次迭代uv旋转一定角度
+      mat2 matR2 = R2(angle);
+
+      // 经螺旋形变后的uv
+      vec2 spiralUV = ComplexPow(uv, C);
+      
+      // 混合后的最终颜色，以第一次形变的图形作为背景
+      // 将uv从(-1, 1)重新映射回(0, 1)区间，然后对纹理采样
+      vec3 finalColor = texture(texture, spiralUV * 0.5 + 0.5).rgb;
+
+      for (int i = 0; i < 6; ++i) {
+          // 放大自变量区间的同时对uv进行旋转
+          uv = matR2 * uv * scale;
+
+          // 计算螺旋形变后的uv，用该uv画圆、取色
+          spiralUV = ComplexPow(uv, C);
+          
+          // 获得一个半径r的形变后的圆形遮罩
+          float mask = Circle(spiralUV, origin, r, blur);
+
+          // 将uv从(-1, 1)重新映射回(0, 1)区间，然后对纹理采样
+          vec3 color = texture(texture, spiralUV * 0.5 + 0.5).rgb;
+
+          // 当前遮罩内的片元用新颜色覆盖，遮罩外的保持上一次的颜色
+          finalColor = mix(color, finalColor, mask);
+      }
+
+      // 输出颜色
+      gl_FragColor = vec4(finalColor, 1.0);
   }
 }%

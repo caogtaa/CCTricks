@@ -9,7 +9,14 @@
   "_techniqueIndex": 0,
   "_techniqueData": {
     "0": {
-      "props": {}
+      "props": {
+        "C": {
+          "__type__": "cc.Vec2",
+          "x": 1,
+          "y": 0.149
+        },
+        "R": 0.9
+      }
     }
   }
 }
