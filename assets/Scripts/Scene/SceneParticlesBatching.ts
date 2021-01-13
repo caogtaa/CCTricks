@@ -7,17 +7,7 @@
  * Date: 2021-01-13 23:22:00
  * LastEditors: GT<caogtaa@gmail.com>
  * LastEditTime: 2021-01-13 23:55:48
-*/ 
-// Copyright 2020 Cao Gaoting<caogtaa@gmail.com>
-// https://caogtaa.github.io
-// This file is licensed under the MIT License.
-// License text available at https://opensource.org/licenses/MIT
-
-/*
- * Date: 2021-01-13 23:22:00
- * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-01-13 23:22:50
-*/ 
+*/
 
 const { ccclass, property } = cc._decorator;
 
@@ -30,7 +20,7 @@ export default class SceneParticlesBatching extends cc.Component {
 
     Batching() {
         if (this._originFillBuffersFn) {
-            // 已经开启和批
+            // 已经开启合批
             return;
         }
 
