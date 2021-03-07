@@ -12,9 +12,11 @@ https://forum.cocos.org/t/postrender-demo/95201
 * 自定义渲染应用——图片遮罩合批</br>
 https://forum.cocos.org/t/topic/95986
 
-### shader系列，英文对应工程内场景名
-* 螺旋形变，`SceneSpiralZoom`
-* 过场动画，`SceneEnterEShop`
+* 粒子系统合批，场景`SceneParticlesBatching`
+
+### shader系列
+* 螺旋形变，场景`SceneSpiralZoom`
+* 过场动画，场景`SceneEnterEShop`
 
 ### 其他
 * liquidfun + metaballs流体效果</br>
