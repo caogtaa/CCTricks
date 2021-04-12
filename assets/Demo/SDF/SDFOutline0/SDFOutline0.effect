@@ -1,3 +1,13 @@
+// Copyright 2020 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2021-04-12 19:21:00
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2021-04-12 23:52:21
+*/ 
 /*
  * Author: GT<caogtaa@gmail.com>
  * Date: 2021-03-29 17:04:32
@@ -17,10 +27,7 @@ CCEffect %{
         cullMode: none
       properties:
         texture: { value: white }
-        yRatio: { value: 1.0, inspector: { displayName: 'y/x' } }
-        sdfRatio: { value: 1.0, inspector: { displayName: 'SDF区间/x' } }
         outlineHalfWidth: { value: 0.05, inspector: { displayName: '二分之一轮廓宽度/SDF区间' } }
-        time: { value: 0.0, inspector: { displayName: '时间(秒)' } }
 }%
 
 CCProgram vs %{
@@ -62,65 +69,22 @@ CCProgram fs %{
 
   uniform sampler2D texture;
   uniform ARGS {
-    float yRatio;
-    float sdfRatio;
     float outlineHalfWidth;
-    float time;
   };
-
   
-  float Remap01(float a, float b, float t) {
-    return (t-a) / (b-a);
-  }
-
-  float Remap(float a, float b, float c, float d, float t) {
-    return Remap01(a, b, t) * (d-c) + c;
-  }
-
-  float Circle(vec2 uv, vec2 o, float r, float blur) {
-    return smoothstep(r, r-blur, distance(uv, o));
-  }
-
-  // 根据到o的距离生成sdf，越接近o则返回值越大，并且在距离是r处刚好是0.5
-  float CircleSDF(vec2 uv, vec2 o, float r, float sdfRatio) {
-    float s = Remap(r+sdfRatio*0.5, r-sdfRatio*0.5, 0., 1., distance(uv, o));
-    return clamp(s, 0., 1.);
-  }
-  
-  float Noise(vec2 p) {
-    return fract(sin(
-      dot(p, vec2(12.9898,78.233))
-    ) * 43758.5453123);
-  }
-
   void main()
   {
     vec2 uv = v_uv0.xy;
     vec4 col = texture(texture, uv) * v_color;
-
-    // o是以图片中心为原点的uv坐标，范围[-0.5, 0.5]
-    vec2 o = uv * 2.0 - 1.0;
-    o.y *= yRatio;
-
     float alpha = col.a;
 
     // 选择一个alpha值做为轮廓的中线
     float centerAlpha = 0.5;
 
-    // 圆的outline
-    float t = time;
-    float spike = Noise(floor(o * 10.));
-    float mask1 = CircleSDF(o, vec2(0., 0.), 0.5 + (spike-0.5) * t, sdfRatio);
-    // float mask1 = CircleSDF(o, vec2(0., 0.), spike, sdfRatio);
-
-
-    // alpha = mask1;
-    alpha += (spike-0.5) * t;
-    float outlineAlphaDist = outlineHalfWidth;// + (spike-0.5) * t;
+    float outlineAlphaDist = outlineHalfWidth;
     float mask = smoothstep(outlineAlphaDist, outlineAlphaDist - 0.02, abs(alpha - centerAlpha));
-    float ring = mask;
 
-    vec4 outlineColor = vec4(1., 1., 1., ring);
+    vec4 outlineColor = vec4(1., 1., 1., mask);
     col = outlineColor;
     gl_FragColor = col;
   }

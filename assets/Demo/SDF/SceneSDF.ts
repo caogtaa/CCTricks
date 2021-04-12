@@ -43,22 +43,14 @@ export class TestSDF extends cc.Component {
 
     start() {
         this._sdf = new SDF;
-
+        this._imageIndex = -1;
         this.NextImage();
-        // let sprite = this.renderNode.getComponent(cc.Sprite);
-        // let sf = sprite.spriteFrame;
-        // if (sf) {
-        //     let sz = sf.getOriginalSize();
-        //     let sdfRadius = Math.max(60, sz.height / 3);
-        //     this.FlushMatProperties(sprite, sdfRadius, sz);
-        // }
     }
 
     protected _imageIndex: number = 0;
     protected NextImage() {
         // let index = gt.misc.RandomRangeInt(0, this.images.length);
-        let index = this._imageIndex;
-        this._imageIndex = (this._imageIndex + 1) % this.images.length;
+        let index = this._imageIndex = (this._imageIndex + 1) % this.images.length;
         let sf = this.images[index];
         let sz = sf.getOriginalSize();
 
@@ -78,16 +70,19 @@ export class TestSDF extends cc.Component {
     }
 
     protected FlushMatProperties(sprite: cc.Sprite, sdfRadius: number, sz: cc.Size) {
+        // 只有Morphy效果需要设置
+        if (this._effectIndex !== 2)
+            return;
+
         let mat = sprite.getMaterial(0);
         mat.setProperty("yRatio", sz.height / sz.width);
         mat.setProperty("sdfRatio", sdfRadius * 2.0 / sz.width);       // 'SDF区间/x'
         mat.setProperty("outlineHalfWidth", 3.0 / sdfRadius);
     }
 
-    protected _effectIndex: number = 1;
+    protected _effectIndex: number = 0;
     protected NextEffect() {
-        let index = this._effectIndex;
-        this._effectIndex = (this._effectIndex + 1) % this.materials.length;
+        let index = this._effectIndex = (this._effectIndex + 1) % this.materials.length;
         let mat = this.materials[index];
 
         let sprite = this.renderNode.getComponent(cc.Sprite);

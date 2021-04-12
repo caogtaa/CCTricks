@@ -1,6 +1,6 @@
 {
   "__type__": "cc.Material",
-  "_name": "SDFMorph2",
+  "_name": "SDFOutline0",
   "_objFlags": 0,
   "_native": "",
   "_effectAsset": {
@@ -10,9 +10,6 @@
   "_techniqueData": {
     "0": {
       "props": {
-        "sdfRatio": 1,
-        "outlineHalfWidth": 0.05,
-        "yRatio": 1,
         "texture": {
           "__uuid__": "790bc609-ee34-419d-90b7-a17df6307f37"
         }

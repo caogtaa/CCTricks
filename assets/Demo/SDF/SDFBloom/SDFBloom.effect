@@ -17,6 +17,7 @@ CCEffect %{
         cullMode: none
       properties:
         texture: { value: white }
+        outlineColor: { value: [1., 0., 1., 1.], inspector: { displayName: '颜色' } }
 }%
 
 CCProgram vs %{
@@ -57,6 +58,9 @@ CCProgram fs %{
   in vec2 v_uv1;
 
   uniform sampler2D texture;
+  uniform ARGS {
+    vec4 outlineColor;
+  };
 
   
   float Remap01(float a, float b, float t) {
@@ -87,10 +91,6 @@ CCProgram fs %{
   {
     vec2 uv = v_uv0.xy;
     vec4 col = texture(texture, uv) * v_color;
-
-    // o是以图片中心为原点的uv坐标，范围[-0.5, 0.5]
-    vec2 o = uv * 2.0 - 1.0;
-
     float alpha = col.a;
     
     // 轮廓宽度(0.0, 1.0), 对应alpha区域
@@ -101,15 +101,10 @@ CCProgram fs %{
 
     float alphaDist = abs(alpha - centerAlpha);
     float mask = smoothstep(outlineWidth, 0., alphaDist);
-    float ring = mask;
-
-    // 与原图混合，透明部分显示轮廓, 不透明部分显示原图（原图边缘做简单平滑处理）
-    vec4 outlineColor = vec4(1., 0., 1., ring);
-    // col = mix(outlineColor, vec4(col.rgb, 1.0), smoothstep(0.5, 0.51, col.a));
-    col = outlineColor;
+    col = vec4(outlineColor.rgb, mask);
     
     // 底色基础上叠加一个亮度，叠加后中心位置变白
-    // float brightness = 0.8;
+    // 对亮度做一个动画
     float brightness = Remap(0., 1., 0.7, 1.0, abs(sin(cc_time.x * 2.0)));
     col.rgb += Pulse((alphaDist + 0.5)) * brightness;
 

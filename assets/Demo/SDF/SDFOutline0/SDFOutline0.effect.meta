@@ -1,0 +1,17 @@
+{
+  "ver": "1.0.25",
+  "uuid": "ac845fa7-253b-4890-b9b4-89fffa58e486",
+  "compiledShaders": [
+    {
+      "glsl1": {
+        "vert": "\nprecision highp float;\nuniform mat4 cc_matViewProj;\nattribute vec3 a_position;\nattribute vec4 a_color;\nvarying vec4 v_color;\nattribute vec2 a_uv0;\nvarying vec2 v_uv0;\nvoid main() {\n  vec4 pos = vec4(a_position, 1);\n  pos = cc_matViewProj * pos;\n  v_uv0 = a_uv0;\n  v_color = a_color;\n  gl_Position = pos;\n}",
+        "frag": "\nprecision highp float;\nvarying vec4 v_color;\nvarying vec2 v_uv0;\nvarying vec2 v_uv1;\nuniform sampler2D texture;\nuniform float outlineHalfWidth;\nvoid main()\n{\n  vec2 uv = v_uv0.xy;\n  vec4 col = texture2D(texture, uv) * v_color;\n  float alpha = col.a;\n  float centerAlpha = 0.5;\n  float outlineAlphaDist = outlineHalfWidth;\n  float mask = smoothstep(outlineAlphaDist, outlineAlphaDist - 0.02, abs(alpha - centerAlpha));\n  vec4 outlineColor = vec4(1., 1., 1., mask);\n  col = outlineColor;\n  gl_FragColor = col;\n}"
+      },
+      "glsl3": {
+        "vert": "\nprecision highp float;\nuniform CCGlobal {\n  mat4 cc_matView;\n  mat4 cc_matViewInv;\n  mat4 cc_matProj;\n  mat4 cc_matProjInv;\n  mat4 cc_matViewProj;\n  mat4 cc_matViewProjInv;\n  vec4 cc_cameraPos;\n  vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nin vec3 a_position;\nin vec4 a_color;\nout vec4 v_color;\nin vec2 a_uv0;\nout vec2 v_uv0;\nvoid main() {\n  vec4 pos = vec4(a_position, 1);\n  pos = cc_matViewProj * pos;\n  v_uv0 = a_uv0;\n  v_color = a_color;\n  gl_Position = pos;\n}",
+        "frag": "\nprecision highp float;\nuniform CCGlobal {\n  mat4 cc_matView;\n  mat4 cc_matViewInv;\n  mat4 cc_matProj;\n  mat4 cc_matProjInv;\n  mat4 cc_matViewProj;\n  mat4 cc_matViewProjInv;\n  vec4 cc_cameraPos;\n  vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nin vec4 v_color;\nin vec2 v_uv0;\nin vec2 v_uv1;\nuniform sampler2D texture;\nuniform ARGS {\n  float outlineHalfWidth;\n};\nvoid main()\n{\n  vec2 uv = v_uv0.xy;\n  vec4 col = texture(texture, uv) * v_color;\n  float alpha = col.a;\n  float centerAlpha = 0.5;\n  float outlineAlphaDist = outlineHalfWidth;\n  float mask = smoothstep(outlineAlphaDist, outlineAlphaDist - 0.02, abs(alpha - centerAlpha));\n  vec4 outlineColor = vec4(1., 1., 1., mask);\n  col = outlineColor;\n  gl_FragColor = col;\n}"
+      }
+    }
+  ],
+  "subMetas": {}
+}
