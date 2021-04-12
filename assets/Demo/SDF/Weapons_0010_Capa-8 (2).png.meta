@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.5",
+  "uuid": "f02a2ecf-65f3-4a1f-beb8-d6ad1eaf0831",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": false,
+  "width": 98,
+  "height": 229,
+  "platformSettings": {},
+  "subMetas": {
+    "Weapons_0010_Capa-8 (2)": {
+      "ver": "1.0.4",
+      "uuid": "90ac2a42-bf92-4e95-8bc9-19d8d28a78df",
+      "rawTextureUuid": "f02a2ecf-65f3-4a1f-beb8-d6ad1eaf0831",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 98,
+      "height": 229,
+      "rawWidth": 98,
+      "rawHeight": 229,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

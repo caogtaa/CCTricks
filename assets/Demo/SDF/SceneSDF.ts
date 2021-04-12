@@ -23,31 +23,39 @@ export class TestSDF extends cc.Component {
     objNode: cc.Node = null;
 
     @property(cc.Node)
-    btnSwitch: cc.Node = null;
+    btnSwitchImage: cc.Node = null;
+
+    @property(cc.Node)
+    btnSwitchEffect: cc.Node = null;
 
     @property([cc.SpriteFrame])
     images: cc.SpriteFrame[] = [];
 
+    @property([cc.Material])
+    materials: cc.Material[] = [];
+
     protected _sdf: SDF;
 
     onLoad() {
-        this.btnSwitch.on("click", this.UpdateImage, this);
+        this.btnSwitchImage?.on("click", this.NextImage, this);
+        this.btnSwitchEffect?.on("click", this.NextEffect, this);
     }
 
     start() {
         this._sdf = new SDF;
 
-        let sprite = this.renderNode.getComponent(cc.Sprite);
-        let sf = sprite.spriteFrame;
-        if (sf) {
-            let sz = sf.getOriginalSize();
-            let sdfRadius = Math.max(60, sz.height / 3);
-            this.FlushMatProperties(sprite, sdfRadius, sz);
-        }
+        this.NextImage();
+        // let sprite = this.renderNode.getComponent(cc.Sprite);
+        // let sf = sprite.spriteFrame;
+        // if (sf) {
+        //     let sz = sf.getOriginalSize();
+        //     let sdfRadius = Math.max(60, sz.height / 3);
+        //     this.FlushMatProperties(sprite, sdfRadius, sz);
+        // }
     }
 
     protected _imageIndex: number = 0;
-    protected UpdateImage() {
+    protected NextImage() {
         // let index = gt.misc.RandomRangeInt(0, this.images.length);
         let index = this._imageIndex;
         this._imageIndex = (this._imageIndex + 1) % this.images.length;
@@ -74,6 +82,21 @@ export class TestSDF extends cc.Component {
         mat.setProperty("yRatio", sz.height / sz.width);
         mat.setProperty("sdfRatio", sdfRadius * 2.0 / sz.width);       // 'SDF区间/x'
         mat.setProperty("outlineHalfWidth", 3.0 / sdfRadius);
+    }
+
+    protected _effectIndex: number = 1;
+    protected NextEffect() {
+        let index = this._effectIndex;
+        this._effectIndex = (this._effectIndex + 1) % this.materials.length;
+        let mat = this.materials[index];
+
+        let sprite = this.renderNode.getComponent(cc.Sprite);
+        sprite.setMaterial(0, mat);
+
+        let sf = sprite.spriteFrame;
+        let sz = sf.getOriginalSize();
+        let sdfRadius = Math.max(60, sz.height / 3);
+        this.FlushMatProperties(sprite, sdfRadius, sz);
     }
 
     public OnTimeChanged(e: any) {

@@ -83,10 +83,8 @@ CCProgram fs %{
 
   // 根据到o的距离生成sdf，越接近o则返回值越大，并且在距离是r处刚好是0.5
   float CircleSDF(vec2 uv, vec2 o, float r) {
-    // return clamp(1.0 - distance(uv, o) + r - 0.5, 0., 1.);
     float s = Remap(r+sdfRatio*0.5, r-sdfRatio*0.5, 0., 1., distance(uv, o));
     return clamp(s, 0., 1.);
-    // clamp(distance(uv, o), r-sdfRatio*0.5, r+sdfRatio*0.5
   }
 
   void main()
@@ -108,29 +106,16 @@ CCProgram fs %{
 
     // 圆的outline
     float mask1 = CircleSDF(o, vec2(0., 0.), 0.4);
-    // gl_FragColor = vec4(mask1);
-    // return;
-    // mask1 = smoothstep(outlineWidth, outlineWidth - 0.05, abs(mask1 - centerAlpha));
 
-    // 控制alpha位置可实现轮廓动画
-    // float centerAlpha = Remap(0., 1.0, 0.9, 0.1, fract(cc_time.x));
-    // float centerAlpha = Remap(0., 1.0, 0.8, outlineWidth, abs(sin(cc_time.x * 4.0)));
 
-    // 取轮廓线遮罩
-    // hack: mix sdf
-    // alpha = mix(mask1, alpha, abs(sin(cc_time.x * 5.)));
     float t = cc_time.x;
-    alpha = mix(mask1, alpha, smoothstep(0.35, 0.65, sin(t) * 0.5 + 0.5));
-    // alpha = mix(mask1, alpha, smoothstep(0.35, 0.65, sin(cc_time.x) * 0.5 + 0.5));
-    // float outlineAlphaDist = outlineWidth * 0.5;
+    alpha = mix(mask1, alpha, smoothstep(0.35, 0.65, sin(t * 2.0) * 0.5 + 0.5));
+
     float outlineAlphaDist = outlineHalfWidth;
     float mask = smoothstep(outlineAlphaDist, outlineAlphaDist - 0.02, abs(alpha - centerAlpha));
-    // mask = mask1;
     float ring = mask;
 
-    // 与原图混合，透明部分显示轮廓, 不透明部分显示原图（原图边缘做简单平滑处理）
     vec4 outlineColor = vec4(0., 1., 0., ring);
-    // col = mix(outlineColor, vec4(col.rgb, 1.0), smoothstep(0.5, 0.51, col.a));
     col = outlineColor;
     gl_FragColor = col;
   }
