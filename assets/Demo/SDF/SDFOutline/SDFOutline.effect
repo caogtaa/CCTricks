@@ -1,0 +1,100 @@
+// Copyright 2020 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2021-04-12 19:21:00
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2021-04-12 19:29:27
+*/ 
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+}%
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+  
+  void main() {
+    vec4 pos = vec4(a_position, 1);
+    pos = cc_matViewProj * pos;
+    v_uv0 = a_uv0;
+
+    v_color = a_color;
+    gl_Position = pos;
+  }
+}%
+
+// by caogtaa
+// 赛亚人能量
+CCProgram fs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  #define PI 3.141592653589793
+  
+  in vec4 v_color;
+  in vec2 v_uv0;
+  in vec2 v_uv1;
+
+  uniform sampler2D texture;
+
+  
+  float Remap01(float a, float b, float t) {
+    return (t-a) / (b-a);
+  }
+
+  float Remap(float a, float b, float c, float d, float t) {
+    return Remap01(a, b, t) * (d-c) + c;
+  }
+
+  void main()
+  {
+    vec2 uv = v_uv0.xy;
+    vec4 col = texture(texture, uv) * v_color;
+
+    float alpha = col.a;
+    
+    // 选择一个alpha值做为轮廓的中线
+    // float centerAlpha = 0.5;
+
+    // 轮廓宽度(0.0, 1.0)
+    float outlineWidth = 0.1;
+
+    // 控制alpha位置可实现轮廓动画
+    // float centerAlpha = Remap(0., 1.0, 0.9, 0.1, fract(cc_time.x));
+    float centerAlpha = Remap(0., 1.0, 0.5-outlineWidth*0.5, 0.25, abs(sin(cc_time.x * 4.0)));
+
+    // 取轮廓线遮罩
+    float mask = smoothstep(outlineWidth, outlineWidth - 0.05, abs(alpha - centerAlpha));
+    float ring = mask;
+
+    // 与原图混合，透明部分显示轮廓, 不透明部分显示原图（原图边缘做简单平滑处理）
+    vec4 outlineColor = vec4(0., 1., 0., ring);
+    col = mix(outlineColor, col, smoothstep(0.49, 0.5, col.a));
+    gl_FragColor = col;
+  }
+}%

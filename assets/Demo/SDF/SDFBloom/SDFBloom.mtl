@@ -1,0 +1,19 @@
+{
+  "__type__": "cc.Material",
+  "_name": "SDFBloom",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "05516682-0951-40d4-b06e-e4db76212ae4"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "texture": {
+          "__uuid__": "790bc609-ee34-419d-90b7-a17df6307f37"
+        }
+      }
+    }
+  }
+}

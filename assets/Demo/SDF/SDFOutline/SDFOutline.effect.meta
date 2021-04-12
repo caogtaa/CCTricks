@@ -1,0 +1,17 @@
+{
+  "ver": "1.0.25",
+  "uuid": "7a9e0b6e-0245-44cd-97b1-f312b67294f1",
+  "compiledShaders": [
+    {
+      "glsl1": {
+        "vert": "\nprecision highp float;\nuniform mat4 cc_matViewProj;\nattribute vec3 a_position;\nattribute vec4 a_color;\nvarying vec4 v_color;\nattribute vec2 a_uv0;\nvarying vec2 v_uv0;\nvoid main() {\n  vec4 pos = vec4(a_position, 1);\n  pos = cc_matViewProj * pos;\n  v_uv0 = a_uv0;\n  v_color = a_color;\n  gl_Position = pos;\n}",
+        "frag": "\nprecision highp float;\nuniform vec4 cc_time;\nvarying vec4 v_color;\nvarying vec2 v_uv0;\nvarying vec2 v_uv1;\nuniform sampler2D texture;\nfloat Remap01(float a, float b, float t) {\n  return (t-a) / (b-a);\n}\nfloat Remap(float a, float b, float c, float d, float t) {\n  return Remap01(a, b, t) * (d-c) + c;\n}\nvoid main()\n{\n  vec2 uv = v_uv0.xy;\n  vec4 col = texture2D(texture, uv) * v_color;\n  float alpha = col.a;\n  float outlineWidth = 0.1;\n  float centerAlpha = Remap(0., 1.0, 0.5-outlineWidth*0.5, 0.25, abs(sin(cc_time.x * 4.0)));\n  float mask = smoothstep(outlineWidth, outlineWidth - 0.05, abs(alpha - centerAlpha));\n  float ring = mask;\n  vec4 outlineColor = vec4(0., 1., 0., ring);\n  col = mix(outlineColor, col, smoothstep(0.49, 0.5, col.a));\n  gl_FragColor = col;\n}"
+      },
+      "glsl3": {
+        "vert": "\nprecision highp float;\nuniform CCGlobal {\n  mat4 cc_matView;\n  mat4 cc_matViewInv;\n  mat4 cc_matProj;\n  mat4 cc_matProjInv;\n  mat4 cc_matViewProj;\n  mat4 cc_matViewProjInv;\n  vec4 cc_cameraPos;\n  vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nin vec3 a_position;\nin vec4 a_color;\nout vec4 v_color;\nin vec2 a_uv0;\nout vec2 v_uv0;\nvoid main() {\n  vec4 pos = vec4(a_position, 1);\n  pos = cc_matViewProj * pos;\n  v_uv0 = a_uv0;\n  v_color = a_color;\n  gl_Position = pos;\n}",
+        "frag": "\nprecision highp float;\nuniform CCGlobal {\n  mat4 cc_matView;\n  mat4 cc_matViewInv;\n  mat4 cc_matProj;\n  mat4 cc_matProjInv;\n  mat4 cc_matViewProj;\n  mat4 cc_matViewProjInv;\n  vec4 cc_cameraPos;\n  vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nin vec4 v_color;\nin vec2 v_uv0;\nin vec2 v_uv1;\nuniform sampler2D texture;\nfloat Remap01(float a, float b, float t) {\n  return (t-a) / (b-a);\n}\nfloat Remap(float a, float b, float c, float d, float t) {\n  return Remap01(a, b, t) * (d-c) + c;\n}\nvoid main()\n{\n  vec2 uv = v_uv0.xy;\n  vec4 col = texture(texture, uv) * v_color;\n  float alpha = col.a;\n  float outlineWidth = 0.1;\n  float centerAlpha = Remap(0., 1.0, 0.5-outlineWidth*0.5, 0.25, abs(sin(cc_time.x * 4.0)));\n  float mask = smoothstep(outlineWidth, outlineWidth - 0.05, abs(alpha - centerAlpha));\n  float ring = mask;\n  vec4 outlineColor = vec4(0., 1., 0., ring);\n  col = mix(outlineColor, col, smoothstep(0.49, 0.5, col.a));\n  gl_FragColor = col;\n}"
+      }
+    }
+  ],
+  "subMetas": {}
+}
