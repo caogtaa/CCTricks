@@ -3,7 +3,9 @@
  https://caogtaa.github.io
 ****************************************************************************/
 
-import GTSimpleSpriteAssembler2D from "../GTSimpleSpriteAssembler2D";
+import GTSimpleSpriteAssembler2D from "../../Shader/GTSimpleSpriteAssembler2D";
+
+
 
 // RenderFlow遍历过程中，需要防止子节点进入的函数
 const RENDER_MASK = cc.RenderFlow.FLAG_RENDER | cc.RenderFlow.FLAG_POST_RENDER;

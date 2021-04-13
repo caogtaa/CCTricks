@@ -9,7 +9,7 @@
  * LastEditTime: 2020-07-22 14:00:52
 */ 
 
-import GTSimpleSpriteAssembler2D from "../GTSimpleSpriteAssembler2D";
+import GTSimpleSpriteAssembler2D from "../../../../Shader/GTSimpleSpriteAssembler2D";
 
 export default class EqualScalingAssembler extends GTSimpleSpriteAssembler2D {
     private _uv = [];

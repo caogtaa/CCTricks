@@ -4,12 +4,12 @@
 // License text available at https://opensource.org/licenses/MIT
 
 /*
- * Date: 2020-07-22 02:50:07
+ * Date: 2020-08-19 21:18:54
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2020-07-22 14:02:05
+ * LastEditTime: 2021-04-13 12:11:05
 */ 
 
-import SpriteMaskedAvatarSprite from "../../Shader/SpriteMaskedAvatar/SpriteMaskedAvatarSprite";
+import SpriteMaskedAvatarSprite from "./Shader/SpriteMaskedAvatar/SpriteMaskedAvatarSprite";
 
 const { ccclass, property } = cc._decorator;
 

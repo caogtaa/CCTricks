@@ -9,8 +9,7 @@
  * LastEditTime: 2020-07-23 16:46:05
 */ 
 
-
-import GTAutoFitSpriteAssembler2D from "../GTAutoFitSpriteAssembler2D";
+import GTAutoFitSpriteAssembler2D from "../../../../Shader/GTAutoFitSpriteAssembler2D";
 
 //@ts-ignore
 let gfx = cc.gfx;

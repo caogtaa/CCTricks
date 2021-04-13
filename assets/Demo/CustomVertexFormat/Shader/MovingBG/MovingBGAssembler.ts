@@ -3,6 +3,8 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
+import GTSimpleSpriteAssembler2D from "../../../../Shader/GTSimpleSpriteAssembler2D";
+
 /*
  * Date: 2020-07-13 02:44:17
  * LastEditors: GT<caogtaa@gmail.com>
@@ -10,7 +12,6 @@
 */ 
 
 
-import GTSimpleSpriteAssembler2D from "../GTSimpleSpriteAssembler2D";
 
 // 自定义顶点格式，在vfmtPosUvColor基础上，加入gfx.ATTR_UV1，去掉gfx.ATTR_COLOR
 // 20200703 增加了uv2, uv3用于处理uv在图集里的映射

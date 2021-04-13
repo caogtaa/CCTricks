@@ -10,7 +10,7 @@
 */ 
 
 
-import MetaBallsRenderer from "../../Shader/MetaBalls/MetaBallsRenderer";
+import MetaBallsRenderer from "./Shader/MetaBalls/MetaBallsRenderer";
 
 const { ccclass, property } = cc._decorator;
 

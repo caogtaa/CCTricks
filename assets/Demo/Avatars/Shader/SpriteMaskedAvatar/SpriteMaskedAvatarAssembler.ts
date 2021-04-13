@@ -4,12 +4,12 @@
 // License text available at https://opensource.org/licenses/MIT
 
 /*
- * Date: 2020-07-22 20:19:16
+ * Date: 2020-08-19 21:18:54
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2020-07-23 16:45:31
+ * LastEditTime: 2021-04-13 12:08:08
 */ 
 
-import GTAutoFitSpriteAssembler2D from "../GTAutoFitSpriteAssembler2D";
+import GTAutoFitSpriteAssembler2D from "../../../../Shader/GTAutoFitSpriteAssembler2D";
 
 //@ts-ignore
 let gfx = cc.gfx;
