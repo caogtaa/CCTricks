@@ -6,8 +6,8 @@
 /*
  * Date: 2021-01-13 23:22:00
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-01-13 23:55:48
-*/
+ * LastEditTime: 2021-04-13 13:49:48
+*/ 
 
 const { ccclass, property } = cc._decorator;
 
@@ -23,7 +23,7 @@ export default class SceneParticlesBatching extends cc.Component {
             // 已经开启合批
             return;
         }
-
+ 
         //@ts-ignore
         let particleAssembler = cc.ParticleSystem.__assembler__;
 
