@@ -1,0 +1,3 @@
+[submodule "projects/web-mobile"]
+	path = projects/web-mobile
+	url = git@gitee.com:caogtaa/ccdemos.git
