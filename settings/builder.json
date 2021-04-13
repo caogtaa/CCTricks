@@ -1,5 +1,12 @@
 {
-  "excludeScenes": [],
+  "excludeScenes": [
+    "6ffb481f-83c2-495d-8189-ea1eed63a20b",
+    "96ffbe81-2c0f-4502-b2d0-c94ab810ee0a",
+    "a31fabd6-5145-4c69-af9c-f3c4ea6db4bc",
+    "117422c2-753f-4186-a1ee-0d9083832b04",
+    "6b3edf8c-ebc1-48a6-917c-d86e708ba894",
+    "ab1f16d5-410d-4a5f-83d2-798fe9eb9605"
+  ],
   "orientation": {
     "landscapeLeft": false,
     "landscapeRight": false,
@@ -8,7 +15,7 @@
   },
   "packageName": "org.cocos2d.helloworld",
   "startScene": "79599da5-ede7-4232-93be-930b30f7ee94",
-  "title": "BatchingTricks",
+  "title": "CCDemos",
   "webOrientation": "portrait",
   "includeSDKBox": false,
   "inlineSpriteFrames": true,
