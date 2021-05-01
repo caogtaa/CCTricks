@@ -1,3 +1,13 @@
+// Copyright 2020 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2021-05-02 00:40:17
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2021-05-02 01:00:40
+*/ 
  
 CCEffect %{
   techniques:
@@ -51,39 +61,41 @@ CCProgram fs %{
  
   uniform sampler2D texture;
   uniform UARGS {
-    //float dx;
-    //float dy;
+    float dx;
+    float dy;
   };
 
   void main()
   {
-    float dx = 0.00390625;  // hardcode 1/256
-    float dy = 0.00390625;
     vec4 d = vec4(dx, dy, -dy, 0.);
     vec2 uv = v_uv0.xy;
     vec4 sum = vec4(0.);
 
-    // todo: simplify
-    sum += texture(texture, uv+vec2(-dx, -dy));
-    sum += texture(texture, uv+vec2(-dx, 0.));
-    sum += texture(texture, uv+vec2(-dx, dy));
-    sum += texture(texture, uv+vec2(0., -dy));
-    sum += texture(texture, uv+vec2(0., dy));
-    sum += texture(texture, uv+vec2(dx, -dy));
-    sum += texture(texture, uv+vec2(dx, 0.));
-    sum += texture(texture, uv+vec2(dx, dy));
-    // sum = vec4(3.0);
+    // sum += texture(texture, uv+vec2(-dx, -dy));
+    // sum += texture(texture, uv+vec2(-dx, 0.));
+    // sum += texture(texture, uv+vec2(-dx, dy));
+    // sum += texture(texture, uv+vec2(0., -dy));
+    // sum += texture(texture, uv+vec2(0., dy));
+    // sum += texture(texture, uv+vec2(dx, -dy));
+    // sum += texture(texture, uv+vec2(dx, 0.));
+    // sum += texture(texture, uv+vec2(dx, dy));
+
+    sum += texture(texture, uv-d.xy);
+    sum += texture(texture, uv-d.xw);
+    sum += texture(texture, uv-d.xz);
+    sum += texture(texture, uv+d.wz);
+    sum += texture(texture, uv+d.wy);
+    sum += texture(texture, uv+d.xz);
+    sum += texture(texture, uv+d.xw);
+    sum += texture(texture, uv+d.xy);
 
     vec4 col = texture(texture, uv);
     vec4 le3 = step(sum, vec4(3.1));
-    // vec4 lessThan3 = vec4(1.0) - step(vec4(3.1), sum);
     vec4 oneCase = step(vec4(1.9), sum) * le3; // 1.9 < sum < 3.1, means sum is 2 or 3
     vec4 zeroCase = step(vec4(2.9), sum) * le3; // 2.9 < sum < 3.1, means sum is 3
 
-    // col = texture(texture, uv);
     col = mix(zeroCase, oneCase, col);
     gl_FragColor = vec4(col.rgb, 1.0);
-    // gl_FragColor = vec4(le3.rgb, 1.0);
   }
 }%
  

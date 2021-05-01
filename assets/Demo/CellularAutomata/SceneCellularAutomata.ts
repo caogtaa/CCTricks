@@ -24,25 +24,50 @@ export default class SceneCellularAutomata extends cc.Component {
     imageDisplay: cc.Sprite = null;
 
     protected _paused: boolean = false;
-    protected _order: number = 0;
+    protected _srcIndex: number = 0;
 
     onLoad() {
 
     }
 
     start () {
-        this.images[this._order].spriteFrame = this.imageDisplay.spriteFrame;
+        this.images[this._srcIndex].spriteFrame = this.imageDisplay.spriteFrame;
+        for (let image of this.images)
+            this.UpdateMaterialProperties(image);
+
         let that = this;
         this.btnRun.node.on("click", () => {
             that._paused = !that._paused;
         });
     }
 
+    protected UpdateMaterialProperties(sprite: cc.Sprite) {
+        let mat = sprite.getMaterial(0);
+        if (!mat)
+            return;
+
+        let sf = sprite.spriteFrame;
+        let dx: number, dy: number;
+        if (sf) {
+            // 获取纹素大小
+            let sz = sf.getOriginalSize();
+            dx = 1.0 / sz.width;
+            dy = 1.0 / sz.height;
+        } else {
+            // 纹理为空时，以设计分辨率像素为纹素大小。这里要求节点大小和期望的游戏区大小相同
+            dx = 1.0 / sprite.node.width;
+            dy = 1.0 / sprite.node.height;
+        }
+
+        mat.setProperty("dx", dx);
+        mat.setProperty("dy", dy);
+    }
+
     protected Tick() {
         if (this._paused)
             return;
 
-        let order = this._order;
+        let order = this._srcIndex;
         let from = this.images[order];
         let to = this.images[1-order];
         let imageDisplay = this.imageDisplay;
@@ -58,7 +83,7 @@ export default class SceneCellularAutomata extends cc.Component {
         }
 
         // 切换RenderTexture
-        this._order = 1 - this._order;
+        this._srcIndex = 1 - this._srcIndex;
     }
 
     update(dt: number) {
