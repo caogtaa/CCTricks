@@ -1,0 +1,15 @@
+{
+  "__type__": "cc.Material",
+  "_name": "CA",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "a49473af-60f8-4b26-86bb-37a092c7afb2"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {}
+    }
+  }
+}
