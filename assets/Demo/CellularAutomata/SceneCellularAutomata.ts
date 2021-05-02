@@ -25,9 +25,18 @@ export default class SceneCellularAutomata extends cc.Component {
 
     protected _paused: boolean = false;
     protected _srcIndex: number = 0;
+    protected _originFPS: number = 60;          // 保存进入场景前的fps，退出场景时恢复
 
     onLoad() {
 
+    }
+
+    onEnable() {
+        this._originFPS = cc.game.getFrameRate();
+    }
+
+    onDisable() {
+        cc.game.setFrameRate(this._originFPS);
     }
 
     start () {
