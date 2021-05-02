@@ -1,0 +1,15 @@
+{
+  "__type__": "cc.Material",
+  "_name": "SimpleOffset",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "9d3f04cf-b326-41b0-b2a0-620982c986e5"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {}
+    }
+  }
+}

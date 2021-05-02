@@ -45,9 +45,7 @@ CCProgram vs %{
     gl_Position = pos;
   }
 }%
- 
-// by caogtaa
-// 霓虹灯边框
+
 CCProgram fs %{
   precision highp float;
  
@@ -67,7 +65,6 @@ CCProgram fs %{
 
   void main()
   {
-    vec4 d = vec4(dx, dy, -dy, 0.);
     vec2 uv = v_uv0.xy;
     vec4 sum = vec4(0.);
 
@@ -80,10 +77,12 @@ CCProgram fs %{
     // sum += texture(texture, uv+vec2(dx, 0.));
     // sum += texture(texture, uv+vec2(dx, dy));
 
-    sum += texture(texture, uv-d.xy);
-    sum += texture(texture, uv-d.xw);
-    sum += texture(texture, uv-d.xz);
-    sum += texture(texture, uv+d.wz);
+    // 等价于上面注释部分代码
+    vec4 d = vec4(dx, dy, -dy, 0.);
+    sum += texture(texture, uv-d.xy);   // 即uv + (-dx, -dy)处采样
+    sum += texture(texture, uv-d.xw);   // 即uv + (-dx, 0.)处采样
+    sum += texture(texture, uv-d.xz);   // 即uv + (-dx, +dy)处采样
+    sum += texture(texture, uv+d.wz);   // ...以此类推
     sum += texture(texture, uv+d.wy);
     sum += texture(texture, uv+d.xz);
     sum += texture(texture, uv+d.xw);

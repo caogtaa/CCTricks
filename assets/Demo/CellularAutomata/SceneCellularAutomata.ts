@@ -25,7 +25,8 @@ export default class SceneCellularAutomata extends cc.Component {
 
     protected _paused: boolean = false;
     protected _srcIndex: number = 0;
-    protected _originFPS: number = 60;          // 保存进入场景前的fps，退出场景时恢复
+    protected _originFPS: number = 60;              // 保存进入场景前的fps，退出场景时恢复
+    protected _viewOffset: cc.Vec2 = cc.v2(0, 0);   // 拖拽后视图偏离中心区域的位置，单位: 设计分辨率像素
 
     onLoad() {
 
@@ -40,9 +41,17 @@ export default class SceneCellularAutomata extends cc.Component {
     }
 
     start () {
-        this.images[this._srcIndex].spriteFrame = this.imageDisplay.spriteFrame;
+        let imageDisplay = this.imageDisplay;
+        this.images[this._srcIndex].spriteFrame = imageDisplay.spriteFrame;
         for (let image of this.images)
-            this.UpdateMaterialProperties(image);
+            this.UpdateRenderTextureMatProperties(image);
+
+        this.UpdateDisplayMatProperties(imageDisplay);
+
+        imageDisplay.node.on(cc.Node.EventType.TOUCH_START, this.OnDisplayTouchStart, this);
+        imageDisplay.node.on(cc.Node.EventType.TOUCH_MOVE, this.OnDisplayTouchMove, this);
+        imageDisplay.node.on(cc.Node.EventType.TOUCH_END, this.OnDisplayTouchEnd, this);
+        imageDisplay.node.on(cc.Node.EventType.TOUCH_CANCEL, this.OnDisplayTouchEnd, this);
 
         let that = this;
         this.btnRun.node.on("click", () => {
@@ -50,7 +59,7 @@ export default class SceneCellularAutomata extends cc.Component {
         });
     }
 
-    protected UpdateMaterialProperties(sprite: cc.Sprite) {
+    protected UpdateRenderTextureMatProperties(sprite: cc.Sprite) {
         let mat = sprite.getMaterial(0);
         if (!mat)
             return;
@@ -70,6 +79,17 @@ export default class SceneCellularAutomata extends cc.Component {
 
         mat.setProperty("dx", dx);
         mat.setProperty("dy", dy);
+    }
+
+    protected UpdateDisplayMatProperties(sprite: cc.Sprite) {
+        let mat = sprite.getMaterial(0);
+        if (!mat)
+            return;
+
+        let viewOffset = this._viewOffset;
+        let width = sprite.node.width;
+        let height = sprite.node.height;
+        mat.setProperty("offset", [viewOffset.x / width, viewOffset.y / height]);
     }
 
     protected Tick() {
@@ -196,5 +216,28 @@ export default class SceneCellularAutomata extends cc.Component {
         return target["__gt_texture"];
     }
 
-    // update (dt) {}
+    protected _touchStartPos: cc.Vec2 = cc.Vec2.ZERO;
+    protected _isDragging: boolean = false;
+    protected OnDisplayTouchStart(e: cc.Event.EventTouch) {
+        this._touchStartPos = e.getLocation();
+        this._isDragging = true;
+    }
+
+    protected OnDisplayTouchMove(e: cc.Event.EventTouch) {
+        if (!this._isDragging)
+            return;
+
+        let touchWorldPos = e.getLocation();
+        let offset = touchWorldPos.sub(this._touchStartPos);
+        this._viewOffset.addSelf(offset);
+        this.UpdateDisplayMatProperties(this.imageDisplay);
+        this._touchStartPos = touchWorldPos;
+    }
+
+    protected OnDisplayTouchEnd(e: cc.Event.EventTouch) {
+        if (!this._isDragging)
+            return;
+
+        this._isDragging = false;
+    }
 }
