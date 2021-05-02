@@ -23,10 +23,14 @@ export default class SceneCellularAutomata extends cc.Component {
     @property(cc.Sprite)
     imageDisplay: cc.Sprite = null;
 
+    protected _originFPS: number = 60;              // 保存进入场景前的fps，退出场景时恢复
+    protected _originEnableMultiTouch: boolean;
+
     protected _paused: boolean = false;
     protected _srcIndex: number = 0;
-    protected _originFPS: number = 60;              // 保存进入场景前的fps，退出场景时恢复
-    protected _viewOffset: cc.Vec2 = cc.v2(0, 0);   // 拖拽后视图偏离中心区域的位置，单位: 设计分辨率像素
+    protected _viewCenter: cc.Vec2 = cc.v2(0, 0);   // 视图中心相对与纹理的位置，单位: 设计分辨率像素
+    protected _viewScale: number = 1.0;             // 视图缩放
+    protected _textureSize = cc.size(1024, 1024);   // 目前先固定纹理大小，后续如果支持其他途径加载纹理，需要调整大小
 
     onLoad() {
 
@@ -34,24 +38,35 @@ export default class SceneCellularAutomata extends cc.Component {
 
     onEnable() {
         this._originFPS = cc.game.getFrameRate();
+        this._originEnableMultiTouch = cc.macro.ENABLE_MULTI_TOUCH;
+
+        cc.macro.ENABLE_MULTI_TOUCH = true;
     }
 
     onDisable() {
         cc.game.setFrameRate(this._originFPS);
+        cc.macro.ENABLE_MULTI_TOUCH = this._originEnableMultiTouch;
     }
 
     start () {
         let imageDisplay = this.imageDisplay;
-        this.images[this._srcIndex].spriteFrame = imageDisplay.spriteFrame;
+        // this.images[this._srcIndex].spriteFrame = imageDisplay.spriteFrame;
         for (let image of this.images)
             this.UpdateRenderTextureMatProperties(image);
 
-        this.UpdateDisplayMatProperties(imageDisplay);
+        // 初始化视图区域
+        this._viewCenter.x = this._textureSize.width / 2;
+        this._viewCenter.y = this._textureSize.height / 2;
+        this._viewScale = 1.0;
+
+        this.UpdateDisplayMatProperties();
 
         imageDisplay.node.on(cc.Node.EventType.TOUCH_START, this.OnDisplayTouchStart, this);
         imageDisplay.node.on(cc.Node.EventType.TOUCH_MOVE, this.OnDisplayTouchMove, this);
         imageDisplay.node.on(cc.Node.EventType.TOUCH_END, this.OnDisplayTouchEnd, this);
         imageDisplay.node.on(cc.Node.EventType.TOUCH_CANCEL, this.OnDisplayTouchEnd, this);
+
+        imageDisplay.node.on(cc.Node.EventType.MOUSE_WHEEL, this.OnDisplayMouseWheel, this);
 
         let that = this;
         this.btnRun.node.on("click", () => {
@@ -81,15 +96,35 @@ export default class SceneCellularAutomata extends cc.Component {
         mat.setProperty("dy", dy);
     }
 
-    protected UpdateDisplayMatProperties(sprite: cc.Sprite) {
+    protected UpdateDisplayMatProperties() {
+        let sprite = this.imageDisplay;
         let mat = sprite.getMaterial(0);
         if (!mat)
             return;
 
-        let viewOffset = this._viewOffset;
+        // let viewOffset = this._viewOffset;
         let width = sprite.node.width;
         let height = sprite.node.height;
-        mat.setProperty("offset", [viewOffset.x / width, viewOffset.y / height]);
+
+        let viewCenter = this._viewCenter;
+        let viewScale = this._viewScale;
+        let tw = this._textureSize.width;
+        let th = this._textureSize.height;
+
+        // let left = 0.5 - width / 1024 + viewCenter.x / 1024;
+
+        let left = viewCenter.x / tw - width / (tw * 2 * viewScale);
+        let right = viewCenter.x / tw + width / (tw * 2 * viewScale);
+        let bottom = viewCenter.y / th - height / (th * 2 * viewScale);
+        let top = viewCenter.y / th + height / (th * 2 * viewScale);
+
+        // mat.setProperty("left", left);
+        // mat.setProperty("right", right);
+        // mat.setProperty("bottom", bottom);
+        // mat.setProperty("top", top);
+        // shader内Remap()简化为MAD
+        mat.setProperty("p", [right-left, top-bottom]);
+        mat.setProperty("q", [left, bottom]);
     }
 
     protected Tick() {
@@ -216,28 +251,57 @@ export default class SceneCellularAutomata extends cc.Component {
         return target["__gt_texture"];
     }
 
-    protected _touchStartPos: cc.Vec2 = cc.Vec2.ZERO;
-    protected _isDragging: boolean = false;
     protected OnDisplayTouchStart(e: cc.Event.EventTouch) {
-        this._touchStartPos = e.getLocation();
-        this._isDragging = true;
     }
 
     protected OnDisplayTouchMove(e: cc.Event.EventTouch) {
-        if (!this._isDragging)
-            return;
+        let touches = e.getTouches();
+        if (touches.length === 1) {
+            // simple drag
+            let touch = touches[0] as cc.Touch;
+            let offset = touch.getDelta();
+            offset.mulSelf(1.0 / this._viewScale);
 
-        let touchWorldPos = e.getLocation();
-        let offset = touchWorldPos.sub(this._touchStartPos);
-        this._viewOffset.addSelf(offset);
-        this.UpdateDisplayMatProperties(this.imageDisplay);
-        this._touchStartPos = touchWorldPos;
+            this._viewCenter.subSelf(offset);
+            this.UpdateDisplayMatProperties();
+        } else if (touches.length >= 2) {
+            // simple zoom
+            let t0 = touches[0] as cc.Touch;
+            let t1 = touches[1] as cc.Touch;
+
+            let p0 = t0.getLocation();
+            let p1 = t1.getLocation();
+            let newLength = p0.sub(p1).len();
+            let oldLength = p0.sub(t0.getDelta()).sub(p1).add(t1.getDelta()).len();
+            let scale = newLength / oldLength;
+            this.DisplayScaleBy(scale);
+        }
     }
 
     protected OnDisplayTouchEnd(e: cc.Event.EventTouch) {
-        if (!this._isDragging)
+        // do nothing
+    }
+
+    // 用鼠标滚轮进行缩放
+    // 简单起见目前只支持视图中心固定的缩放
+    protected OnDisplayMouseWheel(e: cc.Event.EventMouse) {
+        let scrollY = e.getScrollY();
+        if (!scrollY)
             return;
 
-        this._isDragging = false;
+        if (scrollY > 0) {
+            this.DisplayScaleBy(1.1);
+        } else {
+            this.DisplayScaleBy(0.9);
+        }
+    }
+
+    protected DisplayScaleBy(scale: number) {
+        if (scale > 0)
+            this._viewScale = Math.min(this._viewScale * scale, 1e3);
+        else
+            this._viewScale = Math.max(this._viewScale * scale, 1e-3);
+
+        this.UpdateDisplayMatProperties();
     }
 }

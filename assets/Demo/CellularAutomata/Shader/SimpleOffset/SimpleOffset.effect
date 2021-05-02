@@ -31,6 +31,8 @@ CCEffect %{
         cullMode: none
       properties:
         texture: { value: white }
+        p: { value: [1.0, 1.0] }
+        q: { value: [0.0, 0.0] }
 }%
  
 CCProgram vs %{
@@ -69,12 +71,27 @@ CCProgram fs %{
  
   uniform sampler2D texture;
   uniform UARGS {
-    vec2 offset;
+    vec2 p;
+    vec2 q;
+    // float top;
+    // float bottom;
+    // float left;
+    // float right;
   };
+
+  float Remap01(float a, float b, float t) {
+    return (t-a) / (b-a);
+  }
+
+  float Remap(float a, float b, float c, float d, float t) {
+    return Remap01(a, b, t) * (d - c) + c;
+  }
 
   void main()
   {
-    vec2 uv = v_uv0.xy - offset;
+    vec2 uv = v_uv0.xy * p + q;
+    // uv.x = Remap(0.0, 1.0, left, right, uv.x);
+    // uv.y = Remap(0.0, 1.0, bottom, top, uv.y);
     vec4 col = texture(texture, uv);
     gl_FragColor = col;
   }
