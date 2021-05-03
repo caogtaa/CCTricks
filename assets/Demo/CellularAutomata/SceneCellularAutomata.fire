@@ -611,7 +611,7 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        20,
+        200.096,
         -423.075,
         0,
         0,
@@ -983,7 +983,7 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        196.294,
+        18.99,
         -423.075,
         0,
         0,
@@ -1155,8 +1155,8 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_useOriginalSize": false,
-    "_string": "混合",
-    "_N$string": "混合",
+    "_string": "随机混合",
+    "_N$string": "随机混合",
     "_fontSize": 20,
     "_lineHeight": 40,
     "_enableWrapText": false,
