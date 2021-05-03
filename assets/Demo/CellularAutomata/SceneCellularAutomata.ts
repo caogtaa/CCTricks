@@ -3,6 +3,8 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
+import { CAParser } from "./CAParser";
+
 /*
  * Date: 2021-05-01 17:41:46
  * LastEditors: GT<caogtaa@gmail.com>
@@ -16,6 +18,9 @@ export default class SceneCellularAutomata extends cc.Component {
 
     @property(cc.Button)
     btnRun: cc.Button = null;
+
+    @property(cc.Button)
+    btnTest: cc.Button = null;
 
     @property([cc.Sprite])
     images: cc.Sprite[] = [];
@@ -71,6 +76,18 @@ export default class SceneCellularAutomata extends cc.Component {
         let that = this;
         this.btnRun.node.on("click", () => {
             that._paused = !that._paused;
+        });
+
+        this.btnTest.node.on("click", () => {
+            // let texture = CAParser.Parse("77bo$77bo$77bo21$3o20$3bo$3bo$3bo5$20b3o$9b3o10bo$22bo$21bo!", 1024, 1024);
+            let texture = CAParser.Parse(
+                "24bo11b$22bobo11b$12b2o6b2o12b2o$11bo3bo4b2o12b2o$2o8bo5bo3b2o14b$2o8bo3bob2o4bobo11b$10bo5bo7bo11b$11bo3bo20b$12b2o!",
+                that._textureSize.width, that._textureSize.height);
+
+            that._srcIndex = 0;
+            that.images[that._srcIndex].spriteFrame = new cc.SpriteFrame(texture);
+            that.Tick();
+            that._paused = true;
         });
     }
 
