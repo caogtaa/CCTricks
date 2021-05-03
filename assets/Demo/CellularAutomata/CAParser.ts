@@ -13,6 +13,11 @@ type TokenInfo = {
     count: number,
     type: string,
 };
+export class CAInfo {
+    width: number;
+    height: number;
+    tokens: TokenInfo[] = [];
+}
 
 export class CAParser {
     // https://funnyjs.com/jspages/game-of-life.html
@@ -22,7 +27,7 @@ export class CAParser {
      * @param targetWidth 
      * @param targetHeight 
      */
-    public static Parse(data: string, targetWidth: number, targetHeight: number, out?: cc.RenderTexture): cc.RenderTexture {
+    public static Parse(data: string): CAInfo {
         let num: number = 0;
         let tokens: TokenInfo[] = [];
         for (let c of data) {
@@ -56,34 +61,30 @@ export class CAParser {
             }
         }
 
-        let imgData = new Uint8Array(targetHeight * targetWidth * 4);
+        let result = new CAInfo;
+        result.tokens = tokens;
+        result.width = w;
+        result.height = h;
+        return result;
+    }
 
-        // fill ca into renderTexture
-        let sx = Math.floor((targetWidth - w) / 2);
-        let sy = Math.floor((targetHeight - h) / 2);
-        let x: number = sx;
-        let y: number = sy;
-        for (let t of tokens) {
-            if (t.type === '$') {
-                y += t.count;
-                x = sx;
-            } else if (t.type === 'b') {
-                // blank
-                x += t.count;
-            } else if (t.type === 'o') {
-                let ex = Math.min(x + t.count, targetWidth);
-                while (x < ex) {
-                    if (0 <= y && y < targetHeight && 0 <= x && x < targetWidth) {
-                        let p = ((targetHeight-1-y) * targetWidth + x) * 4;
-                        imgData[p] = 255;
-                        imgData[p+1] = 255;
-                        imgData[p+2] = 255;
-                        imgData[p+3] = 255;
-                    }
-                    ++ x;
-                }
-            }
-        }
+    public static Merge(rInfo: CAInfo, gInfo: CAInfo, bInfo: CAInfo, aInfo: CAInfo, targetWidth: number, targetHeight: number, out?: cc.RenderTexture): cc.RenderTexture {
+        let compOffset = [0];
+        if (!gInfo)
+            compOffset.push(1);
+        if (!bInfo)
+            compOffset.push(2);
+        if (!aInfo)
+            compOffset.push(3);
+
+        let imgData = new Uint8Array(targetHeight * targetWidth * 4);
+        this.Fill(rInfo, compOffset, imgData, targetWidth, targetHeight);
+        if (gInfo)
+            this.Fill(gInfo, [1], imgData, targetWidth, targetHeight);
+        if (bInfo)
+            this.Fill(bInfo, [2], imgData, targetWidth, targetHeight);
+        if (aInfo)
+            this.Fill(aInfo, [3], imgData, targetWidth, targetHeight);
 
         // create texture to store ca
         // let gl = cc.game._renderContext;
@@ -96,5 +97,33 @@ export class CAParser {
         texture.setFilters(cc.Texture2D.Filter.NEAREST, cc.Texture2D.Filter.NEAREST);
 
         return texture;
+    }
+
+    protected static Fill(info: CAInfo, compOffset: number[], imgData: Uint8Array, targetWidth: number, targetHeight: number) {
+        // fill ca into renderTexture
+        let sx = Math.floor((targetWidth - info.width) / 2);
+        let sy = Math.floor((targetHeight - info.height) / 2);
+        let x: number = sx;
+        let y: number = sy;
+        for (let t of info.tokens) {
+            if (t.type === '$') {
+                y += t.count;
+                x = sx;
+            } else if (t.type === 'b') {
+                // blank
+                x += t.count;
+            } else if (t.type === 'o') {
+                let ex = Math.min(x + t.count, targetWidth);
+                while (x < ex) {
+                    if (0 <= y && y < targetHeight && 0 <= x && x < targetWidth) {
+                        // 对分量赋值1
+                        let p = ((targetHeight-1-y) * targetWidth + x) * 4;
+                        for (let offset of compOffset)
+                            imgData[p+offset] = 255;
+                    }
+                    ++ x;
+                }
+            }
+        }
     }
 }
