@@ -46,8 +46,6 @@ CCProgram vs %{
   }
 }%
 
-// by caogtaa
-// 霓虹灯边框
 CCProgram fs %{
   precision highp float;
 
@@ -69,22 +67,6 @@ CCProgram fs %{
     return Remap01(a, b, t) * (d-c) + c;
   }
 
-  float Circle(vec2 uv, vec2 o, float r, float blur) {
-    return smoothstep(r, r-blur, distance(uv, o));
-  }
-
-  // 根据到o的距离生成sdf，越接近o则返回值越大，并且在距离是r处刚好是0.5
-  float CircleSDF(vec2 uv, vec2 o, float r) {
-    return clamp(1.0 - distance(uv, o) + r - 0.5, 0., 1.);
-  }
-
-  // 脉冲函数
-  // X,Y区间都是[0,1]，X=0.5位置Y=1
-  // https://www.iquilezles.org/www/articles/functions/functions.htm
-  float Pulse(float x) {
-    return pow(4.0 * x * (1.0 - x), 16.0);
-  }
-
   // https://www.shadertoy.com/view/MsS3Wc
   // Smooth HSV to RGB conversion 
   vec3 hsv2rgb_smooth(in vec3 c) {
@@ -101,10 +83,11 @@ CCProgram fs %{
 
     // uv缩放为正方形，hardcode屏幕分辨率
     uv.y *= 1280./720.;
+
     uv.y = uv.y * 2.0 - 1.0;
 
     // uv缩放偏移使左右屏幕留边（可以和1280./720.计算合并）
-    uv = uv * 1.1 - 0.1;
+    uv = uv * 1.1 - 0.05;
 
     // 网格化
     const vec2 grids = vec2(32., 38.);   // X分段和纹理宽度相同
@@ -119,22 +102,24 @@ CCProgram fs %{
     // abs加倒影（上下对称）
     float mask = step(abs(uv.y), floor(h * grids.y) / grids.y);
 
-    // 截断左侧
+    // 截断左侧留边部分
     mask *= step(0., uv.x);
 
     // 倒影
     mask *= mix(0.2, 1.0, step(0.0, uv.y));
 
-    // // 左右留空 0.15（换种说法：距离中心0.35的保留）
+    // // 网格左右留空 0.15（换种说法：距离中心0.35的保留）
     // mask *= smoothstep(0.5, 0.35, abs(guv.x - 0.5));
-    // // Y轴离散化，上下留空
+    // // Y轴离散化，网格上下留空
     // mask *= smoothstep(0.5, 0.35, abs(guv.y - 0.5));
     vec2 gap = vec2(0.5, 0.35);
     gap = smoothstep(gap.xx, gap.yy, abs(guv - gap.xx));
     mask = mask * gap.x * gap.y;
 
     // 整体强化下遮罩（一丢丢背景色）
-    mask += 0.3;
+    // mask += 0.3;
+    // 左右留边部分淡出
+    mask += smoothstep(0.55, 0.5, abs(uv.x - 0.5)) * 0.3;    
 
     // 在光谱上取色
     vec3 hsl = vec3(uv.x, 1.0, 1.0-uv.y);
