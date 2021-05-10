@@ -20,7 +20,7 @@ export default class SceneVisualizeMusic extends cc.Component {
     sprite: cc.Sprite = null;
 
     protected _analyser: any = null;
-    protected _freqSize: number = 1024;
+    protected _freqSize: number = 32;   // 1024, be pow of 2
     protected _gainNode: any = null;
     protected _ac: any = null;
     protected _audioId: number = -1;
@@ -71,7 +71,7 @@ export default class SceneVisualizeMusic extends cc.Component {
         texture.packable = false;
 
         // 像素化
-        // texture.setFilters(cc.Texture2D.Filter.NEAREST, cc.Texture2D.Filter.NEAREST);
+        texture.setFilters(cc.Texture2D.Filter.NEAREST, cc.Texture2D.Filter.NEAREST);
 
         // 每个像素只需要1 byte表示，用I8格式
         texture.initWithData(this._freqBuff, cc.Texture2D.PixelFormat.I8, width, 1);

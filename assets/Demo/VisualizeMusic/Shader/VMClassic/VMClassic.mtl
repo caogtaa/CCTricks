@@ -1,0 +1,19 @@
+{
+  "__type__": "cc.Material",
+  "_name": "VMClassic",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "937f9286-ca6a-4f86-8d2d-c293faa99a2c"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "texture": {
+          "__uuid__": "790bc609-ee34-419d-90b7-a17df6307f37"
+        }
+      }
+    }
+  }
+}

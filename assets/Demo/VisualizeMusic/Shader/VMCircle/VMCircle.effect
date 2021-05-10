@@ -1,0 +1,110 @@
+// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2021-05-09 21:11:36
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2021-05-09 21:13:59
+*/ 
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+}%
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+  
+  void main() {
+    vec4 pos = vec4(a_position, 1);
+    pos = cc_matViewProj * pos;
+    v_uv0 = a_uv0;
+
+    v_color = a_color;
+    gl_Position = pos;
+  }
+}%
+
+// by caogtaa
+// 霓虹灯边框
+CCProgram fs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  #define PI 3.141592653589793
+  
+  in vec4 v_color;
+  in vec2 v_uv0;
+
+  uniform sampler2D texture;
+  
+  float Remap01(float a, float b, float t) {
+    return (t-a) / (b-a);
+  }
+
+  float Remap(float a, float b, float c, float d, float t) {
+    return Remap01(a, b, t) * (d-c) + c;
+  }
+
+  float Circle(vec2 uv, vec2 o, float r, float blur) {
+    return smoothstep(r, r-blur, distance(uv, o));
+  }
+
+  // 根据到o的距离生成sdf，越接近o则返回值越大，并且在距离是r处刚好是0.5
+  float CircleSDF(vec2 uv, vec2 o, float r) {
+    return clamp(1.0 - distance(uv, o) + r - 0.5, 0., 1.);
+  }
+
+  // 脉冲函数
+  // X,Y区间都是[0,1]，X=0.5位置Y=1
+  // https://www.iquilezles.org/www/articles/functions/functions.htm
+  float Pulse(float x) {
+    return pow(4.0 * x * (1.0 - x), 16.0);
+  }
+
+  void main()
+  {
+    vec2 uv = v_uv0.xy;
+    vec4 col = texture(texture, uv) * v_color;
+
+    uv = uv * 2.0 - 1.0;
+    uv.y *= 1280./720.; // todo: use uniform attribute
+
+    float angle = atan(uv.y, uv.x);
+
+    // remap angle to [0, 1]
+    angle = Remap(-PI, PI, 0., 1., angle);
+
+    // circle SDF by angle
+    float mask = Circle(uv, vec2(0.0), angle, 0.01);
+
+    // circle SDF by sample
+    mask = Circle(uv, vec2(0.0), texture(texture, vec2(angle, 0.5)).r, 0.01);
+    col = vec4(mask);
+
+    gl_FragColor = col;
+  }
+}%

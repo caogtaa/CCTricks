@@ -1,0 +1,17 @@
+{
+  "ver": "1.0.25",
+  "uuid": "937f9286-ca6a-4f86-8d2d-c293faa99a2c",
+  "compiledShaders": [
+    {
+      "glsl1": {
+        "vert": "\nprecision highp float;\nuniform mat4 cc_matViewProj;\nattribute vec3 a_position;\nattribute vec4 a_color;\nvarying vec4 v_color;\nattribute vec2 a_uv0;\nvarying vec2 v_uv0;\nvoid main() {\n  vec4 pos = vec4(a_position, 1);\n  pos = cc_matViewProj * pos;\n  v_uv0 = a_uv0;\n  v_color = a_color;\n  gl_Position = pos;\n}",
+        "frag": "\nprecision highp float;\nvarying vec4 v_color;\nvarying vec2 v_uv0;\nuniform sampler2D texture;\nvec3 hsv2rgb_smooth(in vec3 c) {\n  vec3 rgb = clamp( abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0 );\n  rgb = rgb*rgb*(3.0-2.0*rgb);\n  return c.z * mix(vec3(1.0), rgb, c.y);\n}\nvoid main()\n{\n  vec2 uv = v_uv0.xy;\n  vec4 col = texture2D(texture, uv) * v_color;\n  uv.y *= 1280./720.;\n  uv.y = uv.y * 2.0 - 1.0;\n  uv = uv * 1.1 - 0.1;\n  const vec2 grids = vec2(32., 38.);\n  vec2 guv = fract(uv * grids);\n  vec2 gi = floor(uv * grids);\n  float h = texture2D(texture, vec2(uv.x, 0.5)).r * 0.5;\n  float mask = step(abs(uv.y), floor(h * grids.y) / grids.y);\n  mask *= step(0., uv.x);\n  mask *= mix(0.2, 1.0, step(0.0, uv.y));\n  vec2 gap = vec2(0.5, 0.35);\n  gap = smoothstep(gap.xx, gap.yy, abs(guv - gap.xx));\n  mask = mask * gap.x * gap.y;\n  mask += 0.3;\n  vec3 hsl = vec3(uv.x, 1.0, 1.0-uv.y);\n  vec3 rgb_s = hsv2rgb_smooth(hsl);\n  rgb_s *= mask;\n  col = vec4(rgb_s, mask);\n  gl_FragColor = col;\n}"
+      },
+      "glsl3": {
+        "vert": "\nprecision highp float;\nuniform CCGlobal {\n  mat4 cc_matView;\n  mat4 cc_matViewInv;\n  mat4 cc_matProj;\n  mat4 cc_matProjInv;\n  mat4 cc_matViewProj;\n  mat4 cc_matViewProjInv;\n  vec4 cc_cameraPos;\n  vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nin vec3 a_position;\nin vec4 a_color;\nout vec4 v_color;\nin vec2 a_uv0;\nout vec2 v_uv0;\nvoid main() {\n  vec4 pos = vec4(a_position, 1);\n  pos = cc_matViewProj * pos;\n  v_uv0 = a_uv0;\n  v_color = a_color;\n  gl_Position = pos;\n}",
+        "frag": "\nprecision highp float;\nuniform CCGlobal {\n  mat4 cc_matView;\n  mat4 cc_matViewInv;\n  mat4 cc_matProj;\n  mat4 cc_matProjInv;\n  mat4 cc_matViewProj;\n  mat4 cc_matViewProjInv;\n  vec4 cc_cameraPos;\n  vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nin vec4 v_color;\nin vec2 v_uv0;\nuniform sampler2D texture;\nvec3 hsv2rgb_smooth(in vec3 c) {\n  vec3 rgb = clamp( abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0 );\n  rgb = rgb*rgb*(3.0-2.0*rgb);\n  return c.z * mix(vec3(1.0), rgb, c.y);\n}\nvoid main()\n{\n  vec2 uv = v_uv0.xy;\n  vec4 col = texture(texture, uv) * v_color;\n  uv.y *= 1280./720.;\n  uv.y = uv.y * 2.0 - 1.0;\n  uv = uv * 1.1 - 0.1;\n  const vec2 grids = vec2(32., 38.);\n  vec2 guv = fract(uv * grids);\n  vec2 gi = floor(uv * grids);\n  float h = texture(texture, vec2(uv.x, 0.5)).r * 0.5;\n  float mask = step(abs(uv.y), floor(h * grids.y) / grids.y);\n  mask *= step(0., uv.x);\n  mask *= mix(0.2, 1.0, step(0.0, uv.y));\n  vec2 gap = vec2(0.5, 0.35);\n  gap = smoothstep(gap.xx, gap.yy, abs(guv - gap.xx));\n  mask = mask * gap.x * gap.y;\n  mask += 0.3;\n  vec3 hsl = vec3(uv.x, 1.0, 1.0-uv.y);\n  vec3 rgb_s = hsv2rgb_smooth(hsl);\n  rgb_s *= mask;\n  col = vec4(rgb_s, mask);\n  gl_FragColor = col;\n}"
+      }
+    }
+  ],
+  "subMetas": {}
+}

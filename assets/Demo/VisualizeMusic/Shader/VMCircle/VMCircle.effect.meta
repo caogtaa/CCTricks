@@ -1,0 +1,17 @@
+{
+  "ver": "1.0.25",
+  "uuid": "b6ed977f-ed85-490d-891c-7a982b379323",
+  "compiledShaders": [
+    {
+      "glsl1": {
+        "vert": "\nprecision highp float;\nuniform mat4 cc_matViewProj;\nattribute vec3 a_position;\nattribute vec4 a_color;\nvarying vec4 v_color;\nattribute vec2 a_uv0;\nvarying vec2 v_uv0;\nvoid main() {\n  vec4 pos = vec4(a_position, 1);\n  pos = cc_matViewProj * pos;\n  v_uv0 = a_uv0;\n  v_color = a_color;\n  gl_Position = pos;\n}",
+        "frag": "\nprecision highp float;\nvarying vec4 v_color;\nvarying vec2 v_uv0;\nuniform sampler2D texture;\nfloat Remap01(float a, float b, float t) {\n  return (t-a) / (b-a);\n}\nfloat Remap(float a, float b, float c, float d, float t) {\n  return Remap01(a, b, t) * (d-c) + c;\n}\nfloat Circle(vec2 uv, vec2 o, float r, float blur) {\n  return smoothstep(r, r-blur, distance(uv, o));\n}\nvoid main()\n{\n  vec2 uv = v_uv0.xy;\n  vec4 col = texture2D(texture, uv) * v_color;\n  uv = uv * 2.0 - 1.0;\n  uv.y *= 1280./720.;\n  float angle = atan(uv.y, uv.x);\n  angle = Remap(-3.141592653589793, 3.141592653589793, 0., 1., angle);\n  float mask = Circle(uv, vec2(0.0), angle, 0.01);\n  mask = Circle(uv, vec2(0.0), texture2D(texture, vec2(angle, 0.5)).r, 0.01);\n  col = vec4(mask);\n  gl_FragColor = col;\n}"
+      },
+      "glsl3": {
+        "vert": "\nprecision highp float;\nuniform CCGlobal {\n  mat4 cc_matView;\n  mat4 cc_matViewInv;\n  mat4 cc_matProj;\n  mat4 cc_matProjInv;\n  mat4 cc_matViewProj;\n  mat4 cc_matViewProjInv;\n  vec4 cc_cameraPos;\n  vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nin vec3 a_position;\nin vec4 a_color;\nout vec4 v_color;\nin vec2 a_uv0;\nout vec2 v_uv0;\nvoid main() {\n  vec4 pos = vec4(a_position, 1);\n  pos = cc_matViewProj * pos;\n  v_uv0 = a_uv0;\n  v_color = a_color;\n  gl_Position = pos;\n}",
+        "frag": "\nprecision highp float;\nuniform CCGlobal {\n  mat4 cc_matView;\n  mat4 cc_matViewInv;\n  mat4 cc_matProj;\n  mat4 cc_matProjInv;\n  mat4 cc_matViewProj;\n  mat4 cc_matViewProjInv;\n  vec4 cc_cameraPos;\n  vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nin vec4 v_color;\nin vec2 v_uv0;\nuniform sampler2D texture;\nfloat Remap01(float a, float b, float t) {\n  return (t-a) / (b-a);\n}\nfloat Remap(float a, float b, float c, float d, float t) {\n  return Remap01(a, b, t) * (d-c) + c;\n}\nfloat Circle(vec2 uv, vec2 o, float r, float blur) {\n  return smoothstep(r, r-blur, distance(uv, o));\n}\nvoid main()\n{\n  vec2 uv = v_uv0.xy;\n  vec4 col = texture(texture, uv) * v_color;\n  uv = uv * 2.0 - 1.0;\n  uv.y *= 1280./720.;\n  float angle = atan(uv.y, uv.x);\n  angle = Remap(-3.141592653589793, 3.141592653589793, 0., 1., angle);\n  float mask = Circle(uv, vec2(0.0), angle, 0.01);\n  mask = Circle(uv, vec2(0.0), texture(texture, vec2(angle, 0.5)).r, 0.01);\n  col = vec4(mask);\n  gl_FragColor = col;\n}"
+      }
+    }
+  ],
+  "subMetas": {}
+}
