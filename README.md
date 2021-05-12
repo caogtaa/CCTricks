@@ -12,7 +12,7 @@
 * [自动分层合批](http://caogtaa.gitee.io/ccdemos/?scene=SceneLayeredBatchingScrollView) (不支持native)</br>
 [讨论帖](https://forum.cocos.org/t/postrender-demo/95201)
 
-* [粒子系统合批](http://caogtaa.gitee.io/ccdemos/?scene=SceneParticlesBatching) (不支持native)
+* [粒子系统合批](http://caogtaa.gitee.io/ccdemos/?scene=SceneParticlesBatching) (不支持native)</br>
 [讨论帖](https://forum.cocos.org/t/topic/95087/47?u=caogtaa)
 
 ### shader系列
