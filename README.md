@@ -13,6 +13,7 @@
 [讨论帖](https://forum.cocos.org/t/postrender-demo/95201)
 
 * [粒子系统合批](http://caogtaa.gitee.io/ccdemos/?scene=SceneParticlesBatching) (不支持native)
+[讨论帖](https://forum.cocos.org/t/topic/95087/47?u=caogtaa)
 
 ### shader系列
 * [EShop加载动画](http://caogtaa.gitee.io/ccdemos?scene=SceneEnterEShop)
