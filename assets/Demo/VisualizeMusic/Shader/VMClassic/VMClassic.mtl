@@ -12,7 +12,8 @@
       "props": {
         "texture": {
           "__uuid__": "790bc609-ee34-419d-90b7-a17df6307f37"
-        }
+        },
+        "scaleX": 1
       }
     }
   }

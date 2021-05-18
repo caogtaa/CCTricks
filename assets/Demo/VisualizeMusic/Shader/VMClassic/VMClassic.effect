@@ -22,6 +22,7 @@ CCEffect %{
       properties:
         texture: { value: white }
         grids: { value: [32., 38.] }
+        scaleX: { value: 1.0 }
         lod: { value: 1.0 }
 }%
 
@@ -62,7 +63,8 @@ CCProgram fs %{
 
   uniform sampler2D texture;
   uniform UARGS {
-    vec2 grids;
+    vec2 grids;   // 水平、垂直格子数量
+    float scaleX; // 水平轴缩放比例。截断高频部分。
     float lod;
   };
 
@@ -78,7 +80,6 @@ CCProgram fs %{
   {
     vec2 uv = v_uv0.xy;
     // vec2 uvOld = uv;
-    vec4 col = texture(texture, uv) * v_color;
 
     // uv缩放为正方形，hardcode屏幕分辨率
     uv.y *= 1280./720.;
@@ -89,15 +90,14 @@ CCProgram fs %{
     uv = uv * 1.1 - 0.05;
 
     // 网格化
-    // const vec2 grids = vec2(32., 38.);
     vec2 guv = fract(uv * grids);
     vec2 gi = floor(uv * grids);
 
     // 从频域数据上采样，uv.x对应频率
     #ifdef GL_EXT_shader_texture_lod
-      float h = texture2DLodEXT(texture, vec2(gi.x / grids.x, 0.5), lod).r * 0.5;
+      float h = texture2DLodEXT(texture, vec2(gi.x / grids.x * scaleX, 0.5), lod).r;
     #else
-      float h = texture(texture, vec2(gi.x / grids.x, 0.5)).r * 0.5;
+      float h = texture(texture, vec2(gi.x / grids.x * scaleX, 0.5)).r;
     #endif
 
     // 只展示频域数值以下颜色
@@ -105,11 +105,13 @@ CCProgram fs %{
     // abs加倒影（上下对称）
     float mask = step(abs(uv.y), floor(h * grids.y) / grids.y);
 
-    // 截断左侧留边部分
-    mask *= step(0., uv.x);
+    // 截断左右留边部分
+    // mask *= step(0., uv.x) * step(uv.x, 1.0);
+    mask *= step(abs(uv.x - 0.5), 0.5);
 
     // 倒影变透明
-    mask *= mix(0.2, 1.0, step(0.0, uv.y));
+    // mix(0.2, 1.0, step(0.0, uv.y));
+    mask *= uv.y < 0. ? 0.2 : 1.0;
 
     // // 网格左右留空 0.15（换种说法：距离中心0.35的保留）
     // mask *= smoothstep(0.5, 0.35, abs(guv.x - 0.5));
@@ -129,7 +131,7 @@ CCProgram fs %{
     vec3 rgb_s = hsv2rgb_smooth(hsl);
     rgb_s *= mask;
 
-    col = vec4(rgb_s, mask);
+    vec4 col = vec4(rgb_s, mask);
     gl_FragColor = col;
   }
 }%

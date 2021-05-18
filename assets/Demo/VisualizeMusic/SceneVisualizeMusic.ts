@@ -20,7 +20,7 @@ export default class SceneVisualizeMusic extends cc.Component {
     sprite: cc.Sprite = null;
 
     protected _analyser: any = null;
-    protected _freqSize: number = 128;   // 1024, be pow of 2
+    protected _freqSize: number = 256;   // 1024, be pow of 2
     protected _gainNode: any = null;
     protected _ac: any = null;
     protected _audioId: number = -1;
@@ -83,13 +83,15 @@ export default class SceneVisualizeMusic extends cc.Component {
         let mat = sprite.getMaterial(0);
 
         // 根据音频纹理宽度和格子数量计算lod
-        let horizGrids = 32;
-        let vertGrids = 38;
-        let lod = Math.log2(this._freqSize / horizGrids);
+        let horizGrids = 28;
+        let vertGrids = 33;
+        let scaleX = 20 / horizGrids;
+        let lod = Math.log2(this._freqSize * scaleX / horizGrids);
         lod = Math.max(1, Math.floor(lod));
 
-        mat.setProperty("lod", lod);
         mat.setProperty("grids", [horizGrids, vertGrids]);
+        mat.setProperty("scaleX", scaleX);
+        mat.setProperty("lod", lod);        
     }
 
     onDestroy() {
@@ -113,6 +115,7 @@ export default class SceneVisualizeMusic extends cc.Component {
         let opts = texture._getOpts();
         opts.image = this._freqBuff;
         opts.format = cc.Texture2D.PixelFormat.I8;
+        opts.genMipmaps = true;
         this._texture.update(opts);
     }
 }
