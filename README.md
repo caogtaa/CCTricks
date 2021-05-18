@@ -36,5 +36,5 @@ https://opengameart.org/content/sprite-fonts-64x64-abblv-by-raid
 ## License
 [MIT](https://opensource.org/licenses/MIT)
 
-</br>
-![image.png](img/640.png)
+<br />![image.png](img/640.png)<br />
+
