@@ -1,0 +1,20 @@
+{
+  "name": "quick-open-x",
+  "version": "1.0.0",
+  "description": "Quickly open scene or prefab.",
+  "author": "Next",
+  "main": "main.js",
+  "main-menu": {
+    "i18n:MAIN_MENU.package.title/quick-open-x/search": {
+      "message": "quick-open-x:search",
+      "accelerator": "CmdOrCtrl+O"
+    }
+  },
+  "panel": {
+    "main": "panel/index.js",
+    "type": "dockable",
+    "title": "quick-open-x",
+    "width": 800,
+    "height": 600
+  }
+}

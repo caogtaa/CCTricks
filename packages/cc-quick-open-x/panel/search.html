@@ -1,0 +1,13 @@
+<div style="text-align: center;margin: 75px auto;" :style="{'width': (isFullPath ? '800px' : '500px')}">
+    <input id="search" v-el:search type="text" :autofocus="true" v-model="search" v-on:keydown.up="onArrowUp"
+        v-on:keydown.down="onArrowDown" v-on:keydown.enter="onEnter" v-on:keydown.esc="onEsc" v-on:keydown.192="onTab"
+        style="width: 100%;text-align: center;line-height: 30px;font-size: 30px;background-color: #252525;color: #ef9845;outline-style: none;border: 1px solid black; border-radius: 3px;">
+    <ul v-show="isOpen" id="filesList" v-el:fileslist
+        style="max-height: 300px;overflow-y: auto;padding:4px 0;margin: 0;background: #333333;border: 1px solid black; border-radius: 3px;">
+        <li v-for="result in results" :key="result.path" @click="setResult(result)"
+            :style="{'color': (results[arrowCounter] && result.path === results[arrowCounter].path) ? '#ef9845' : '#bdbdbd'}"
+            style="list-style-type: none;line-height: 30px;font-size: 20px;">
+            {{ isFullPath ? result.path : result.name }}
+        </li>
+    </ul>
+</div>
