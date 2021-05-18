@@ -20,7 +20,7 @@ export default class SceneVisualizeMusic extends cc.Component {
     sprite: cc.Sprite = null;
 
     protected _analyser: any = null;
-    protected _freqSize: number = 32;   // 1024, be pow of 2
+    protected _freqSize: number = 128;   // 1024, be pow of 2
     protected _gainNode: any = null;
     protected _ac: any = null;
     protected _audioId: number = -1;
@@ -30,6 +30,7 @@ export default class SceneVisualizeMusic extends cc.Component {
 
 
     onLoad() {
+        this.FlushMatProperties(this.sprite);
         this.PlayMusicAndStartAnalyse();      
     }
 
@@ -56,10 +57,6 @@ export default class SceneVisualizeMusic extends cc.Component {
         }
         
         analyser.fftSize = this._freqSize * 2;
-
-        // analyser.connect(element._gainObj);
-        // analyser.connect(element._currentSource);
-        // element._currentSource?.connect(analyser);
         element._gainObj.connect(analyser);
 
         this._freqBuff = new Uint8Array(analyser.frequencyBinCount);
@@ -71,12 +68,28 @@ export default class SceneVisualizeMusic extends cc.Component {
         texture.packable = false;
 
         // 像素化
-        texture.setFilters(cc.Texture2D.Filter.NEAREST, cc.Texture2D.Filter.NEAREST);
+        // texture.setFilters(cc.Texture2D.Filter.NEAREST, cc.Texture2D.Filter.NEAREST);
 
         // 每个像素只需要1 byte表示，用I8格式
         texture.initWithData(this._freqBuff, cc.Texture2D.PixelFormat.I8, width, 1);
 
+        // generate mipmap
+        texture.genMipmaps = true;
+
         this.sprite.spriteFrame = new cc.SpriteFrame(texture);
+    }
+
+    protected FlushMatProperties(sprite: cc.Sprite) {
+        let mat = sprite.getMaterial(0);
+
+        // 根据音频纹理宽度和格子数量计算lod
+        let horizGrids = 32;
+        let vertGrids = 38;
+        let lod = Math.log2(this._freqSize / horizGrids);
+        lod = Math.max(1, Math.floor(lod));
+
+        mat.setProperty("lod", lod);
+        mat.setProperty("grids", [horizGrids, vertGrids]);
     }
 
     onDestroy() {

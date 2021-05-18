@@ -21,6 +21,8 @@ CCEffect %{
         cullMode: none
       properties:
         texture: { value: white }
+        grids: { value: [32., 38.] }
+        lod: { value: 1.0 }
 }%
 
 CCProgram vs %{
@@ -47,25 +49,22 @@ CCProgram vs %{
 }%
 
 CCProgram fs %{
+  #extension GL_EXT_shader_texture_lod : enable
   precision highp float;
 
   #include <cc-global>
   #include <cc-local>
 
-  #define PI 3.141592653589793
+  #define PI 3.14159265
   
   in vec4 v_color;
   in vec2 v_uv0;
 
   uniform sampler2D texture;
-  
-  float Remap01(float a, float b, float t) {
-    return (t-a) / (b-a);
-  }
-
-  float Remap(float a, float b, float c, float d, float t) {
-    return Remap01(a, b, t) * (d-c) + c;
-  }
+  uniform UARGS {
+    vec2 grids;
+    float lod;
+  };
 
   // https://www.shadertoy.com/view/MsS3Wc
   // Smooth HSV to RGB conversion 
@@ -90,12 +89,16 @@ CCProgram fs %{
     uv = uv * 1.1 - 0.05;
 
     // 网格化
-    const vec2 grids = vec2(32., 38.);   // X分段和纹理宽度相同
+    // const vec2 grids = vec2(32., 38.);
     vec2 guv = fract(uv * grids);
     vec2 gi = floor(uv * grids);
 
     // 从频域数据上采样，uv.x对应频率
-    float h = texture(texture, vec2(uv.x, 0.5)).r * 0.5;
+    #ifdef GL_EXT_shader_texture_lod
+      float h = texture2DLodEXT(texture, vec2(gi.x / grids.x, 0.5), lod).r * 0.5;
+    #else
+      float h = texture(texture, vec2(gi.x / grids.x, 0.5)).r * 0.5;
+    #endif
 
     // 只展示频域数值以下颜色
     // Y轴保留整数格（h取值floor）
