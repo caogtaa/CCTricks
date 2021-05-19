@@ -1,0 +1,22 @@
+{
+  "name": "control-inspector",
+  "version": "0.0.1",
+  "description": "The package template for getting started.",
+  "author": "Cocos Creator",
+  "main": "main.js",
+  "main-menu": {
+    "i18n:MAIN_MENU.package.title/control-inspector/open": {
+      "message": "control-inspector:open"
+    },
+    "i18n:MAIN_MENU.package.title/control-inspector/hello": {
+      "message": "control-inspector:say-hello"
+    }
+  },
+  "panel": {
+    "main": "panel/index.js",
+    "type": "dockable",
+    "title": "control-inspector",
+    "width": 400,
+    "height": 300
+  }
+}
