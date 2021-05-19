@@ -104,6 +104,7 @@ CCProgram fs %{
     vec2 gi = floor(uv * grids);
 
     // 从频域数据上采样，uv.x对应频率
+    // todo: optimize Remap
     float col = Remap(0., 1., startCol, endCol, gi.x / grids.x);  // 将uv从[0, 1]映射到当前采样对应的纹理区间
     float h = texture(texture, vec2(col, row)).r * 0.5;
 

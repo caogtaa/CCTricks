@@ -19,6 +19,15 @@ export default class SceneVisualizeMusic extends cc.Component {
     @property(cc.Sprite)
     sprite: cc.Sprite = null;
 
+    protected _frame: number = 0;
+    @property(cc.Integer)
+    set frame(value: number) {
+        this._frame = value;
+    }
+    get frame(): number {
+        return this._frame;
+    }
+
     protected _analyser: any = null;
     protected _freqSize: number = 32;   // 1024, be pow of 2
     protected _gainNode: any = null;
@@ -58,6 +67,9 @@ export default class SceneVisualizeMusic extends cc.Component {
     }
 
     public Run() {
+        //this.UpdateFFTShader(++this._frame);
+        //return;
+
         // this.FlushMatProperties(this.sprite);
         this.PlayMusicAndStartAnalyse();
 
@@ -190,15 +202,9 @@ export default class SceneVisualizeMusic extends cc.Component {
         cc.audioEngine.stopMusic();
     }
 
-    protected _kk = 0;
-    update() {
-        if (this._audioId === -1)
-            return;
-
-        // todo: 16 = samplePerRow
-        let t = cc.audioEngine.getCurrentTime(this._audioId);
-        let frame = Math.round(t * 60);
-        let row = Math.floor(frame / 16) / this.sprite.spriteFrame.getRect().height;
+    protected UpdateFFTShader(frame: number) {
+        // +0.5确保不会采样到其他row
+        let row = (Math.floor(frame / 16) + 0.5) / this.sprite.spriteFrame.getRect().height;
         let startCol = (frame % 16) / 16;
         let endCol = (frame % 16 + 1) / 16;
         let mat = this.sprite.getMaterial(0);
@@ -207,6 +213,16 @@ export default class SceneVisualizeMusic extends cc.Component {
             mat.setProperty("startCol", startCol);
             mat.setProperty("endCol", endCol);
         }
+    }
+
+    update() {
+        if (this._audioId === -1)
+            return;
+
+        // todo: 16 = samplePerRow
+        let t = cc.audioEngine.getCurrentTime(this._audioId);
+        let frame = Math.floor(t * 60);
+        this.UpdateFFTShader(frame);
         
         return;
         let analyser = this._analyser;
@@ -215,9 +231,6 @@ export default class SceneVisualizeMusic extends cc.Component {
 
         // 获取频域数据
         analyser.getByteFrequencyData(this._freqBuff);
-        if (++this._kk < 20)
-            console.log(`data[0]: ${this._freqBuff[0]}`);
-
 
         // 获取时域数据
         //analyser.getByteTimeDomainData(this._freqBuff);
