@@ -1,6 +1,11 @@
 import SceneVisualizeMusic from "./SceneVisualizeMusic";
 
- 
+let fs, PNG;
+if (CC_EDITOR) {
+    fs = require("fs");
+    PNG = require("pngjs").PNG;
+}
+
 const { ccclass, property, menu, inspector, executeInEditMode, requireComponent } = cc._decorator;
 
 @ccclass
@@ -8,7 +13,7 @@ const { ccclass, property, menu, inspector, executeInEditMode, requireComponent 
 @menu("control-inspector/fft-texture-generator")
 @inspector("packages://control-inspector/fft-texture-generator.js")
 export default class FFTTextureGenerator extends cc.Component {
-    public Sync() {
+    public HandleInspectorClick() {
         if (!CC_EDITOR)
             return;
 
@@ -19,16 +24,17 @@ export default class FFTTextureGenerator extends cc.Component {
 
         this._clip = clip;
         console.log("--entered");
-        this.Test();
+        this.ExtractFFTAndSave();
     }
 
     protected _clip: cc.AudioClip = null;
     protected _analyser: any = null;
     protected _freqSize: number = 32;   // 1024, be pow of 2
     protected _fftTexture: Uint8Array = null;
-    protected _freqBuff: Uint8Array = null;     // fft buffer for 1 sample
+    protected _sampleBuff: Uint8Array = null;     // fft buffer for 1 sample
     protected _sourceNode: AudioBufferSourceNode = null;
     
+    protected _test = 1;
     public WriteFrame(fftTexture: Uint8Array, frame: number, buff: Uint8Array) {
         // 每个采样32长度
         // 纹理宽512，所以一行保存16个采样
@@ -49,10 +55,14 @@ export default class FFTTextureGenerator extends cc.Component {
             return;
         }
 
+        // if (++this._test < 200) {
+        //     console.log(`fftTexture.set(buff, ${sx});`);
+        // }
+
         fftTexture.set(buff, sx);
     }
 
-    protected Test() {
+    protected ExtractFFTAndSave() {
         //@ts-ignore
         let audio: AudioBuffer = this._clip._audio;
         let offlineAudioCtx = new OfflineAudioContext(audio.numberOfChannels, audio.length, audio.sampleRate);
@@ -65,16 +75,24 @@ export default class FFTTextureGenerator extends cc.Component {
         analyser.connect(offlineAudioCtx.destination);
 
         let elapseInSec = audio.length / audio.sampleRate;
-        let samples: number = Math.floor(elapseInSec * 60);
-        let freqBuff = this._freqBuff = new Uint8Array(analyser.frequencyBinCount);
-        let fftTexture = this._fftTexture = new Uint8Array(samples * analyser.frequencyBinCount);        
+        let originSamples: number = Math.floor(elapseInSec * 60);
+        let bytesPerSample = analyser.frequencyBinCount;
+
+        let sampleBuff = this._sampleBuff = new Uint8Array(bytesPerSample);
+        let samplePerRow = 512 / bytesPerSample;
+
+        // 补齐最后一行
+        let samples = Math.ceil(originSamples / samplePerRow) * samplePerRow;
+        let fftTexture = this._fftTexture = new Uint8Array(samples * bytesPerSample);
+
+        console.log(`texture width: ${512}, height: ${fftTexture.length / 512}, samples: ${samples}, samplePerRow: ${samplePerRow}`);
         
         // 60帧每秒采样
-        for (let i = 0; i < samples; ++i) {
+        for (let i = 0; i < originSamples; ++i) {
             offlineAudioCtx.suspend(i / 60).then(() => {
                 // analyser.getByteTimeDomainData(freqBuff);
-                analyser.getByteFrequencyData(freqBuff);
-                that.WriteFrame(fftTexture, i, freqBuff);
+                analyser.getByteFrequencyData(sampleBuff);
+                that.WriteFrame(fftTexture, i, sampleBuff);
                 /*if (i < 20) {
                     console.log(`${offlineAudioCtx.currentTime}`);
                     console.log(`data[0]: ${freqBuff[0]}`);
@@ -88,7 +106,7 @@ export default class FFTTextureGenerator extends cc.Component {
         offlineAudioCtx.startRendering();
         offlineAudioCtx.oncomplete = (ev: OfflineAudioCompletionEvent) => {
             sourceNode.stop();
-            that.SaveFFTTexture();
+            that.SaveFFTTexture(fftTexture, 512, fftTexture.length / 512);
             that.ReleaseAudioBuffer();
             console.log("finished without error");
         };
@@ -96,15 +114,23 @@ export default class FFTTextureGenerator extends cc.Component {
         sourceNode.start(0);
     }
 
-    protected SaveFFTTexture() {
+    protected SaveFFTTexture(texture: Uint8Array, width: number, height: number) {
+        let img = new PNG({
+            colorType: 0,       // grayscale
+            inputColorType: 0,  // grayscale
+            width: width,
+            height: height
+        });
 
+        img.data = texture;
+        img.pack().pipe(fs.createWriteStream("F:/workspace/CCBatchingTricks/aa.png"));
     }
 
     protected ReleaseAudioBuffer() {
         this._clip = null;
         this._analyser = null;
         this._fftTexture = null;
-        this._freqBuff = null;
+        this._sampleBuff = null;
         this._sourceNode = null;
     }
 }

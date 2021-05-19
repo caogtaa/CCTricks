@@ -191,6 +191,7 @@ export default class SceneVisualizeMusic extends cc.Component {
 
     protected _kk = 0;
     update() {
+        return;
         let t = cc.audioEngine.getCurrentTime(this._audioId);
         let row = Math.floor(t * 60);
         let mat = this.sprite.getMaterial(0);
