@@ -58,10 +58,10 @@ export default class SceneVisualizeMusic extends cc.Component {
     }
 
     public Run() {
-        //this.FlushMatProperties(this.sprite);
-        //this.PlayMusicAndStartAnalyse();
+        // this.FlushMatProperties(this.sprite);
+        this.PlayMusicAndStartAnalyse();
 
-        this.Test();
+        // this.Test();
     }
 
     protected Test() {
@@ -132,6 +132,7 @@ export default class SceneVisualizeMusic extends cc.Component {
         // 参考引擎源码
         // cocos2d\audio\CCAudio.js
         let audioId = this._audioId = cc.audioEngine.playMusic(this.clip, true);
+        return;
         //@ts-ignore
         let audio = cc.audioEngine._id2audio[audioId];
         let element = audio?._element;
@@ -191,12 +192,20 @@ export default class SceneVisualizeMusic extends cc.Component {
 
     protected _kk = 0;
     update() {
-        return;
+        if (this._audioId === -1)
+            return;
+
+        // todo: 16 = samplePerRow
         let t = cc.audioEngine.getCurrentTime(this._audioId);
-        let row = Math.floor(t * 60);
+        let frame = Math.round(t * 60);
+        let row = Math.floor(frame / 16) / this.sprite.spriteFrame.getRect().height;
+        let startCol = (frame % 16) / 16;
+        let endCol = (frame % 16 + 1) / 16;
         let mat = this.sprite.getMaterial(0);
         if (mat) {
             mat.setProperty("row", row);
+            mat.setProperty("startCol", startCol);
+            mat.setProperty("endCol", endCol);
         }
         
         return;

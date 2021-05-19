@@ -183,7 +183,7 @@
       "array": [
         0,
         0,
-        838.9759717445626,
+        839.3172863897653,
         0,
         0,
         0,
@@ -317,13 +317,13 @@
     "_enabled": true,
     "_materials": [
       {
-        "__uuid__": "571a5ae4-13a8-4496-ae03-b9fabe42d72b"
+        "__uuid__": "83591c16-e79a-4061-9d01-21ff01c5451b"
       }
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "901e5527-85a4-4338-a912-291c1863b0be"
+      "__uuid__": "ab3cdefe-dc34-4f39-94a3-74266ba2272b"
     },
     "_type": 0,
     "_sizeMode": 0,
@@ -335,7 +335,7 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": true,
+    "_isTrimmedMode": false,
     "_atlas": null,
     "_id": "30zUb0Tl9GapvW9uG4SE3Z"
   },
@@ -872,8 +872,8 @@
       "__id__": 2
     },
     "component": "",
-    "_componentId": "0482cd2IE5Mab/KY5yMKIb2",
-    "handler": "Sync",
+    "_componentId": "66078LwZ6VOTp0Xu66oVwY9",
+    "handler": "Run",
     "customEventData": ""
   },
   {

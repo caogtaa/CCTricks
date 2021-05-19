@@ -1,0 +1,20 @@
+{
+  "__type__": "cc.Material",
+  "_name": "VMClassicFFT",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "0b92f0e7-83ce-420f-9a97-e727b63c8fa3"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "scaleX": 1,
+        "texture": {
+          "__uuid__": "790bc609-ee34-419d-90b7-a17df6307f37"
+        }
+      }
+    }
+  }
+}
