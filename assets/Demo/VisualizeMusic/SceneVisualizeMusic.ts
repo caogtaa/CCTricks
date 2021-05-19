@@ -9,6 +9,8 @@
  * LastEditTime: 2021-05-09 15:01:32
 */ 
 
+import Visualier from "./Visualizer";
+
 const {ccclass, property} = cc._decorator;
 
 @ccclass
@@ -27,6 +29,9 @@ export default class SceneVisualizeMusic extends cc.Component {
     get frame(): number {
         return this._frame;
     }
+
+    @property(Visualier)
+    visualier: Visualier = null;
 
     protected _analyser: any = null;
     protected _freqSize: number = 32;   // 1024, be pow of 2
@@ -67,11 +72,12 @@ export default class SceneVisualizeMusic extends cc.Component {
     }
 
     public Run() {
+        this.visualier?.Play();
         //this.UpdateFFTShader(++this._frame);
         //return;
 
         // this.FlushMatProperties(this.sprite);
-        this.PlayMusicAndStartAnalyse();
+        // this.PlayMusicAndStartAnalyse();
 
         // this.Test();
     }
@@ -221,7 +227,7 @@ export default class SceneVisualizeMusic extends cc.Component {
 
         // todo: 16 = samplePerRow
         let t = cc.audioEngine.getCurrentTime(this._audioId);
-        let frame = Math.round(t * 60);     // floor or round?
+        let frame = Math.floor(t * 60);     // floor or round?
         this.UpdateFFTShader(frame);
         
         return;

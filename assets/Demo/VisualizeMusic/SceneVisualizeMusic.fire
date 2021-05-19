@@ -244,7 +244,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "sprite",
+    "_name": "visualizer",
     "_objFlags": 0,
     "_parent": {
       "__id__": 2
@@ -308,7 +308,34 @@
     "_id": "87OurppalBNbXl5Mk+Y9Nt"
   },
   {
-    "__type__": "cc.Sprite",
+    "__type__": "cc.Widget",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 5
+    },
+    "_enabled": true,
+    "alignMode": 1,
+    "_target": null,
+    "_alignFlags": 0,
+    "_left": 310,
+    "_right": 310,
+    "_top": 590,
+    "_bottom": 590,
+    "_verticalCenter": 0,
+    "_horizontalCenter": 0,
+    "_isAbsLeft": true,
+    "_isAbsRight": true,
+    "_isAbsTop": true,
+    "_isAbsBottom": true,
+    "_isAbsHorizontalCenter": true,
+    "_isAbsVerticalCenter": true,
+    "_originalWidth": 100,
+    "_originalHeight": 100,
+    "_id": "951fQkE+BJJ5+SE8JLKqgQ"
+  },
+  {
+    "__type__": "ec59c7s6cJNJbyrRX95/Fpu",
     "_name": "",
     "_objFlags": 0,
     "node": {
@@ -337,34 +364,10 @@
     "_fillRange": 0,
     "_isTrimmedMode": false,
     "_atlas": null,
-    "_id": "30zUb0Tl9GapvW9uG4SE3Z"
-  },
-  {
-    "__type__": "cc.Widget",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 5
+    "clip": {
+      "__uuid__": "78659342-557f-40e5-8b46-788f8c621be7"
     },
-    "_enabled": true,
-    "alignMode": 1,
-    "_target": null,
-    "_alignFlags": 0,
-    "_left": 310,
-    "_right": 310,
-    "_top": 590,
-    "_bottom": 590,
-    "_verticalCenter": 0,
-    "_horizontalCenter": 0,
-    "_isAbsLeft": true,
-    "_isAbsRight": true,
-    "_isAbsTop": true,
-    "_isAbsBottom": true,
-    "_isAbsHorizontalCenter": true,
-    "_isAbsVerticalCenter": true,
-    "_originalWidth": 100,
-    "_originalHeight": 100,
-    "_id": "951fQkE+BJJ5+SE8JLKqgQ"
+    "_id": "c3xGeTaM9JsbBrPPAIPAUf"
   },
   {
     "__type__": "cc.Node",
@@ -928,11 +931,10 @@
       "__id__": 2
     },
     "_enabled": true,
-    "clip": {
-      "__uuid__": "78659342-557f-40e5-8b46-788f8c621be7"
-    },
-    "sprite": {
-      "__id__": 6
+    "clip": null,
+    "sprite": null,
+    "visualier": {
+      "__id__": 7
     },
     "_id": "de8N3hiHVLGoCY+621HzKj"
   },

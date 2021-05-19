@@ -24,7 +24,7 @@ CCEffect %{
         grids: { value: [32., 38.] }
         row: { value: 0. }
         startCol: { value: 0. }
-        endCol: { value: 1. }
+        endCol: { value: 0.0625 }
 }%
 
 CCProgram vs %{
