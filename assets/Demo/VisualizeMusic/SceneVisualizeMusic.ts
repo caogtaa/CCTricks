@@ -221,7 +221,7 @@ export default class SceneVisualizeMusic extends cc.Component {
 
         // todo: 16 = samplePerRow
         let t = cc.audioEngine.getCurrentTime(this._audioId);
-        let frame = Math.floor(t * 60);
+        let frame = Math.round(t * 60);     // floor or round?
         this.UpdateFFTShader(frame);
         
         return;
