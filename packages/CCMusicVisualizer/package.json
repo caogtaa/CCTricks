@@ -8,5 +8,6 @@
         "i18n:MAIN_MENU.package.title/i18n:music-visualizer.PKG_visualizer/i18n:music-visualizer.PKG_extract_fft": {
             "message": "music-visualizer:extract-fft"
         }
-    }
+    },
+    "scene-script": "scene-accessor.ts"
 }
