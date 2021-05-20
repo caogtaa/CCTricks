@@ -1,95 +1,99 @@
 /*
  * @Date: 2021-05-20 18:09:25
  * @LastEditors: GT<caogtaa@gmail.com>
- * @LastEditTime: 2021-05-20 18:34:14
+ * @LastEditTime: 2021-05-20 20:31:23
  */
 
 
-// 'use strict';
+'use strict';
 
-// let boundContext = {
-//     isAssetSelected: Boolean = false
-// };
+// 根据用户点击位置实时变化true/false
+let boundContext = {
+    isAssetSelected: false,
+    listener: null
+};
+
+
+// 追加到asset菜单下方的自定义菜单项
+let assetMenuTemplateEx = [
+    {
+        type: 'separator'
+    },
+    {
+        label: '提取FFT纹理',
+        click: () => {
+            Editor.log("提取FFT纹理");
+            // todo: call it
+        }
+    }
+]
+
+
+class AssetMenu extends Editor.Menu {
+    // 获外部变量会导致组件重新加载后变量失效
+    // 保存到类内部，每次加载插件时刷新
+    static __gt_context = null;
+    constructor() {
+        if (AssetMenu.__gt_context && AssetMenu.__gt_context.isAssetSelected) {
+            // insert your custom menu
+            arguments[0].push(...assetMenuTemplateEx);
+        }
+
+        super(...arguments);
+
+        // Editor.log(...arguments);
+        // return new Editor.Menu(...arguments);
+    }
+}
+
+function onSelected() {
+    // Editor.log('selection:selected');
+    // Editor.log(...arguments);
+    if (arguments[1] === 'asset') {
+        boundContext.isAssetSelected = true;
+    } else {
+        boundContext.isAssetSelected = false;
+    }
+}
+
+function clearBoundContext() {
+    boundContext.isAssetSelected = false;
+    if (boundContext.listener) {
+        boundContext.listener.clear();
+        boundContext.listener = null;
+    }
+}
 
 function injectAssetsMenu() {
+    clearBoundContext();
 
+    boundContext.listener = new Editor.IpcListener();
+    boundContext.listener.on('selection:context', onSelected);          // context消息每次点击会多次触发，但是目前没有更好的选择
+    // boundContext.listener.on('selection:selected', onSelected);      // selected触发时机太晚
 
-    return;
-
-    /*if (Editor['__gt_asset_injected']) {
+    Editor.Menu.__gt_context = boundContext;
+    if (Editor['__gt_asset_injected']) {
         return;
     }
 
     Editor['__gt_asset_injected'] = true;
 
-    let listener = new Editor.IpcListener();
-    listener.on('selection:context', function () {
-        Editor.log(arguments);
-        if (arguments[1] == 'asset') {
-            boundContext.isAssetSelected = true;
-            // let path = arguments[2] ? Editor.assetdb.uuidToFspath(arguments[2]) : null;
-            // Editor.log(path);
-        } else {
-            boundContext.isAssetSelected = false;
-        }
-    });*/
+    // cc.js.mixin(AssetMenu.prototype, Editor.Menu.prototype);     // 没有cc命名空间，改用继承的方式
+    Editor.Menu = AssetMenu;
 }
 
 module.exports = {
     load() {
+        Editor.log('load');
         injectAssetsMenu();
-        /*loadMenu();
-        try {
-          if (Editor.Window.main.nativeWin.webContents.__gt_injected) {
-            // in case plugin if reloaded
-            return;
-          }
-        } catch(error) {
-          // usually happen when creator is just started and main window is not created
-          Editor.log(error);
-        }
-
-        // todo: 如果插件是中途加载的，判断webContents如果就绪了就注入
-        const electron = require('electron');
-        let injectFn = injectContextMenu;
-        electron.app.on('web-contents-created', (sender, webContents) => {
-          webContents.on('dom-ready', (e) => {
-            
-            // injectFn(e.sender);
-          });
-        });*/
     },
 
     unload() {
-        // let webContenst = Editor.Window.main.nativeWin.webContents;
-        // if (webContenst.__gt_injected) {
-        //     // todo: removeEventListeners
-        //     webContenst.__gt_injected = false;
-        // }
-        // execute when package unloaded
+        clearBoundContext();
     },
 
     // register your ipc messages here
     messages: {
-        /*'assets:popup-context-menu'(e, e1, e2, e3, e4) {
-            Editor.log(e);
-            Editor.log(e1);
-            Editor.log(e2);
-            Editor.log(e3);
-            Editor.log(e4);
-            Editor.log(e.sender);
-            e.preventDefault();
-
-            Editor.log(new Error().stack);
-
-            return;
-
-            const Remote = require('electron').remote;
-            const Menu = Remote.Menu;
-            const MenuItem = Remote.MenuItem;
-            Editor.load()
-        },*/
-
         'extract-fft'() {
             Editor.log('extract-fft');
         }
