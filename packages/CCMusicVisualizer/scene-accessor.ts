@@ -12,6 +12,20 @@
 // let fs = require("fs");
 // let PNG = require("pngjs").PNG;
 
+const Path = require("path");
+
+function isAudioFile(uuid) {
+    let meta = Editor.assetdb.remote.loadMetaByUuid(uuid);
+    //@ts-ignore
+    if (meta.duration === undefined) {
+        return false;
+    }
+
+    let filePath = Editor.assetdb.remote.uuidToFspath(uuid);
+    let ext = Path.extname(filePath);
+    return ['.wav', '.mp3', '.ogg'].includes(ext);
+}
+
 // @ts-ignore
 module.exports = {
     /*'create-node': function (event, param) {
@@ -37,20 +51,26 @@ module.exports = {
         try {
             let selection = Editor.Selection.curSelection('asset');
             if (selection.length === 0) {
-                Editor.log("未选中声音文件");
-                event.reply(null);
+                event.reply("未选中声音文件");
                 return;
             }
 
             let uuid = selection[0];
+            if (!isAudioFile(uuid)) {
+                event.reply("未选中声音文件");
+                return;
+            }
+
             let path = Editor.assetdb.remote.uuidToFspath(uuid);
             let Generator = require("./FFTTextureGenerator");
             let generator = new Generator;
-            generator.Generate(path);
+            generator.Generate(uuid, path);
             event.reply(null);
         } catch (e) {
             Editor.log(e);
             event.reply(null);
+        } finally {
+            
         }
     }
 };

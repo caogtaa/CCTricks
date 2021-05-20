@@ -3,33 +3,36 @@
 // https://caogtaa.github.io
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
-var fs = require("fs");
-var PNG = require("pngjs").PNG;
+var Fs = require("fs");
+var Path = require("path");
+var Png = require("pngjs").PNG;
 var FFTTextureGenerator = /** @class */ (function () {
     function FFTTextureGenerator() {
-        /*public HandleInspectorClick() {
-            return;
-            if (!CC_EDITOR)
-                return;
-    
-            let scene = this.getComponent(SceneVisualizeMusic);
-            let clip = scene?.clip;
-            if (!clip)
-                return;
-    
-            this._clip = clip;
-            console.log("--entered");
-            this.ExtractFFTAndSave();
-        }*/
         this._clip = null;
         this._analyser = null;
         this._freqSize = 32; // 1024, be pow of 2
         this._fftTexture = null;
         this._sampleBuff = null; // fft buffer for 1 sample
         this._sourceNode = null;
+        this._outputPath = null;
     }
-    FFTTextureGenerator.prototype.Generate = function (audioPath) {
-        Editor.log("enter extract: " + audioPath);
+    FFTTextureGenerator.prototype.Generate = function (uuid, audioPath) {
+        var that = this;
+        Editor.log("[VIS] start loading " + audioPath);
+        //@ts-ignore
+        cc.assetManager.loadAny({ uuid: uuid }, function (err, clip) {
+            if (err)
+                Editor.log(err);
+            // Editor.log(clip);
+            // Editor.log(typeof clip);
+            that._clip = clip;
+            var dir = Path.dirname(audioPath);
+            var ext = Path.extname(audioPath);
+            var baseName = Path.basename(audioPath, ext);
+            that._outputPath = Path.join(dir, baseName + "-fft.png");
+            // Editor.log(`output = ${that._outputPath}`);
+            that.ExtractFFTAndSave();
+        });
     };
     FFTTextureGenerator.prototype.WriteFrame = function (fftTexture, frame, buff) {
         // 每个采样32长度
@@ -53,6 +56,7 @@ var FFTTextureGenerator = /** @class */ (function () {
     FFTTextureGenerator.prototype.ExtractFFTAndSave = function () {
         //@ts-ignore
         var audio = this._clip._audio;
+        // let audio = this._audio;
         var offlineAudioCtx = new OfflineAudioContext(audio.numberOfChannels, audio.length, audio.sampleRate);
         var analyser = this._analyser = offlineAudioCtx.createAnalyser(); // new AnalyserNode(offlineAudioCtx);
         analyser.fftSize = this._freqSize * 2;
@@ -68,7 +72,7 @@ var FFTTextureGenerator = /** @class */ (function () {
         // 补齐最后一行
         var samples = Math.ceil(originSamples / samplePerRow) * samplePerRow;
         var fftTexture = this._fftTexture = new Uint8Array(samples * bytesPerSample);
-        console.log("texture width: " + 512 + ", height: " + fftTexture.length / 512 + ", samples: " + samples + ", samplePerRow: " + samplePerRow);
+        Editor.log("[VIS] texture width: " + 512 + ", height: " + fftTexture.length / 512 + ", samples: " + samples + ", samplePerRow: " + samplePerRow);
         var _loop_1 = function (i) {
             offlineAudioCtx.suspend(i / 60).then(function () {
                 // analyser.getByteTimeDomainData(freqBuff);
@@ -92,22 +96,29 @@ var FFTTextureGenerator = /** @class */ (function () {
             sourceNode.stop();
             that.SaveFFTTexture(fftTexture, 512, fftTexture.length / 512);
             that.ReleaseAudioBuffer();
-            console.log("finished without error");
+            Editor.log("[VIS] output: " + that._outputPath);
+            // refresh asset db
+            var url = Editor.assetdb.remote.fspathToUrl(that._outputPath);
+            url = Path.dirname(url);
+            Editor.log("[VIS] refresh " + url);
+            Editor.assetdb.remote.refresh(url, function (err, results) { });
+            Editor.log("[VIS] finished");
         };
         sourceNode.start(0);
     };
     FFTTextureGenerator.prototype.SaveFFTTexture = function (texture, width, height) {
-        var img = new PNG({
+        var img = new Png({
             colorType: 0,
             inputColorType: 0,
             width: width,
             height: height
         });
         img.data = texture;
-        img.pack().pipe(fs.createWriteStream("F:/workspace/CCBatchingTricks/aa.png"));
+        img.pack().pipe(Fs.createWriteStream(this._outputPath));
     };
     FFTTextureGenerator.prototype.ReleaseAudioBuffer = function () {
         this._clip = null;
+        // this._audio = null;
         this._analyser = null;
         this._fftTexture = null;
         this._sampleBuff = null;

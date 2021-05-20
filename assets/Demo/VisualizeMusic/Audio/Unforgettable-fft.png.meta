@@ -1,21 +1,21 @@
 {
   "ver": "2.3.5",
-  "uuid": "1c6ede2e-bc5d-4283-a1a5-b82ae77acfc1",
+  "uuid": "f3942fa7-843d-47a2-a450-0d2b717b1bae",
   "type": "sprite",
   "wrapMode": "clamp",
-  "filterMode": "point",
+  "filterMode": "bilinear",
   "premultiplyAlpha": false,
   "genMipmaps": false,
-  "packable": false,
+  "packable": true,
   "width": 512,
   "height": 867,
   "platformSettings": {},
   "subMetas": {
-    "fft": {
+    "Unforgettable-fft": {
       "ver": "1.0.4",
-      "uuid": "ab3cdefe-dc34-4f39-94a3-74266ba2272b",
-      "rawTextureUuid": "1c6ede2e-bc5d-4283-a1a5-b82ae77acfc1",
-      "trimType": "none",
+      "uuid": "628e18e4-4d8b-4a6b-bc71-b087e43598d2",
+      "rawTextureUuid": "f3942fa7-843d-47a2-a450-0d2b717b1bae",
+      "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,
       "offsetX": 0,

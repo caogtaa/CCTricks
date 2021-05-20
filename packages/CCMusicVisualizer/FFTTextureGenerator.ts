@@ -10,43 +10,50 @@
 */ 
 
 // Note: run `tsc FFTTextureGenerator.ts` to compile this script
+// Restart/Reload(Ctrl+R) CocosCreator is required after compiling
 
 // some necessary declaration for tsc to work
 declare var require: any;
 declare var Editor: any;
 declare namespace cc {
-    export class AudioClip {}    
+    export class AudioClip {}
+    export class _Audio {}
 }
 
-let fs = require("fs");
-let PNG = require("pngjs").PNG;
+let Fs = require("fs");
+let Path = require("path");
+let Png = require("pngjs").PNG;
 
 class FFTTextureGenerator {
-    public Generate(audioPath: string) {
-        Editor.log(`enter extract: ${audioPath}`);
-    }
-
-    /*public HandleInspectorClick() {
-        return;
-        if (!CC_EDITOR)
-            return;
-
-        let scene = this.getComponent(SceneVisualizeMusic);
-        let clip = scene?.clip;
-        if (!clip)
-            return;
-
-        this._clip = clip;
-        console.log("--entered");
-        this.ExtractFFTAndSave();
-    }*/
-
     protected _clip: cc.AudioClip = null;
     protected _analyser: any = null;
     protected _freqSize: number = 32;   // 1024, be pow of 2
     protected _fftTexture: Uint8Array = null;
     protected _sampleBuff: Uint8Array = null;     // fft buffer for 1 sample
     protected _sourceNode: AudioBufferSourceNode = null;
+    protected _outputPath: string = null;
+
+    public Generate(uuid: string, audioPath: string) {
+        let that = this;
+        Editor.log(`[VIS] start loading ${audioPath}`);
+        //@ts-ignore
+        cc.assetManager.loadAny({uuid: uuid}, (err: Error, clip: cc.AudioClip) => {
+            if (err)
+                Editor.log(err);
+
+            // Editor.log(clip);
+            // Editor.log(typeof clip);
+            that._clip = clip;
+
+            const dir = Path.dirname(audioPath);
+            const ext = Path.extname(audioPath);
+            const baseName = Path.basename(audioPath, ext);
+
+            that._outputPath = Path.join(dir, baseName + "-fft.png");
+            // Editor.log(`output = ${that._outputPath}`);
+            that.ExtractFFTAndSave();
+        });
+    }
     
     public WriteFrame(fftTexture: Uint8Array, frame: number, buff: Uint8Array) {
         // 每个采样32长度
@@ -74,6 +81,7 @@ class FFTTextureGenerator {
     protected ExtractFFTAndSave() {
         //@ts-ignore
         let audio: AudioBuffer = this._clip._audio;
+        // let audio = this._audio;
         let offlineAudioCtx = new OfflineAudioContext(audio.numberOfChannels, audio.length, audio.sampleRate);
         let analyser = this._analyser = offlineAudioCtx.createAnalyser();// new AnalyserNode(offlineAudioCtx);
         analyser.fftSize = this._freqSize * 2;
@@ -94,7 +102,7 @@ class FFTTextureGenerator {
         let samples = Math.ceil(originSamples / samplePerRow) * samplePerRow;
         let fftTexture = this._fftTexture = new Uint8Array(samples * bytesPerSample);
 
-        console.log(`texture width: ${512}, height: ${fftTexture.length / 512}, samples: ${samples}, samplePerRow: ${samplePerRow}`);
+        Editor.log(`[VIS] texture width: ${512}, height: ${fftTexture.length / 512}, samples: ${samples}, samplePerRow: ${samplePerRow}`);
         
         // 60帧每秒采样
         for (let i = 0; i < originSamples; ++i) {
@@ -117,14 +125,21 @@ class FFTTextureGenerator {
             sourceNode.stop();
             that.SaveFFTTexture(fftTexture, 512, fftTexture.length / 512);
             that.ReleaseAudioBuffer();
-            console.log("finished without error");
+            Editor.log(`[VIS] output: ${that._outputPath}`);
+
+            // refresh asset db
+            let url = Editor.assetdb.remote.fspathToUrl(that._outputPath);
+            url = Path.dirname(url);
+            Editor.log(`[VIS] refresh ${url}`);
+            Editor.assetdb.remote.refresh(url, function (err, results) {});
+            Editor.log("[VIS] finished");
         };
 
         sourceNode.start(0);
     }
 
     protected SaveFFTTexture(texture: Uint8Array, width: number, height: number) {
-        let img = new PNG({
+        let img = new Png({
             colorType: 0,       // grayscale
             inputColorType: 0,  // grayscale
             width: width,
@@ -132,11 +147,12 @@ class FFTTextureGenerator {
         });
 
         img.data = texture;
-        img.pack().pipe(fs.createWriteStream("F:/workspace/CCBatchingTricks/aa.png"));
+        img.pack().pipe(Fs.createWriteStream(this._outputPath));
     }
 
     protected ReleaseAudioBuffer() {
         this._clip = null;
+        // this._audio = null;
         this._analyser = null;
         this._fftTexture = null;
         this._sampleBuff = null;
