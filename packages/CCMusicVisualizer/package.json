@@ -1,0 +1,12 @@
+{
+    "name": "music-visualizer",
+    "version": "0.1.0",
+    "description": "Cool music visualization components and tools",
+    "author": "caogtaa@gmail.com",
+    "main": "main.js",
+    "main-menu": {
+        "i18n:MAIN_MENU.package.title/i18n:music-visualizer.PKG_visualizer/i18n:music-visualizer.PKG_extract_fft": {
+            "message": "music-visualizer:extract-fft"
+        }
+    }
+}

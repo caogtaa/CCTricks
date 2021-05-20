@@ -45,7 +45,6 @@ export default class FFTTextureGenerator extends cc.Component {
     protected _sampleBuff: Uint8Array = null;     // fft buffer for 1 sample
     protected _sourceNode: AudioBufferSourceNode = null;
     
-    protected _test = 1;
     public WriteFrame(fftTexture: Uint8Array, frame: number, buff: Uint8Array) {
         // 每个采样32长度
         // 纹理宽512，所以一行保存16个采样
