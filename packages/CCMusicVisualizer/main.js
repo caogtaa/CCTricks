@@ -1,10 +1,11 @@
 /*
  * @Date: 2021-05-20 18:09:25
  * @LastEditors: GT<caogtaa@gmail.com>
- * @LastEditTime: 2021-05-21 00:12:03
+ * @LastEditTime: 2021-05-21 01:43:11
  */
 
-
+const Path = require("path")
+const Fs = require("fs")
 'use strict';
 
 // 根据用户点击位置实时变化true/false
@@ -108,6 +109,66 @@ module.exports = {
                 if (err)
                     Editor.log(err);
             });
+        },
+
+        'on-extract-finished'(event, param) {
+            let outputPath = param;
+            try {
+                // refresh asset db
+                let assetdb = Editor.assetdb;
+                let url = assetdb.fspathToUrl(outputPath);
+                url = Path.dirname(url);
+                Editor.log(`[VIS] refresh ${url}`);
+                assetdb.refresh(url, (err, results) => {
+                    if (err) {
+                        Editor.log('[VIS]', err);
+                        return;
+                    }
+
+                    let outUuid = assetdb.fspathToUuid(outputPath);
+                    Editor.log(`[VIS] outUuid = ${outUuid}`);
+                    let meta = assetdb.loadMetaByUuid(outUuid);
+                    if (meta) {
+                        meta.filterMode = 'point';
+                        meta.packable = false;
+
+                        // Editor自带的meta功能太难用了，stringify meta时还不包含subMeta信息。改用自己读写meta文件。
+                        let metaPath = outputPath + ".meta";
+                        let data = Fs.readFileSync(metaPath, 'utf8');
+                        let obj = JSON.parse(data);
+                        obj.filterMode = 'point';
+                        obj.packable = false;
+                        Fs.writeFileSync(metaPath, JSON.stringify(obj, null, 2));
+                        Editor.log("[VIS] meta updated");
+                        Editor.log("[VIS] finished");
+
+                        /*var cache = [];
+                        var str = JSON.stringify(meta, function(key, value) {
+                            if (key.startsWith('_'))
+                                return undefined;
+
+                            if (typeof value === 'object' && value !== null) {
+                                if (cache.indexOf(value) !== -1) {
+                                    // 移除
+                                    return undefined;
+                                }
+                                // 收集所有的值
+                                cache.push(value);
+                            }
+                            return value;
+                        });
+
+                        cache = null;
+                        Editor.log(`[VIS] ${str}`);
+                        // assetdb.saveMeta(url, str, (err, meta) => {
+                        //     Editor.log("[VIS] meta updated");
+                        //     Editor.log("[VIS] finished");
+                        // });*/
+                    }
+                });
+            } catch (e) {
+                Editor.log(e);
+            }
         }
     }
 }

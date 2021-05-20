@@ -127,12 +127,8 @@ class FFTTextureGenerator {
             that.ReleaseAudioBuffer();
             Editor.log(`[VIS] output: ${that._outputPath}`);
 
-            // refresh asset db
-            let url = Editor.assetdb.remote.fspathToUrl(that._outputPath);
-            url = Path.dirname(url);
-            Editor.log(`[VIS] refresh ${url}`);
-            Editor.assetdb.remote.refresh(url, function (err, results) {});
-            Editor.log("[VIS] finished");
+            // 发送回main进程进行资源刷新
+            Editor.Ipc.sendToMain("music-visualizer:on-extract-finished", that._outputPath);
         };
 
         sourceNode.start(0);

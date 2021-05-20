@@ -1,6 +1,6 @@
 {
   "ver": "2.3.5",
-  "uuid": "2a66b343-9852-4e56-a971-6d00557705c8",
+  "uuid": "ef1667a9-2ccb-4990-9dba-034724204ac7",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "point",
@@ -13,8 +13,8 @@
   "subMetas": {
     "C大调前奏曲-fft": {
       "ver": "1.0.4",
-      "uuid": "3188ea68-bec2-4130-8035-08098f8893f6",
-      "rawTextureUuid": "2a66b343-9852-4e56-a971-6d00557705c8",
+      "uuid": "e061b556-2974-45c7-aac1-c084299c125b",
+      "rawTextureUuid": "ef1667a9-2ccb-4990-9dba-034724204ac7",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,
