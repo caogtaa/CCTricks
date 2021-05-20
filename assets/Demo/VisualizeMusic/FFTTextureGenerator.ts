@@ -66,10 +66,6 @@ export default class FFTTextureGenerator extends cc.Component {
             return;
         }
 
-        // if (++this._test < 200) {
-        //     console.log(`fftTexture.set(buff, ${sx});`);
-        // }
-
         fftTexture.set(buff, sx);
     }
 

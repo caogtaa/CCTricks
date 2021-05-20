@@ -64,7 +64,6 @@ CCProgram fs %{
   uniform sampler2D texture;
   uniform UARGS {
     vec2 grids;   // 水平、垂直格子数量
-    float scaleX; // 水平轴缩放比例。截断高频部分。
     float row;
     float startCol;
     float endCol;

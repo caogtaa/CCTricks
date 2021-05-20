@@ -22,6 +22,8 @@ CCEffect %{
       properties:
         texture: { value: white }
         grids: { value: [32., 38.] }
+        scaleX: { value: 1.0 }
+        lod: { value: 1.0 }
 }%
 
 CCProgram vs %{
@@ -48,6 +50,7 @@ CCProgram vs %{
 }%
 
 CCProgram fs %{
+  #extension GL_EXT_shader_texture_lod : enable
   precision highp float;
 
   #include <cc-global>
@@ -61,6 +64,8 @@ CCProgram fs %{
   uniform sampler2D texture;
   uniform UARGS {
     vec2 grids;   // 水平、垂直格子数量
+    float scaleX; // 水平轴缩放比例。截断高频部分。
+    float lod;
   };
 
   // https://www.shadertoy.com/view/MsS3Wc
@@ -89,7 +94,11 @@ CCProgram fs %{
     vec2 gi = floor(uv * grids);
 
     // 从频域数据上采样，uv.x对应频率
-    float h = texture(texture, vec2(gi.x / grids.x, 0.5)).r * 0.5;
+    #ifdef GL_EXT_shader_texture_lod
+      float h = texture2DLodEXT(texture, vec2(gi.x / grids.x * scaleX, 0.5), lod).r;
+    #else
+      float h = texture(texture, vec2(gi.x / grids.x * scaleX, 0.5)).r;
+    #endif
 
     // 只展示频域数值以下颜色
     // Y轴保留整数格（h取值floor）
