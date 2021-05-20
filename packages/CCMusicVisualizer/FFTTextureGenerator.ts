@@ -9,22 +9,25 @@
  * LastEditTime: 2021-05-09 21:13:59
 */ 
 
-import SceneVisualizeMusic from "./SceneVisualizeMusic";
+// Note: run `tsc FFTTextureGenerator.ts` to compile this script
 
-let fs, PNG;
-if (CC_EDITOR) {
-    fs = require("fs");
-    PNG = require("pngjs").PNG;
+// some necessary declaration for tsc to work
+declare var require: any;
+declare var Editor: any;
+declare namespace cc {
+    export class AudioClip {}    
 }
 
-const { ccclass, property, menu, inspector, executeInEditMode, requireComponent } = cc._decorator;
+let fs = require("fs");
+let PNG = require("pngjs").PNG;
 
-@ccclass
-@executeInEditMode
-@menu("control-inspector/fft-texture-generator")
-@inspector("packages://control-inspector/fft-texture-generator.js")
-export default class FFTTextureGenerator extends cc.Component {
-    public HandleInspectorClick() {
+class FFTTextureGenerator {
+    public Generate(audioPath: string) {
+        Editor.log(`enter extract: ${audioPath}`);
+    }
+
+    /*public HandleInspectorClick() {
+        return;
         if (!CC_EDITOR)
             return;
 
@@ -36,7 +39,7 @@ export default class FFTTextureGenerator extends cc.Component {
         this._clip = clip;
         console.log("--entered");
         this.ExtractFFTAndSave();
-    }
+    }*/
 
     protected _clip: cc.AudioClip = null;
     protected _analyser: any = null;
@@ -140,3 +143,5 @@ export default class FFTTextureGenerator extends cc.Component {
         this._sourceNode = null;
     }
 }
+
+export = FFTTextureGenerator;
