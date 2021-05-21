@@ -1,7 +1,7 @@
 /*
  * @Date: 2021-05-20 18:09:25
  * @LastEditors: GT<caogtaa@gmail.com>
- * @LastEditTime: 2021-05-21 01:43:11
+ * @LastEditTime: 2021-05-21 14:34:58
  */
 
 const Path = require("path")
@@ -32,25 +32,36 @@ let assetMenuTemplateEx = [
     }
 ]
 
-// todo: 如果想要多个插件复用这个扩展功能，需要
-// 1. 不同插件使用唯一的__gt_context
-// 2. AssetMenu不要直接继承Editor.Menu，而是在onload阶段mixin
-class AssetMenu extends Editor.Menu {
-    // 获外部变量会导致组件重新加载后变量失效
-    // 保存到类内部，每次加载插件时刷新
-    static __gt_context = null;
-
-    constructor() {
+function _injectAssetMenuKlass(klass) {
+    function AssetMenu() {
         if (AssetMenu.__gt_context && AssetMenu.__gt_context.isAssetSelected) {
             // insert your custom menu
             arguments[0].push(...assetMenuTemplateEx);
         }
 
-        super(...arguments);
-
-        // Editor.log(...arguments);
-        // return new Editor.Menu(...arguments);
+        return new klass(...arguments);
     }
+
+    // subclass Editor.Menu
+    // 可以用class AssetMenu extends Editor.Menu {}简单处理，但是多个插件同时这么做会互相覆盖
+    let propNames = Object.getOwnPropertyNames(klass);
+    console.warn(propNames);
+    for (let name of propNames) {
+        let obj = Object.getOwnPropertyDescriptor(klass, name);
+        if (obj.writable) {
+            AssetMenu[name] = klass[name];
+        }
+    }
+
+    AssetMenu.prototype = klass.prototype;
+    
+    Object.assign(AssetMenu, {
+        // 获外部变量会导致组件重新加载后变量失效
+        // 保存到类内部，每次加载插件时刷新
+        __gt_context: null,
+    });
+
+    return AssetMenu;
 }
 
 function onSelected() {
@@ -84,15 +95,15 @@ function injectAssetsMenu() {
     }
 
     Editor['__gt_asset_injected'] = true;
+    let newKlass = _injectAssetMenuKlass(Editor.Menu);
+    newKlass.__gt_context = boundContext;
 
-    // cc.js.mixin(AssetMenu.prototype, Editor.Menu.prototype);     // 没有cc命名空间，改用继承的方式
-    Editor.Menu = AssetMenu;
-    Editor.Menu.__gt_context = boundContext;
+    // replace current menu class
+    Editor.Menu = newKlass;
 }
 
 module.exports = {
     load() {
-        Editor.log('load');
         injectAssetsMenu();
     },
 
