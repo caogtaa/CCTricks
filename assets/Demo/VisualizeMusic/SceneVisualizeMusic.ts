@@ -19,6 +19,9 @@ export default class SceneVisualizeMusic extends cc.Component {
     @property(cc.AudioClip)
     clip: cc.AudioClip = null;
 
+    @property(cc.SpriteFrame)
+    fftTexture: cc.SpriteFrame = null;
+
     @property(MusicVisualizer)
     visualizer: MusicVisualizer = null;
 
@@ -31,7 +34,7 @@ export default class SceneVisualizeMusic extends cc.Component {
 
     public Run() {
         let audioId = cc.audioEngine.playMusic(this.clip, true);
-        this.visualizer?.SyncAudio(audioId);
+        this.visualizer?.SyncAudio(audioId, this.fftTexture);
 
         // 实时FFT分析的方法只有H5环境可以工作
         // this.visualizerH5?.SyncAudio(audioId);

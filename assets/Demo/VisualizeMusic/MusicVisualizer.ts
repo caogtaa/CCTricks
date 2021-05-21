@@ -28,6 +28,12 @@ export default class MusicVisualizer extends cc.Sprite {
         displayName: "FFT纹理"
     })
     set fft(value: cc.SpriteFrame) {
+        if (value) {
+            let texture = value.getTexture();
+            texture.setFilters(cc.Texture2D.Filter.NEAREST, cc.Texture2D.Filter.NEAREST);
+            texture.packable = false;
+        }
+
         this.spriteFrame = value;
     }
     get fft(): cc.SpriteFrame {

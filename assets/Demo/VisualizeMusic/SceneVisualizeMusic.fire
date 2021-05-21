@@ -183,7 +183,7 @@
       "array": [
         0,
         0,
-        626.9972494449711,
+        730.0534413529133,
         0,
         0,
         0,
@@ -351,9 +351,7 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "0c77e13f-12bc-4fc5-9343-7eedd243ec55"
-    },
+    "_spriteFrame": null,
     "_type": 0,
     "_sizeMode": 0,
     "_fillType": 0,
@@ -923,7 +921,10 @@
     },
     "_enabled": true,
     "clip": {
-      "__uuid__": "78659342-557f-40e5-8b46-788f8c621be7"
+      "__uuid__": "c3c2bdb6-26ec-4e62-bbf2-5dcee4a154bc"
+    },
+    "fftTexture": {
+      "__uuid__": "480c5bc3-8129-40b8-b052-8bf11acbe5cf"
     },
     "visualizer": {
       "__id__": 7
