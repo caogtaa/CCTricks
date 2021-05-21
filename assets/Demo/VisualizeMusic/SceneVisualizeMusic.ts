@@ -13,11 +13,11 @@ const {ccclass, property} = cc._decorator;
 
 @ccclass
 export default class SceneVisualizeMusic extends cc.Component {
-    @property(cc.AudioClip)
-    clip: cc.AudioClip = null;
+    @property([cc.AudioClip])
+    clips: cc.AudioClip[] = [];
 
-    @property(cc.SpriteFrame)
-    fftTexture: cc.SpriteFrame = null;
+    @property([cc.SpriteFrame])
+    fftTextures: cc.SpriteFrame[] = [];
 
     @property(cc.Node)
     visualizer: cc.Node = null;
@@ -25,13 +25,20 @@ export default class SceneVisualizeMusic extends cc.Component {
     @property(cc.Node)
     visualizerH5: cc.Node = null;
 
+    protected _audioIndex: number = -1;
+
     onLoad() {
+        this.NextAudio();
     }
 
-    public Run() {
-        let audioId = cc.audioEngine.playMusic(this.clip, true);
+    public NextAudio() {
+        if (this.clips.length === 0 || this.fftTextures.length !== this.clips.length)
+            return;
 
-        this.visualizer?.getComponent("MusicVisualizer")?.SyncAudio(audioId, this.fftTexture);
+        let index = this._audioIndex = (this._audioIndex + 1) % this.clips.length;
+        let audioId = cc.audioEngine.playMusic(this.clips[index], true);
+
+        this.visualizer?.getComponent("MusicVisualizer")?.SyncAudio(audioId, this.fftTextures[index]);
 
         // 实时FFT分析的方法只有H5环境可以工作
         // this.visualizerH5?.getComponent("MusicVisualizerH5")?.SyncAudio(audioId);

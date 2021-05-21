@@ -6,18 +6,9 @@
 /*
  * Date: 2021-05-20 00:53:21
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-05-20 01:43:48
+ * LastEditTime: 2021-05-21 19:54:20
 */ 
-// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
-// https://caogtaa.github.io
-// This file is licensed under the MIT License.
-// License text available at https://opensource.org/licenses/MIT
 
-/*
- * Date: 2021-05-09 21:11:36
- * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-05-09 21:13:59
-*/ 
 
 const {ccclass, property} = cc._decorator;
 

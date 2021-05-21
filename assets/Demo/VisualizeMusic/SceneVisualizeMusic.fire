@@ -484,7 +484,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "btnRun",
+    "_name": "btnNext",
     "_objFlags": 0,
     "_parent": {
       "__id__": 2
@@ -695,8 +695,8 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_useOriginalSize": false,
-    "_string": "button",
-    "_N$string": "button",
+    "_string": "切歌",
+    "_N$string": "切歌",
     "_fontSize": 20,
     "_lineHeight": 40,
     "_enableWrapText": false,
@@ -865,7 +865,7 @@
     },
     "component": "",
     "_componentId": "66078LwZ6VOTp0Xu66oVwY9",
-    "handler": "Run",
+    "handler": "NextAudio",
     "customEventData": ""
   },
   {
@@ -920,12 +920,28 @@
       "__id__": 2
     },
     "_enabled": true,
-    "clip": {
-      "__uuid__": "7abf9ddd-5380-437e-ab85-9909f135039d"
-    },
-    "fftTexture": {
-      "__uuid__": "d87ebb67-0497-4f98-9c64-3262436f1912"
-    },
+    "clips": [
+      {
+        "__uuid__": "7abf9ddd-5380-437e-ab85-9909f135039d"
+      },
+      {
+        "__uuid__": "8ab0cd7a-887f-4076-a5de-87309b709bb4"
+      },
+      {
+        "__uuid__": "3b501166-009a-4bec-b35b-642753b37849"
+      }
+    ],
+    "fftTextures": [
+      {
+        "__uuid__": "d87ebb67-0497-4f98-9c64-3262436f1912"
+      },
+      {
+        "__uuid__": "45ed4a56-2c59-485f-81f0-42f50e248ac9"
+      },
+      {
+        "__uuid__": "46b2d17a-2c67-44ba-ac8e-fffd9e24596e"
+      }
+    ],
     "visualizer": {
       "__id__": 5
     },
