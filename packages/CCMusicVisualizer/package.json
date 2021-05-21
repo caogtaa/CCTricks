@@ -9,7 +9,7 @@
             "message": "music-visualizer:extract-fft"
         }
     },
-    "scene-script": "scene-accessor.ts",
+    "scene-script": "scene-accessor.js",
     "runtime-resource": {
         "path": "scripts",
         "name": "plugin"
