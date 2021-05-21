@@ -5,7 +5,7 @@
 // License text available at https://opensource.org/licenses/MIT
 var Fs = require("fs");
 var Path = require("path");
-var Png = require("pngjs").PNG;
+var Png = require("./pngjs/lib/png").PNG;
 var FFTTextureGenerator = /** @class */ (function () {
     function FFTTextureGenerator() {
         this._clip = null;

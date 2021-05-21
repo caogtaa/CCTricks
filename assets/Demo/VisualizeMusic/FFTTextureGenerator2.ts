@@ -14,7 +14,7 @@ import SceneVisualizeMusic from "./SceneVisualizeMusic";
 let fs, PNG;
 if (CC_EDITOR) {
     fs = require("fs");
-    PNG = require("pngjs").PNG;
+    // PNG = require("pngjs").PNG;
 }
 
 const { ccclass, property, menu, inspector, executeInEditMode, requireComponent } = cc._decorator;

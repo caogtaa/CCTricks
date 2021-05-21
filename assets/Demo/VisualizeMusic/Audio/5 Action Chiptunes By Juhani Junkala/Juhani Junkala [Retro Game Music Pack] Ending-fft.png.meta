@@ -1,6 +1,6 @@
 {
   "ver": "2.3.5",
-  "uuid": "f41162b6-4196-49ae-88af-019576d62f7b",
+  "uuid": "fb1bce31-beb2-47b9-883a-f63fe38ef16b",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "point",
@@ -13,8 +13,8 @@
   "subMetas": {
     "Juhani Junkala [Retro Game Music Pack] Ending-fft": {
       "ver": "1.0.4",
-      "uuid": "7870ec94-cf38-4e9d-96ce-281c4ecddbe7",
-      "rawTextureUuid": "f41162b6-4196-49ae-88af-019576d62f7b",
+      "uuid": "d87ebb67-0497-4f98-9c64-3262436f1912",
+      "rawTextureUuid": "fb1bce31-beb2-47b9-883a-f63fe38ef16b",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,

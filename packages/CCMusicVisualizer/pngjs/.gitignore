@@ -1,0 +1,6 @@
+node_modules
+.idea
+coverage
+examples/*.png
+browser\.js
+.nyc_output

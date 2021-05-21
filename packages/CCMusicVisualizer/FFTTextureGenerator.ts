@@ -22,7 +22,7 @@ declare namespace cc {
 
 let Fs = require("fs");
 let Path = require("path");
-let Png = require("pngjs").PNG;
+let Png = require("./pngjs/lib/png").PNG;
 
 class FFTTextureGenerator {
     protected _clip: cc.AudioClip = null;
