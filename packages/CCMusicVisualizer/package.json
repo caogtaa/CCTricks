@@ -9,5 +9,6 @@
             "message": "music-visualizer:extract-fft"
         }
     },
-    "scene-script": "scene-accessor.ts"
+    "scene-script": "scene-accessor.ts",
+    "dependencies": {}
 }
