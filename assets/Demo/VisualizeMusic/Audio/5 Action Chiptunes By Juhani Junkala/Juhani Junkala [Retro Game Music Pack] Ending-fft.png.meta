@@ -1,6 +1,6 @@
 {
   "ver": "2.3.5",
-  "uuid": "ee106df5-90cf-4ac7-a08f-51dee83b54cc",
+  "uuid": "f41162b6-4196-49ae-88af-019576d62f7b",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "point",
@@ -8,13 +8,13 @@
   "genMipmaps": false,
   "packable": false,
   "width": 512,
-  "height": 513,
+  "height": 168,
   "platformSettings": {},
   "subMetas": {
-    "rins-theme_full-fft": {
+    "Juhani Junkala [Retro Game Music Pack] Ending-fft": {
       "ver": "1.0.4",
-      "uuid": "480c5bc3-8129-40b8-b052-8bf11acbe5cf",
-      "rawTextureUuid": "ee106df5-90cf-4ac7-a08f-51dee83b54cc",
+      "uuid": "7870ec94-cf38-4e9d-96ce-281c4ecddbe7",
+      "rawTextureUuid": "f41162b6-4196-49ae-88af-019576d62f7b",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,
@@ -23,9 +23,9 @@
       "trimX": 0,
       "trimY": 0,
       "width": 512,
-      "height": 513,
+      "height": 168,
       "rawWidth": 512,
-      "rawHeight": 513,
+      "rawHeight": 168,
       "borderTop": 0,
       "borderBottom": 0,
       "borderLeft": 0,

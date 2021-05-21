@@ -183,7 +183,7 @@
       "array": [
         0,
         0,
-        730.0534413529133,
+        732.855973376001,
         0,
         0,
         0,
@@ -921,10 +921,10 @@
     },
     "_enabled": true,
     "clip": {
-      "__uuid__": "c3c2bdb6-26ec-4e62-bbf2-5dcee4a154bc"
+      "__uuid__": "7abf9ddd-5380-437e-ab85-9909f135039d"
     },
     "fftTexture": {
-      "__uuid__": "480c5bc3-8129-40b8-b052-8bf11acbe5cf"
+      "__uuid__": "7870ec94-cf38-4e9d-96ce-281c4ecddbe7"
     },
     "visualizer": {
       "__id__": 7
