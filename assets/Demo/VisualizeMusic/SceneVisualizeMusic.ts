@@ -9,9 +9,6 @@
  * LastEditTime: 2021-05-09 15:01:32
 */ 
 
-import MusicVisualizer from "./MusicVisualizer";
-import MusicVisualizerH5 from "./MusicVisualizerH5";
-
 const {ccclass, property} = cc._decorator;
 
 @ccclass
@@ -22,22 +19,22 @@ export default class SceneVisualizeMusic extends cc.Component {
     @property(cc.SpriteFrame)
     fftTexture: cc.SpriteFrame = null;
 
-    @property(MusicVisualizer)
-    visualizer: MusicVisualizer = null;
+    @property(cc.Node)
+    visualizer: cc.Node = null;
 
-    @property(MusicVisualizerH5)
-    visualizerH5: MusicVisualizerH5 = null;
+    @property(cc.Node)
+    visualizerH5: cc.Node = null;
 
     onLoad() {
-        
     }
 
     public Run() {
         let audioId = cc.audioEngine.playMusic(this.clip, true);
-        this.visualizer?.SyncAudio(audioId, this.fftTexture);
+
+        this.visualizer?.getComponent("MusicVisualizer")?.SyncAudio(audioId, this.fftTexture);
 
         // 实时FFT分析的方法只有H5环境可以工作
-        // this.visualizerH5?.SyncAudio(audioId);
+        // this.visualizerH5?.getComponent("MusicVisualizerH5")?.SyncAudio(audioId);
     }
 
     onDestroy() {

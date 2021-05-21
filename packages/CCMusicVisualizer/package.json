@@ -10,5 +10,14 @@
         }
     },
     "scene-script": "scene-accessor.ts",
+    "runtime-resource": {
+        "path": "scripts",
+        "name": "plugin"
+    },
+    "reload": {
+        "ignore": [
+            "scripts/**/*"
+        ]
+    },
     "dependencies": {}
 }

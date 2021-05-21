@@ -74,7 +74,7 @@
     "_id": ""
   },
   {
-    "__type__": "b63f47dLENE6KMJLCxO7JLQ",
+    "__type__": "8ecb5qS6zJHRpXqyUByvOxY",
     "_name": "",
     "_objFlags": 0,
     "node": {
@@ -109,7 +109,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "f23b2218-c3e1-481d-a73a-b934292d6d86"
     },
     "fileId": "40U3w3l6pIqpqiH6H+HTk1",
     "sync": false
