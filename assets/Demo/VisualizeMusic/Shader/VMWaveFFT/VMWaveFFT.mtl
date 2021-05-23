@@ -1,0 +1,18 @@
+{
+  "__type__": "cc.Material",
+  "_name": "VMWaveFFT",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "8a4d2762-791f-4d45-8d99-2a59214e1c1a"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "endCol": 0.0625,
+        "row": 0.4
+      }
+    }
+  }
+}
