@@ -1,0 +1,17 @@
+{
+  "__type__": "cc.Material",
+  "_name": "VMClassicFFTEx",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "0c057947-88a8-4ca4-af56-52feff23bf13"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "endCol": 0.0625
+      }
+    }
+  }
+}
