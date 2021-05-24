@@ -11,6 +11,29 @@
 
 const {ccclass, property} = cc._decorator;
 
+class RenderBuff {
+    texture: cc.RenderTexture = null;
+    spriteFrame: cc.SpriteFrame = null;
+    cameraNode: cc.Node = null;
+    camera: cc.Camera = null;
+
+    /**
+     * 创建一个用于计算的RenderBuff（采样方式是邻近像素）
+     * @param width 
+     * @param height 
+     * @returns 
+     */
+    public static CreateComputeBuff(width: number, height: number): RenderBuff {
+        let result = new RenderBuff;
+        let texture = result.texture = new cc.RenderTexture();
+        texture.packable = false;
+        texture.setFilters(cc.Texture2D.Filter.NEAREST, cc.Texture2D.Filter.NEAREST);
+        texture.initWithSize(width, height);
+        result.spriteFrame = new cc.SpriteFrame(texture);
+        return result;
+    }
+}
+
 @ccclass
 export default class SceneVisualizeMusic extends cc.Component {
     @property([cc.AudioClip])
@@ -25,13 +48,14 @@ export default class SceneVisualizeMusic extends cc.Component {
     @property(cc.Node)
     visualizerH5: cc.Node = null;
 
-    // @property(cc.Node)
-    // visualizerEx: cc.Node = null;
+    @property(cc.Sprite)
+    visualizerEx: cc.Sprite = null;
 
     @property([cc.Sprite])
     pass0Imgs: cc.Sprite[] = [];
 
     protected _audioIndex: number = -1;
+    protected _renderBuffMap = new Map<cc.Node, RenderBuff>();
 
     onLoad() {
         this.NextAudio();
@@ -50,24 +74,14 @@ export default class SceneVisualizeMusic extends cc.Component {
         // this.visualizerH5?.getComponent("MusicVisualizerH5")?.SyncAudio(audioId);
 
         // todo: do not re-create buff? clear with empty data
-        let barCount = 32;
-        let emptyBuff = new Uint8Array(barCount);       // todo: remove it
         for (let img of this.pass0Imgs) {
             img.spriteFrame = this.fftTextures[index];
 
-            let renderBuff = img["__gt_texture"] = new cc.RenderTexture();
-            renderBuff.packable = false;
-            renderBuff.setFlipY(false);
-
-            // 像素化
-            renderBuff.setFilters(cc.Texture2D.Filter.NEAREST, cc.Texture2D.Filter.NEAREST);
-
-            let gl = cc.game._renderContext;
-            // renderBuff.initWithSize(32, 1, gl.STENCIL_INDEX8);
-            renderBuff.initWithData(emptyBuff, cc.Texture2D.PixelFormat.I8, barCount, 1);
+            let renderBuff = RenderBuff.CreateComputeBuff(img.node.width, img.node.height);
+            this._renderBuffMap.set(img.node, renderBuff);
 
             // assign renderBuff to materials texture 2
-            img.getMaterial(0)?.setProperty("tex2", renderBuff);
+            img.getMaterial(0)?.setProperty("tex2", renderBuff.texture);
         }
     }
 
@@ -88,15 +102,28 @@ export default class SceneVisualizeMusic extends cc.Component {
     }
 
     protected _audioId: number = -1;
+    protected _srcIndex: number = 0;
     protected Tick() {
         if (this._audioId === -1)
             return;
 
         let t = cc.audioEngine.getCurrentTime(this._audioId);
         let frame = Math.floor(t * 60);     // floor or round?
-        for (let img of this.pass0Imgs) {
-            this.UpdateFFTShader(img, frame);
-        }
+
+        let pass0Imgs = this.pass0Imgs;
+        let order = this._srcIndex;
+        let from = pass0Imgs[order];
+        let to = pass0Imgs[1-order];
+
+        this.UpdateFFTShader(from, frame);
+        from.enabled = true;
+        this.RenderToNode(from.node, to.node);
+        from.enabled = false;       // 渲染结束后隐藏自己
+
+        this.visualizerEx.spriteFrame = this._renderBuffMap.get(to.node)?.spriteFrame;
+
+        // 切换RenderTexture
+        this._srcIndex = 1 - this._srcIndex;
     }
 
     onDestroy() {
@@ -107,95 +134,53 @@ export default class SceneVisualizeMusic extends cc.Component {
         this.Tick();
     }
 
-    public RenderToMemory(root: cc.Node, others: cc.Node[], target: cc.Node, extend: number = 0): cc.RenderTexture {
-        // 使截屏处于被截屏对象中心（两者有同样的父节点）
-        let node = new cc.Node;
-        node.parent = root;
-        node.x = (0.5 - root.anchorX) * root.width;
-        node.y = (0.5 - root.anchorY) * root.height;
+    /**
+     * 1:1将root内容渲染到target
+     * @param root 
+     * @param target 
+     * @returns 
+     */
+    public RenderToNode(root: cc.Node, target: cc.Node): cc.RenderTexture {
+        let renderBuff = this._renderBuffMap.get(target);
+        if (!renderBuff)
+            return null;
 
-        let camera = node.addComponent(cc.Camera);
-        camera.backgroundColor = new cc.Color(255, 255, 255, 0);        // 透明区域仍然保持透明，半透明区域和白色混合
-        camera.clearFlags = cc.Camera.ClearFlags.DEPTH | cc.Camera.ClearFlags.STENCIL | cc.Camera.ClearFlags.COLOR;
+        if (!renderBuff.cameraNode || !renderBuff.camera) {
+            // 创建截图专用的camera
+            // 使截屏处于被截屏对象中心（两者有同样的父节点）
+            let node = renderBuff.cameraNode = new cc.Node;
+            node.parent = root;
+            node.x = (0.5 - root.anchorX) * root.width;
+            node.y = (0.5 - root.anchorY) * root.height;
 
-        // 设置你想要的截图内容的 cullingMask
-        camera.cullingMask = 0xffffffff;
+            let camera = renderBuff.camera = node.addComponent(cc.Camera);
+            camera.backgroundColor = new cc.Color(255, 255, 255, 0);        // 透明区域仍然保持透明，半透明区域和白色混合
+            camera.clearFlags = cc.Camera.ClearFlags.DEPTH | cc.Camera.ClearFlags.STENCIL | cc.Camera.ClearFlags.COLOR;
 
-        let success: boolean = false;
-        try {
-            let scaleX = 1.0;   //this.fitArea.scaleX;
-            let scaleY = 1.0;   //this.fitArea.scaleY;
-            let gl = cc.game._renderContext;
+            // 设置你想要的截图内容的 cullingMask
+            camera.cullingMask = 0xffffffff;
 
-            let targetWidth = Math.floor(root.width * scaleX + extend * 2);      // texture's width/height must be integer
-            let targetHeight = Math.floor(root.height * scaleY + extend * 2);
+            // let targetWidth = root.width;
+            let targetHeight = root.height;
 
-            // 内存纹理创建后缓存在目标节点上
-            // 如果尺寸和上次不一样也重新创建
-            let texture: cc.RenderTexture = target["__gt_texture"];
-            if (!texture || texture.width != targetWidth || texture.height != target.height) {
-                texture = target["__gt_texture"] = new cc.RenderTexture();
-
-                texture.initWithSize(targetWidth, targetHeight, gl.STENCIL_INDEX8);
-                texture.packable = false;
-                // texture.setFlipY(false);
-
-                // 采样坐标周期循环
-                //@ts-ignore
-                texture.setWrapMode(cc.Texture2D.WrapMode.REPEAT, cc.Texture2D.WrapMode.REPEAT);
-
-                // 像素化
-                texture.setFilters(cc.Texture2D.Filter.NEAREST, cc.Texture2D.Filter.NEAREST);
-            }
-        
             camera.alignWithScreen = false;
-            // camera.orthoSize = root.height / 2;
             camera.orthoSize = targetHeight / 2;
-            camera.targetTexture = texture;
-
-            // 渲染一次摄像机，即更新一次内容到 RenderTexture 中
-            camera.render(root);
-            if (others) {
-                for (let o of others) {
-                    camera.render(o);
-                }
-            }
-
-            let screenShot = target;
-            screenShot.active = true;
-            screenShot.opacity = 255;
-
-            // screenShot.parent = root.parent;
-            // screenShot.position = root.position;
-            screenShot.width = targetWidth;     // root.width;
-            screenShot.height = targetHeight;   // root.height;
-            screenShot.angle = root.angle;
-
-            // fitArea有可能被缩放，截图的实际尺寸是缩放后的
-            screenShot.scaleX = 1.0 / scaleX;
-            screenShot.scaleY = -1.0 / scaleY;
-
-            let sprite = screenShot.getComponent(cc.Sprite);
-            if (!sprite) {
-                sprite = screenShot.addComponent(cc.Sprite);
-                // sprite.srcBlendFactor = cc.macro.BlendFactor.ONE;
-            }
-
-            // 如果没有sf或者一开始设置过其他sf，则替换为renderTexture
-            if (!sprite.spriteFrame || sprite.spriteFrame.getTexture() != texture) {
-                sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-                sprite.spriteFrame = new cc.SpriteFrame(texture);
-            }
-            
-            success = true;
-        } finally {
-            camera.targetTexture = null;
-            node.removeFromParent();
-            if (!success) {
-                target.active = false;
-            }
+            camera.targetTexture = renderBuff.texture;
         }
 
-        return target["__gt_texture"];
+        let success: boolean = false;
+        let camera = renderBuff.camera;
+        // let node = renderBuff.cameraNode;
+        try {
+            // 渲染一次摄像机，即更新一次内容到 RenderTexture 中
+            camera.enabled = true;
+            camera.render(root);
+            success = true;
+        } finally {
+            // 隐藏额外的camera避免在本帧再次渲染
+            camera.enabled = false;
+        }
+
+        return renderBuff.texture;
     }
 }
