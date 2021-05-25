@@ -1,0 +1,15 @@
+{
+  "__type__": "cc.Material",
+  "_name": "VMMeter",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "64528db1-50c0-4730-a10e-dbb95801054b"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {}
+    }
+  }
+}
