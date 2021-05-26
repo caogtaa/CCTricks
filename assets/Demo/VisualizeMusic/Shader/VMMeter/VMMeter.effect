@@ -104,9 +104,6 @@ CCProgram fs %{
     h = max(h, 0.01);
 
     // 只展示频域数值以下颜色
-    // Y轴保留整数格（h取值floor）
-    // abs加倒影（上下对称）
-    // float mask = step(abs(uv.y), floor(h * grids.y) / grids.y);
     float mask = step(uv.y, h);
     
     // remove uv.y < 0
@@ -123,7 +120,7 @@ CCProgram fs %{
     // // 网格左右留空 0.15（换种说法：距离中心0.35的保留）
     mask *= smoothstep(0.5, 0.35, abs(guv.x - 0.5));
 
-    // 在色谱上挑选一个区域，通过h映射获取颜色
+    // 在色谱上挑选一个区域[0.7, 0.08]，将h=[0, 0.5]映射获取颜色
     h = Remap(0., 0.5, 0.7, 0.08, h);
     vec3 hsl = vec3(h, 1.0, 1.0);
     vec3 rgb_s = hsv2rgb_smooth(hsl);

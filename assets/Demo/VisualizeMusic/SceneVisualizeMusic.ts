@@ -68,7 +68,7 @@ export default class SceneVisualizeMusic extends cc.Component {
         let index = this._audioIndex = (this._audioIndex + 1) % this.clips.length;
         let audioId = this._audioId = cc.audioEngine.playMusic(this.clips[index], true);
 
-        this.visualizer?.getComponent("MusicVisualizer")?.SyncAudio(audioId, this.fftTextures[index]);
+        // this.visualizer?.getComponent("MusicVisualizer")?.SyncAudio(audioId, this.fftTextures[index]);
 
         // 实时FFT分析的方法只有H5环境可以工作
         // this.visualizerH5?.getComponent("MusicVisualizerH5")?.SyncAudio(audioId);

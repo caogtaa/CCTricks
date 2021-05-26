@@ -54,35 +54,16 @@ CCProgram fs %{
   #include <cc-global>
   #include <cc-local>
 
-  #define PI 3.141592653589793
+  #define PI 3.14159265
   
   in vec4 v_color;
   in vec2 v_uv0;
 
   uniform sampler2D texture;
   
-  float Remap01(float a, float b, float t) {
-    return (t-a) / (b-a);
-  }
-
-  float Remap(float a, float b, float c, float d, float t) {
-    return Remap01(a, b, t) * (d-c) + c;
-  }
-
-  float Circle(vec2 uv, vec2 o, float r, float blur) {
-    return smoothstep(r, r-blur, distance(uv, o));
-  }
-
-  // 根据到o的距离生成sdf，越接近o则返回值越大，并且在距离是r处刚好是0.5
-  float CircleSDF(vec2 uv, vec2 o, float r) {
-    return clamp(1.0 - distance(uv, o) + r - 0.5, 0., 1.);
-  }
-
-  // 脉冲函数
-  // X,Y区间都是[0,1]，X=0.5位置Y=1
-  // https://www.iquilezles.org/www/articles/functions/functions.htm
-  float Pulse(float x) {
-    return pow(4.0 * x * (1.0 - x), 16.0);
+  float Capsule(vec2 p, float o, float width, float height, float blur) {
+    float d = distance(p, vec2(clamp(p.x, o - height * 0.5, o + height * 0.5), 0.));
+    return d;
   }
 
   void main()
@@ -94,17 +75,36 @@ CCProgram fs %{
     uv.y *= 1280./720.; // todo: use uniform attribute
 
     float angle = atan(uv.y, uv.x);
+    float grids = 32.;
 
     // remap angle to [0, 1]
-    angle = Remap(-PI, PI, 0., 1., angle);
+    // angle = Remap(-PI, PI, 0., 1., angle);
+    angle = angle / (2. * PI) + 0.5;
 
-    // circle SDF by angle
-    float mask = Circle(uv, vec2(0.0), angle, 0.01);
+    // angle = 0位置和y正轴对齐，并且叠加一个简单旋转
+    angle = fract(angle + 0.75 - cc_time.x * 0.15);
+    
+    // float dist = distance(uv, vec2(0.));
+    float dist = length(uv);
+    
+    // angle分区，并且顺时针偏移一半，方便计算Capsule
+    float part_angle = fract(angle * grids) - 0.5;
 
-    // circle SDF by sample
-    mask = Circle(uv, vec2(0.0), texture(texture, vec2(angle, 0.5)).r, 0.01);
-    col = vec4(mask);
+    // 采样频率amp，同一个grid使用相同采样
+    float part_id = floor(angle * grids);
+    float h = texture(texture, vec2(part_id / grids, 0.5)).r * 0.3;    
+    
+    // 还原回原来的uv坐标，此时所有grid的坐标已经折叠
+    vec2 guv = vec2(cos(part_angle / grids * 2. * PI), sin(part_angle / grids * 2. * PI)) * dist;
 
-    gl_FragColor = col;
+    float width = 0.01;
+    float blur = 4. / 1280.;
+
+    float mask = Capsule(guv, 0.420, width, h, blur);
+    mask = smoothstep(width+blur, width, mask);
+
+    vec3 color = vec3(mask);
+
+    gl_FragColor = vec4(color, mask);
   }
 }%
