@@ -66,6 +66,14 @@ CCProgram fs %{
     return d;
   }
 
+  // https://www.shadertoy.com/view/MsS3Wc
+  // Smooth HSV to RGB conversion 
+  vec3 hsv2rgb_smooth(in vec3 c) {
+    vec3 rgb = clamp( abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0 );
+    rgb = rgb*rgb*(3.0-2.0*rgb); // cubic smoothing	
+    return c.z * mix(vec3(1.0), rgb, c.y);
+  }
+
   void main()
   {
     vec2 uv = v_uv0.xy;
@@ -96,7 +104,7 @@ CCProgram fs %{
     // 采样频率amp，同一个grid使用相同采样
     float part_id = floor(angle * grids);
     float h = texture(texture, vec2(part_id * 2. / grids, 0.5)).r;
-    h = h * h * h * 0.6 + 0.01;
+    h = h * h * h * 0.5 + 0.01;
     
     // 还原回原来的uv坐标，此时所有grid的坐标已经折叠
     vec2 guv = vec2(cos(part_angle / grids * 2. * PI), sin(part_angle / grids * 2. * PI)) * dist;
@@ -107,7 +115,9 @@ CCProgram fs %{
     float mask = Capsule(guv, 0.6, width, h, blur);
     mask = smoothstep(width+blur, width, mask);
 
-    vec3 color = vec3(mask);
+    // vec3 color = vec3(mask);
+    vec3 hsl = vec3(fract(angle - cc_time.x * 0.5), 1.0, 1.0);
+    vec3 color = hsv2rgb_smooth(hsl);
 
     gl_FragColor = vec4(color, mask);
   }
