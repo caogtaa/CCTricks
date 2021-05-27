@@ -1,0 +1,15 @@
+{
+  "__type__": "cc.Material",
+  "_name": "VMPolarWave",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "c842b047-a0e6-4c6d-af55-fa7719d4f8cc"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {}
+    }
+  }
+}
