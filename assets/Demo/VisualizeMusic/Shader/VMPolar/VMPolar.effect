@@ -4,9 +4,9 @@
 // License text available at https://opensource.org/licenses/MIT
 
 /*
- * Date: 2021-05-27 10:42:44
+ * Date: 2021-05-09 21:11:36
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-05-27 10:44:02
+ * LastEditTime: 2021-05-09 21:13:59
 */ 
 
 CCEffect %{
@@ -73,22 +73,40 @@ CCProgram fs %{
 
     uv = uv * 2.0 - 1.0;
     uv.y *= 1280./720.; // todo: use uniform attribute
-   
-    // float dist = distance(uv, vec2(0.));
-    float grids = 16.;
-    float dist = length(uv);
-    float gd = 0.0;
-    gd = dist;
-    gd = fract(dist * grids);
-    float gid = floor(dist * grids);
+    uv.x = abs(uv.x);
 
-    float h = texture(texture, vec2(gid / grids, 0.5)).r * 0.25;    
+    float angle = atan(uv.y, uv.x);
+
+    // 左右声道各32份（目前左右声道对称）
+    float grids = 64.;
+
+    // remap angle to [0, 1]
+    // angle = Remap(-PI, PI, 0., 1., angle);
+    angle = angle / (2. * PI) + 0.5;
+
+    // angle = 0位置和y正轴对齐
+    angle = fract(angle + 0.75);
     
-    float blur = 4./720. * (gid + 1.);
-    float width = 0.01 * (gid) + h;
-    float mask = smoothstep(width+blur, width, abs(gd - 0.5));
+    // float dist = distance(uv, vec2(0.));
+    float dist = length(uv);
+    
+    // angle分区，并且顺时针偏移一半，方便计算Capsule
+    float part_angle = fract(angle * grids) - 0.5;
 
-    vec3 color = vec3(mask * (gid+1.) / grids + h);
+    // 采样频率amp，同一个grid使用相同采样
+    float part_id = floor(angle * grids);
+    float h = texture(texture, vec2(part_id * 2. / grids, 0.5)).r * 0.25;    
+    
+    // 还原回原来的uv坐标，此时所有grid的坐标已经折叠
+    vec2 guv = vec2(cos(part_angle / grids * 2. * PI), sin(part_angle / grids * 2. * PI)) * dist;
+
+    float width = 0.005;
+    float blur = 4. / 720.;
+
+    float mask = Capsule(guv, 0.6, width, h, blur);
+    mask = smoothstep(width+blur, width, mask);
+
+    vec3 color = vec3(mask);
 
     gl_FragColor = vec4(color, mask);
   }
