@@ -415,7 +415,7 @@
     "_enabled": true,
     "_materials": [
       {
-        "__uuid__": "324ad44b-757f-4a04-8d76-81a5b1fe4c9e"
+        "__uuid__": "b759742d-fb91-4fde-8901-1281255cff9d"
       }
     ],
     "_srcBlendFactor": 770,
@@ -509,7 +509,7 @@
     "_enabled": false,
     "_materials": [
       {
-        "__uuid__": "8f2a7d78-d283-4417-8d29-f2feb674014d"
+        "__uuid__": "53090ea6-59fa-4570-a9d2-8f1585a56239"
       }
     ],
     "_srcBlendFactor": 770,
@@ -603,7 +603,7 @@
     "_enabled": false,
     "_materials": [
       {
-        "__uuid__": "8f2a7d78-d283-4417-8d29-f2feb674014d"
+        "__uuid__": "53090ea6-59fa-4570-a9d2-8f1585a56239"
       }
     ],
     "_srcBlendFactor": 770,
