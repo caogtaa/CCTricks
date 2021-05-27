@@ -46,8 +46,6 @@ CCProgram vs %{
   }
 }%
 
-// by caogtaa
-// 霓虹灯边框
 CCProgram fs %{
   precision highp float;
 
@@ -74,6 +72,8 @@ CCProgram fs %{
     return c.z * mix(vec3(1.0), rgb, c.y);
   }
 
+  // inspired by
+  // https://www.shadertoy.com/view/lsKSzm
   void main()
   {
     vec2 uv = v_uv0.xy;
@@ -104,7 +104,7 @@ CCProgram fs %{
     // 采样频率amp，同一个grid使用相同采样
     float part_id = floor(angle * grids);
     float h = texture(texture, vec2(part_id * 2. / grids, 0.5)).r;
-    h = h * h * h * 0.5 + 0.01;
+    h = h * h * h + 0.01;
     
     // 还原回原来的uv坐标，此时所有grid的坐标已经折叠
     vec2 guv = vec2(cos(part_angle / grids * 2. * PI), sin(part_angle / grids * 2. * PI)) * dist;
@@ -113,14 +113,15 @@ CCProgram fs %{
     float blur = 4. / 720.; // 4./min(1280, 720)
 
     // vec3 color = vec3(mask);
+    // 颜色变化速度和波形移动速度大致对齐32:30
     vec3 hsl = vec3(fract(angle - cc_time.x * 0.5), 1.0, 1.0);
     vec3 color = hsv2rgb_smooth(hsl);
 
     // todo: add brightness, add bloom
-    // float brightness = pow(4. * h, 4.);
+    // float brightness = pow(h * 3., 2.);
     // color += brightness;
 
-    float mask = Capsule(guv, 0.6, width, h, blur);
+    float mask = Capsule(guv, 0.6, width, h * 0.5, blur);
     mask = smoothstep(width+blur, width, mask);
 
     gl_FragColor = vec4(color, mask);
