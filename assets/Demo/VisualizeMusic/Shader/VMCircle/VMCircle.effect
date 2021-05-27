@@ -73,16 +73,19 @@ CCProgram fs %{
 
     uv = uv * 2.0 - 1.0;
     uv.y *= 1280./720.; // todo: use uniform attribute
+    uv.x = abs(uv.x);
 
     float angle = atan(uv.y, uv.x);
-    float grids = 32.;
+
+    // 左右声道各32份（目前左右声道对称）
+    float grids = 64.;
 
     // remap angle to [0, 1]
     // angle = Remap(-PI, PI, 0., 1., angle);
     angle = angle / (2. * PI) + 0.5;
 
-    // angle = 0位置和y正轴对齐，并且叠加一个简单旋转
-    angle = fract(angle + 0.75 - cc_time.x * 0.15);
+    // angle = 0位置和y正轴对齐
+    angle = fract(angle + 0.75);
     
     // float dist = distance(uv, vec2(0.));
     float dist = length(uv);
@@ -92,15 +95,15 @@ CCProgram fs %{
 
     // 采样频率amp，同一个grid使用相同采样
     float part_id = floor(angle * grids);
-    float h = texture(texture, vec2(part_id / grids, 0.5)).r * 0.3;    
+    float h = texture(texture, vec2(part_id * 2. / grids, 0.5)).r * 0.25;    
     
     // 还原回原来的uv坐标，此时所有grid的坐标已经折叠
     vec2 guv = vec2(cos(part_angle / grids * 2. * PI), sin(part_angle / grids * 2. * PI)) * dist;
 
-    float width = 0.01;
-    float blur = 4. / 1280.;
+    float width = 0.005;
+    float blur = 4. / 720.;
 
-    float mask = Capsule(guv, 0.420, width, h, blur);
+    float mask = Capsule(guv, 0.6, width, h, blur);
     mask = smoothstep(width+blur, width, mask);
 
     vec3 color = vec3(mask);
