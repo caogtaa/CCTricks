@@ -54,11 +54,67 @@ export default class SceneVisualizeMusic extends cc.Component {
     @property([cc.Sprite])
     pass0Imgs: cc.Sprite[] = [];
 
+    @property([cc.Material])
+    materials: cc.Material[] = [];
+
+    @property([cc.Material])
+    pass0Materials: cc.Material[] = [];
+
     protected _audioIndex: number = -1;
+    protected _matIndex: number = -1;
     protected _renderBuffMap = new Map<cc.Node, RenderBuff>();
 
+    // 保存名字对应的材质，简单起见在onLoad里hardcode
+    protected _nameToMat = new Map<string, cc.Material>();
+    protected _nameToPass0Mat = new Map<string, cc.Material>();
+
+    // 多pass渲染时，材质依赖关系。
+    // pass 0需要计算image buff，保存时序相关信息，这里暂时不使用Cocos自带的多pass，先用多个组件按顺序render的方式
+    protected _matDep = new Map<string, string>();
+
     onLoad() {
+        for (let m of this.materials) {
+            this._nameToMat.set(m.name, m);
+        }
+
+        for (let m of this.pass0Materials) {
+            this._nameToPass0Mat.set(m.name, m);
+        }
+
+        this._matDep
+            .set("VMPolarWave", "VMPolarExPass0")
+            .set("VMPolarEx", "VMPolarExPass0")
+            .set("VMPolar", "VMClassicFFTExPass0")
+            .set("VMMeter", "VMClassicFFTExPass0")
+            .set("VMClassic", "VMClassicFFTExPass0")
+            .set("VMCircle", "VMClassicFFTExPass0")
+
         this.NextAudio();
+        this.NextMat();
+    }
+
+    public NextMat() {
+        if (this.materials.length === 0)
+            return;
+
+        let index = this._matIndex = (this._matIndex + 1) % this.materials.length;
+        let mat = this.materials[index];
+        let matDep = this._nameToPass0Mat.get(this._matDep.get(mat.name));
+        for (let img of this.pass0Imgs) {
+            img.setMaterial(0, matDep);
+            img.spriteFrame = this.fftTextures[this._audioIndex];
+
+            let renderBuff = this._renderBuffMap.get(img.node);
+            if (!renderBuff) {
+                renderBuff = RenderBuff.CreateComputeBuff(img.node.width, img.node.height);
+                this._renderBuffMap.set(img.node, renderBuff);
+            }            
+
+            // assign renderBuff to materials texture 2
+            img.getMaterial(0)?.setProperty("tex2", renderBuff.texture);
+        }
+
+        this.visualizerEx.setMaterial(0, mat);
     }
 
     public NextAudio() {
@@ -77,11 +133,11 @@ export default class SceneVisualizeMusic extends cc.Component {
         for (let img of this.pass0Imgs) {
             img.spriteFrame = this.fftTextures[index];
 
-            let renderBuff = RenderBuff.CreateComputeBuff(img.node.width, img.node.height);
-            this._renderBuffMap.set(img.node, renderBuff);
+            // let renderBuff = RenderBuff.CreateComputeBuff(img.node.width, img.node.height);
+            // this._renderBuffMap.set(img.node, renderBuff);
 
-            // assign renderBuff to materials texture 2
-            img.getMaterial(0)?.setProperty("tex2", renderBuff.texture);
+            // // assign renderBuff to materials texture 2
+            // img.getMaterial(0)?.setProperty("tex2", renderBuff.texture);
         }
     }
 
