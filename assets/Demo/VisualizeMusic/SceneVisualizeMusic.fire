@@ -418,7 +418,7 @@
     "_enabled": true,
     "_materials": [
       {
-        "__uuid__": "ead66097-6403-4463-864a-cbf61002f888"
+        "__uuid__": "b1d9b460-017b-4dfe-9a21-96131f5cbbbc"
       }
     ],
     "_srcBlendFactor": 770,
@@ -1879,13 +1879,16 @@
     ],
     "materials": [
       {
-        "__uuid__": "5e9bdc64-dd82-49e0-a507-ef3d6b42f34b"
-      },
-      {
         "__uuid__": "571a5ae4-13a8-4496-ae03-b9fabe42d72b"
       },
       {
+        "__uuid__": "ead66097-6403-4463-864a-cbf61002f888"
+      },
+      {
         "__uuid__": "1ff4c37d-7516-4b4a-988f-5bc6b801862d"
+      },
+      {
+        "__uuid__": "5e9bdc64-dd82-49e0-a507-ef3d6b42f34b"
       },
       {
         "__uuid__": "324ad44b-757f-4a04-8d76-81a5b1fe4c9e"
@@ -1894,7 +1897,7 @@
         "__uuid__": "b759742d-fb91-4fde-8901-1281255cff9d"
       },
       {
-        "__uuid__": "ead66097-6403-4463-864a-cbf61002f888"
+        "__uuid__": "b1d9b460-017b-4dfe-9a21-96131f5cbbbc"
       }
     ],
     "pass0Materials": [

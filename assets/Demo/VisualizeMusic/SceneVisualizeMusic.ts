@@ -32,6 +32,19 @@ class RenderBuff {
         result.spriteFrame = new cc.SpriteFrame(texture);
         return result;
     }
+
+    /**
+     * 清空纹理内容
+     */
+    public Clear() {
+        let texture = this.texture;
+
+        //@ts-ignore
+        let opts = texture._getOpts();
+        let size = texture.width * texture.height;
+        opts.image = new Uint8Array(size * 4);
+        texture.update(opts);
+    }
 }
 
 @ccclass
@@ -82,6 +95,7 @@ export default class SceneVisualizeMusic extends cc.Component {
         }
 
         this._matDep
+            .set("VMWaveFFT", "VMPolarExPass0")
             .set("VMPolarWave", "VMPolarExPass0")
             .set("VMPolarEx", "VMPolarExPass0")
             .set("VMPolar", "VMClassicFFTExPass0")
@@ -108,7 +122,10 @@ export default class SceneVisualizeMusic extends cc.Component {
             if (!renderBuff) {
                 renderBuff = RenderBuff.CreateComputeBuff(img.node.width, img.node.height);
                 this._renderBuffMap.set(img.node, renderBuff);
-            }            
+            } else {
+                // 清空buff避免受上一个效果影响
+                renderBuff.Clear();
+            }
 
             // assign renderBuff to materials texture 2
             img.getMaterial(0)?.setProperty("tex2", renderBuff.texture);
