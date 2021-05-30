@@ -145,6 +145,12 @@ export default class SceneTest extends cc.Component {
         
         let sprite = this.singlePass;
         let useBezier: boolean = true;
+        let halfBezier: boolean = true;
+
+        // ABC共线的情况用直线处理
+        if ((B.x-A.x) * (C.y-A.y) === (B.y-A.y) * (C.x-A.x)) {
+            useBezier = false;
+        }
 
         if (!useBezier) {
             sprite.setMaterial(0, this.matCapsule);
@@ -155,21 +161,39 @@ export default class SceneTest extends cc.Component {
             sprite.setMaterial(0, this.matBezier);
             let mat = sprite.getComponent(cc.Sprite).getMaterial(0);
             this.SetBlendEqToMax(mat);
-            // B从途经点变为控制点
-            // B = (4.0 * B - A - C) / 2.0
-            B = B.mul(4);
-            B.subSelf(A).subSelf(C).divSelf(2);
+
+            if (halfBezier) {
+                // 切分bezier曲线，只绘制AB段
+                // vec2 TC = PB;
+                // vec2 TB = (PA - PC) * 0.25 + PB;
+                // PB = TB;
+                // PC = TC;
+                let TB = A.sub(C);
+                TB.mulSelf(0.25).addSelf(B);
+
+                C = B;
+                B = TB;
+            } else {
+                // B从途经点变为控制点
+                // B = (4.0 * B - A - C) / 2.0
+                B = B.mul(4);
+                B.subSelf(A).subSelf(C).divSelf(2);
+            }
+
             mat.setProperty("PA", [A.x, A.y]);
             mat.setProperty("PB", [B.x, B.y]);
             mat.setProperty("PC", [C.x, C.y]);
         }
 
+        console.log(`${A}, ${B}, ${C}, color=${this._colorIndex}, useBezier=${useBezier}`);
+
         sprite.enabled = true;
-        // sprite.node.color = this._colors[this._colorIndex];
+        sprite.node.color = this._colors[this._colorIndex];
         this._colorIndex = (this._colorIndex + 1) % this._colors.length;
         this.RenderToNode(sprite.node, this.board);
         sprite.enabled = false;
         this._points.shift();
+        // this._points.shift();
 
         return;
         if (!this._autoRender)
@@ -217,6 +241,7 @@ export default class SceneTest extends cc.Component {
         // simply clear points
         // todo: draw last segment
         this._points.length = 0;
+        console.log(`---------------------------- end ------------------------`)
     }
 
     /**
