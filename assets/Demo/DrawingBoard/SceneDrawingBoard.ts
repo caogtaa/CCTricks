@@ -144,12 +144,18 @@ export default class SceneTest extends cc.Component {
         let C = points[2];
         
         let sprite = this.singlePass;
+        let isValid: boolean = true;
         let useBezier: boolean = true;
         let halfBezier: boolean = true;
 
         // ABC共线的情况用直线处理
         if ((B.x-A.x) * (C.y-A.y) === (B.y-A.y) * (C.x-A.x)) {
             useBezier = false;
+        }
+
+        // 画直线时候点重叠，则不画
+        if (!useBezier && A.equals(B)) {
+            isValid = false;
         }
 
         if (!useBezier) {
@@ -185,13 +191,16 @@ export default class SceneTest extends cc.Component {
             mat.setProperty("PC", [C.x, C.y]);
         }
 
-        console.log(`${A}, ${B}, ${C}, color=${this._colorIndex}, useBezier=${useBezier}`);
+        // console.log(`${A}, ${B}, ${C}, color=${this._colorIndex}, useBezier=${useBezier}`);
 
-        sprite.enabled = true;
-        sprite.node.color = this._colors[this._colorIndex];
-        this._colorIndex = (this._colorIndex + 1) % this._colors.length;
-        this.RenderToNode(sprite.node, this.board);
-        sprite.enabled = false;
+        if (isValid) {
+            sprite.enabled = true;
+            // sprite.node.color = this._colors[this._colorIndex];
+            this._colorIndex = (this._colorIndex + 1) % this._colors.length;
+            this.RenderToNode(sprite.node, this.board);
+            sprite.enabled = false;
+        }
+
         this._points.shift();
         // this._points.shift();
 
@@ -241,7 +250,7 @@ export default class SceneTest extends cc.Component {
         // simply clear points
         // todo: draw last segment
         this._points.length = 0;
-        console.log(`---------------------------- end ------------------------`)
+        // console.log(`---------------------------- end ------------------------`)
     }
 
     /**
