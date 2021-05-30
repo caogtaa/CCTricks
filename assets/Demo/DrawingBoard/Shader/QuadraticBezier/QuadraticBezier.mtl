@@ -1,0 +1,15 @@
+{
+  "__type__": "cc.Material",
+  "_name": "QuadraticBezier",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "109eaddb-dc7f-41b2-9368-88f5e7d72ab7"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {}
+    }
+  }
+}

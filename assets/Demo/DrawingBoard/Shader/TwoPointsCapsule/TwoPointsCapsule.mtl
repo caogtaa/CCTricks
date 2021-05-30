@@ -1,0 +1,15 @@
+{
+  "__type__": "cc.Material",
+  "_name": "TwoPointsCapsule",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "71a59ef7-148c-4741-9fa2-aff150ca015d"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {}
+    }
+  }
+}
