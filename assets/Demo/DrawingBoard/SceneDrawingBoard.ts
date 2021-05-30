@@ -80,6 +80,7 @@ export default class SceneTest extends cc.Component {
     protected _renderBuffMap = new Map<cc.Node, RenderBuff>();
     protected _isDragging: boolean = false;
     protected _points: cc.Vec2[] = [];
+    protected _debug: boolean = false;
 
     onLoad() {
         let renderBuff = RenderBuff.CreateRederBuff(this.board.width, this.board.height);
@@ -117,6 +118,9 @@ export default class SceneTest extends cc.Component {
     }
 
     protected SetBlendEqToMax(mat: cc.Material) {
+        if (this._debug)
+            return;
+
         //@ts-ignore
         let gl = cc.game._renderContext;
         //@ts-ignore
@@ -149,7 +153,7 @@ export default class SceneTest extends cc.Component {
         let halfBezier: boolean = true;
 
         // ABC共线的情况用直线处理
-        if ((B.x-A.x) * (C.y-A.y) === (B.y-A.y) * (C.x-A.x)) {
+        if (Math.abs((B.x-A.x) * (C.y-A.y) - (B.y-A.y) * (C.x-A.x)) <= 1e-5) {
             useBezier = false;
         }
 
@@ -191,11 +195,13 @@ export default class SceneTest extends cc.Component {
             mat.setProperty("PC", [C.x, C.y]);
         }
 
-        // console.log(`${A}, ${B}, ${C}, color=${this._colorIndex}, useBezier=${useBezier}`);
+        if (this._debug)
+            console.log(`${A}, ${B}, ${C}, color=${this._colorIndex}, useBezier=${useBezier}`);
 
         if (isValid) {
             sprite.enabled = true;
-            // sprite.node.color = this._colors[this._colorIndex];
+            if (this._debug)
+                sprite.node.color = this._colors[this._colorIndex];
             this._colorIndex = (this._colorIndex + 1) % this._colors.length;
             this.RenderToNode(sprite.node, this.board);
             sprite.enabled = false;
@@ -250,7 +256,9 @@ export default class SceneTest extends cc.Component {
         // simply clear points
         // todo: draw last segment
         this._points.length = 0;
-        // console.log(`---------------------------- end ------------------------`)
+
+        if (this._debug)
+            console.log(`---------------------------- end ------------------------`)
     }
 
     /**
