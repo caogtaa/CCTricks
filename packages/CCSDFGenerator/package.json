@@ -1,7 +1,7 @@
 {
-    "name": "music-visualizer",
+    "name": "sdf-generator",
     "version": "0.1.0",
-    "description": "Cool music visualization components and tools",
+    "description": "SDF Texture Generator",
     "author": "caogtaa@gmail.com",
     "main": "main.js",
     "main-menu": {

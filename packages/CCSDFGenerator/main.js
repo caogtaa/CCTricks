@@ -1,7 +1,7 @@
 /*
  * @Date: 2021-05-20 18:09:25
  * @LastEditors: GT<caogtaa@gmail.com>
- * @LastEditTime: 2021-06-30 17:53:32
+ * @LastEditTime: 2021-06-30 19:08:26
  */
 
 const Path = require("path")
@@ -24,7 +24,7 @@ let assetMenuTemplateEx = [
         label: '生成SDF纹理',
         click: () => {
             // Editor.log("生成SDF纹理");
-            Editor.Scene.callSceneScript('music-visualizer', 'do-extract-fft', null, (err) => {
+            Editor.Scene.callSceneScript('sdf-generator', 'do-gen-sdf', null, (err) => {
                 if (err)
                     Editor.log(err);
             });
@@ -89,12 +89,12 @@ function injectAssetsMenu() {
     boundContext.listener.on('selection:context', onSelected);          // context消息每次点击会多次触发，但是目前没有更好的选择
     // boundContext.listener.on('selection:selected', onSelected);      // selected触发时机太晚
 
-    if (Editor['__gt_asset_injected']) {
+    if (Editor['__gt_sdf_generator_injected']) {
         Editor.Menu.__gt_context = boundContext;
         return;
     }
 
-    Editor['__gt_asset_injected'] = true;
+    Editor['__gt_sdf_generator_injected'] = true;
     let newKlass = _injectAssetMenuKlass(Editor.Menu);
     newKlass.__gt_context = boundContext;
 
@@ -115,7 +115,7 @@ module.exports = {
     // register your ipc messages here
     messages: {
         'gen-sdf'() {
-            // Editor.log('extract-fft from main menu');
+            // Editor.log('gen-sdf from main menu');
             Editor.Scene.callSceneScript('sdf-generator', 'do-gen-sdf', null, (err) => {
                 if (err)
                     Editor.log(err);

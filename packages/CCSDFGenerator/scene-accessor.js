@@ -6,14 +6,13 @@
 /*
  * Date: 2021-05-20 20:45:01
  * @LastEditors: GT<caogtaa@gmail.com>
- * @LastEditTime: 2021-06-30 17:55:19
+ * @LastEditTime: 2021-06-30 18:02:12
 */ 
 
 // let fs = require("fs");
 // let PNG = require("pngjs").PNG;
 
 const Path = require("path");
-
 
 function isPngFile(uuid) {
     let filePath = Editor.assetdb.remote.uuidToFspath(uuid);
