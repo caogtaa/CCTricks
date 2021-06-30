@@ -130,22 +130,30 @@ export class SDF {
         this.v = new Int16Array(longSide);
 
         var alphaChannel = new Uint8ClampedArray(area);
+
+        // Initialize grids outside the glyph range to alpha 0
+        this.gridOuter.fill(INF, 0, area);
+        this.gridInner.fill(0, 0, area);
     
         for (var i = 0; i < area; i++) {
             var a = imgData[i * 4 + 3] / 255; // alpha value
-            this.gridOuter[i] = a === 1 ? 0 : a === 0 ? INF : Math.pow(Math.max(0, 0.5 - a), 2);
-            this.gridInner[i] = a === 1 ? INF : a === 0 ? 0 : Math.pow(Math.max(0, a - 0.5), 2);
+            if (a === 0) continue; // empty pixels
+            if (a === 1) { // fully drawn pixels
+                this.gridOuter[i] = 0;
+                this.gridInner[i] = INF;
+            } else { // aliased pixels
+                const d = 0.5 - a;
+                this.gridOuter[i] = d > 0 ? d * d : 0;
+                this.gridInner[i] = d < 0 ? d * d : 0;
+            }
         }
     
-        this.EDT(this.gridOuter, width, height, this.f, this.d, this.v, this.z);
-        this.EDT(this.gridInner, width, height, this.f, this.d, this.v, this.z);
+        this.edt(this.gridOuter, width, height, this.f, this.d, this.v, this.z);
+        this.edt(this.gridInner, width, height, this.f, this.d, this.v, this.z);
     
         for (i = 0; i < area; i++) {
-            var d = this.gridOuter[i] - this.gridInner[i];
-            alphaChannel[i] = Math.max(0, Math.min(255, Math.round(255 - 255 * (d / radius + cutoff))));
-            // imgData[i * 4 + 0] = 255;
-            // imgData[i * 4 + 1] = 255;
-            // imgData[i * 4 + 2] = 255;
+            const d = Math.sqrt(this.gridOuter[i]) - Math.sqrt(this.gridInner[i]);
+            alphaChannel[i] = Math.round(255 - 255 * (d / radius + cutoff));
             imgData[i * 4 + 3] = alphaChannel[i];
         }
 
@@ -167,48 +175,37 @@ export class SDF {
     };
     
     // 2D Euclidean distance transform by Felzenszwalb & Huttenlocher https://cs.brown.edu/~pff/dt/
-    protected EDT(data, width, height, f, d, v, z) {
-        for (var x = 0; x < width; x++) {
-            for (var y = 0; y < height; y++) {
-                f[y] = data[y * width + x];
-            }
-            this.EDT1D(f, d, v, z, height);
-            for (y = 0; y < height; y++) {
-                data[y * width + x] = d[y];
-            }
-        }
-        for (y = 0; y < height; y++) {
-            for (x = 0; x < width; x++) {
-                f[x] = data[y * width + x];
-            }
-            this.EDT1D(f, d, v, z, width);
-            for (x = 0; x < width; x++) {
-                data[y * width + x] = Math.sqrt(d[x]);
-            }
-        }
+    protected edt(data, width, height, f, d, v, z) {
+        for (let x = 0; x < width; x++) this.edt1d(data, x, width, height, f, v, z);
+        for (let y = 0; y < height; y++) this.edt1d(data, y * width, 1, width, f, v, z);
     }
-    
+
     // 1D squared distance transform
-    protected EDT1D(f, d, v, z, n) {
+    protected edt1d(grid, offset, stride, length, f, v, z) {
         v[0] = 0;
         z[0] = -INF;
-        z[1] = +INF;
-    
-        for (var q = 1, k = 0; q < n; q++) {
-            var s = ((f[q] + q * q) - (f[v[k]] + v[k] * v[k])) / (2 * q - 2 * v[k]);
-            while (s <= z[k]) {
-                k--;
-                s = ((f[q] + q * q) - (f[v[k]] + v[k] * v[k])) / (2 * q - 2 * v[k]);
-            }
+        z[1] = INF;
+        f[0] = grid[offset];
+
+        for (let q = 1, k = 0, s = 0; q < length; q++) {
+            f[q] = grid[offset + q * stride];
+            const q2 = q * q;
+            do {
+                const r = v[k];
+                s = (f[q] - f[r] + q2 - r * r) / (q - r) / 2;
+            } while (s <= z[k] && --k > -1);
+
             k++;
             v[k] = q;
             z[k] = s;
-            z[k + 1] = +INF;
+            z[k + 1] = INF;
         }
-    
-        for (q = 0, k = 0; q < n; q++) {
+
+        for (let q = 0, k = 0; q < length; q++) {
             while (z[k + 1] < q) k++;
-            d[q] = (q - v[k]) * (q - v[k]) + f[v[k]];
+            const r = v[k];
+            const qr = q - r;
+            grid[offset + q * stride] = f[r] + qr * qr;
         }
     }
 }
