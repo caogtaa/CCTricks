@@ -45,6 +45,7 @@ export class SDF {
         try {
             let scaleX = 1.0;   //this.fitArea.scaleX;
             let scaleY = 1.0;   //this.fitArea.scaleY;
+            //@ts-ignore
             let gl = cc.game._renderContext;
 
             let targetWidth = Math.floor(root.width * scaleX + extend * 2);      // texture's width/height must be integer
@@ -110,15 +111,12 @@ export class SDF {
         return target["__gt_texture"];
     }
 
-    public RenderSDF(texture: cc.RenderTexture, radius?: number, cutoff?: number): { texture: cc.RenderTexture, alpha: Uint8ClampedArray } {
-        let imgData = texture.readPixels();
-        let width = texture.width;
-        let height = texture.height;
+    public RenderSDFToData(imgData: Uint8Array, width: number, height: number, radius?: number, cutoff?: number): Uint8ClampedArray {
 
         // initialize members
         // let cutoff = this.cutoff || 0.25;
         if (cutoff === undefined)
-            cutoff = 0
+            cutoff = 0;
 
         radius = radius || this.radius || 18;
 
@@ -150,7 +148,16 @@ export class SDF {
             // imgData[i * 4 + 2] = 255;
             imgData[i * 4 + 3] = alphaChannel[i];
         }
-    
+
+        return alphaChannel;
+    }
+
+    public RenderSDF(texture: cc.RenderTexture, radius?: number, cutoff?: number): { texture: cc.RenderTexture, alpha: Uint8ClampedArray } {
+        let imgData = texture.readPixels();
+        let width = texture.width;
+        let height = texture.height;
+
+        let alphaChannel = this.RenderSDFToData(imgData, width, height, radius, cutoff);
         let resultTexture = new cc.RenderTexture;
         resultTexture.initWithData(imgData, cc.Texture2D.PixelFormat.RGBA8888, width, height);
         return {
