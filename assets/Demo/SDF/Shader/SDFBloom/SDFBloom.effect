@@ -43,8 +43,6 @@ CCProgram vs %{
   }
 }%
 
-// by caogtaa
-// 霓虹灯边框
 CCProgram fs %{
   precision highp float;
 

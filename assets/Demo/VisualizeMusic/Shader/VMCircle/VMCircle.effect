@@ -4,9 +4,9 @@
 // License text available at https://opensource.org/licenses/MIT
 
 /*
- * Date: 2021-05-27 10:42:44
+ * Date: 2021-05-31 10:06:10
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-05-27 10:44:02
+ * LastEditTime: 2021-06-30 00:41:49
 */ 
 
 CCEffect %{
@@ -46,8 +46,6 @@ CCProgram vs %{
   }
 }%
 
-// by caogtaa
-// 霓虹灯边框
 CCProgram fs %{
   precision highp float;
 

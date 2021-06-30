@@ -46,8 +46,6 @@ CCProgram vs %{
   }
 }%
 
-// by caogtaa
-// 赛亚人能量
 CCProgram fs %{
   precision highp float;
 

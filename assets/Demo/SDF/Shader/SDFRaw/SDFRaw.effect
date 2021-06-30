@@ -4,9 +4,9 @@
 // License text available at https://opensource.org/licenses/MIT
 
 /*
- * Date: 2021-04-12 19:21:00
+ * Date: 2021-06-30 00:40:59
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-06-30 00:37:31
+ * LastEditTime: 2021-06-30 00:43:24
 */ 
 
 CCEffect %{
@@ -21,7 +21,6 @@ CCEffect %{
         cullMode: none
       properties:
         texture: { value: white }
-        outlineHalfWidth: { value: 0.05, inspector: { displayName: '二分之一轮廓宽度/SDF区间' } }
 }%
 
 CCProgram vs %{
@@ -52,31 +51,18 @@ CCProgram fs %{
 
   #include <cc-global>
   #include <cc-local>
-
-  #define PI 3.141592653589793
   
   in vec4 v_color;
   in vec2 v_uv0;
 
   uniform sampler2D texture;
-  uniform ARGS {
-    float outlineHalfWidth;
-  };
-  
+
   void main()
   {
     vec2 uv = v_uv0.xy;
     vec4 col = texture(texture, uv) * v_color;
-    float alpha = col.a;
-
-    // 选择一个alpha值做为轮廓的中线
-    float centerAlpha = 0.5;
-
-    float outlineAlphaDist = outlineHalfWidth;
-    float mask = smoothstep(outlineAlphaDist, outlineAlphaDist - 0.02, abs(alpha - centerAlpha));
-
-    vec4 outlineColor = vec4(1., 1., 1., mask);
-    col = outlineColor;
+    col.g = col.a;
+    col.rb = vec2(0.);
     gl_FragColor = col;
   }
 }%
