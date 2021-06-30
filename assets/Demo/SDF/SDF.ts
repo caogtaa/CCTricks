@@ -122,8 +122,8 @@ export class SDF {
 
         let area = width * height;
         let longSide = Math.max(width, height);
-        this.gridOuter = new Float64Array(area);
-        this.gridInner = new Float64Array(area);
+        let gridOuter = this.gridOuter = new Float64Array(area);
+        let gridInner = this.gridInner = new Float64Array(area);
         this.f = new Float64Array(longSide);
         this.d = new Float64Array(longSide);
         this.z = new Float64Array(longSide + 1);
@@ -132,27 +132,27 @@ export class SDF {
         var alphaChannel = new Uint8ClampedArray(area);
 
         // Initialize grids outside the glyph range to alpha 0
-        this.gridOuter.fill(INF, 0, area);
-        this.gridInner.fill(0, 0, area);
+        gridOuter.fill(INF, 0, area);
+        gridInner.fill(0, 0, area);
     
         for (var i = 0; i < area; i++) {
             var a = imgData[i * 4 + 3] / 255; // alpha value
             if (a === 0) continue; // empty pixels
             if (a === 1) { // fully drawn pixels
-                this.gridOuter[i] = 0;
-                this.gridInner[i] = INF;
+                gridOuter[i] = 0;
+                gridInner[i] = INF;
             } else { // aliased pixels
                 const d = 0.5 - a;
-                this.gridOuter[i] = d > 0 ? d * d : 0;
-                this.gridInner[i] = d < 0 ? d * d : 0;
+                gridOuter[i] = d > 0 ? d * d : 0;
+                gridInner[i] = d < 0 ? d * d : 0;
             }
         }
     
-        this.edt(this.gridOuter, width, height, this.f, this.d, this.v, this.z);
-        this.edt(this.gridInner, width, height, this.f, this.d, this.v, this.z);
+        this.edt(gridOuter, width, height, this.f, this.d, this.v, this.z);
+        this.edt(gridInner, width, height, this.f, this.d, this.v, this.z);
     
         for (i = 0; i < area; i++) {
-            const d = Math.sqrt(this.gridOuter[i]) - Math.sqrt(this.gridInner[i]);
+            const d = Math.sqrt(gridOuter[i]) - Math.sqrt(gridInner[i]);
             alphaChannel[i] = Math.round(255 - 255 * (d / radius + cutoff));
             imgData[i * 4 + 3] = alphaChannel[i];
         }
