@@ -1,0 +1,23 @@
+{
+    "name": "music-visualizer",
+    "version": "0.1.0",
+    "description": "Cool music visualization components and tools",
+    "author": "caogtaa@gmail.com",
+    "main": "main.js",
+    "main-menu": {
+        "i18n:MAIN_MENU.package.title/i18n:sdf-generator.PKG_generator/i18n:sdf-generator.PKG_gen_sdf": {
+            "message": "sdf-generator:gen-sdf"
+        }
+    },
+    "scene-script": "scene-accessor.js",
+    "runtime-resource": {
+        "path": "scripts",
+        "name": "plugin"
+    },
+    "reload": {
+        "ignore": [
+            "scripts/**/*"
+        ]
+    },
+    "dependencies": {}
+}
