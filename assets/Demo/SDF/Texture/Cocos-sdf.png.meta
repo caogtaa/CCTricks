@@ -1,0 +1,36 @@
+{
+  "ver": "2.3.5",
+  "uuid": "db35ede4-03b6-458f-86e9-ad18bb83270a",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 450,
+  "height": 360,
+  "platformSettings": {},
+  "subMetas": {
+    "Cocos-sdf": {
+      "ver": "1.0.4",
+      "uuid": "abb987e9-638c-4d16-aa5c-acab6eb52fb3",
+      "rawTextureUuid": "db35ede4-03b6-458f-86e9-ad18bb83270a",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 2.5,
+      "offsetY": -9.5,
+      "trimX": 27,
+      "trimY": 97,
+      "width": 401,
+      "height": 185,
+      "rawWidth": 450,
+      "rawHeight": 360,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

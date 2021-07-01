@@ -4,9 +4,9 @@
 // License text available at https://opensource.org/licenses/MIT
 
 /*
- * Date: 2021-04-12 19:21:00
+ * Date: 2021-06-30 17:25:57
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-06-30 00:37:31
+ * LastEditTime: 2021-07-01 16:38:37
 */ 
 
 CCEffect %{
@@ -21,6 +21,8 @@ CCEffect %{
         cullMode: none
       properties:
         texture: { value: white }
+        centerAlpha: { value: 0.5, inspector: { displayName: '边缘Alpha' } }
+        blur: { value: 0.01, inspector: { displayName: '边缘渐变' } }
         outlineHalfWidth: { value: 0.05, inspector: { displayName: '二分之一轮廓宽度/SDF区间' } }
 }%
 
@@ -61,6 +63,8 @@ CCProgram fs %{
   uniform sampler2D texture;
   uniform ARGS {
     float outlineHalfWidth;
+    float blur;
+    float centerAlpha;  // 选择一个alpha值做为轮廓的中线
   };
   
   void main()
@@ -69,11 +73,10 @@ CCProgram fs %{
     vec4 col = texture(texture, uv) * v_color;
     float alpha = col.a;
 
-    // 选择一个alpha值做为轮廓的中线
-    float centerAlpha = 0.5;
-
     float outlineAlphaDist = outlineHalfWidth;
-    float mask = smoothstep(outlineAlphaDist, outlineAlphaDist - 0.02, abs(alpha - centerAlpha));
+    // float mask = smoothstep(outlineAlphaDist, outlineAlphaDist - 0.02, abs(alpha - centerAlpha));
+    // float mask = step(centerAlpha, alpha);
+    float mask = smoothstep(centerAlpha, centerAlpha+blur, alpha);
 
     vec4 outlineColor = vec4(1., 1., 1., mask);
     col = outlineColor;

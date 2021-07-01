@@ -34,11 +34,28 @@ export class TestSDF extends cc.Component {
     @property([cc.Material])
     materials: cc.Material[] = [];
 
+    @property(cc.Slider)
+    centerAlphaSlider: cc.Slider = null;
+
+    @property(cc.EditBox)
+    centerAlphaEdt: cc.EditBox = null;
+
+    @property(cc.Slider)
+    blurSlider: cc.Slider = null;
+
+    @property(cc.EditBox)
+    blurEdt: cc.EditBox = null;
+
     protected _sdf: SDF;
 
     onLoad() {
         this.btnSwitchImage?.on("click", this.NextImage, this);
         this.btnSwitchEffect?.on("click", this.NextEffect, this);
+
+        this.centerAlphaSlider.progress = 0.5;
+        this.centerAlphaEdt.string = "0.5";
+        this.blurSlider.progress = 0.01;
+        this.blurEdt.string = "0.01";
     }
 
     start() {
@@ -59,8 +76,8 @@ export class TestSDF extends cc.Component {
         this.renderNode.height = this.objNode.height = sz.height;
 
         // let sdfRadius = 60;
-        let sdfRadius = Math.max(60, sz.height / 3);
-        let cutoff = 0.5;
+        let sdfRadius = 10;//Math.max(60, sz.height / 3);
+        let cutoff = 0;//0.5;
         let texture = this._sdf.RenderToMemory(this.objNode, null, this.renderNode, sdfRadius * (1-cutoff));
         let result = this._sdf.RenderSDF(texture, sdfRadius, cutoff);
 
@@ -99,6 +116,36 @@ export class TestSDF extends cc.Component {
         let sprite = this.renderNode.getComponent(cc.Sprite);
         let mat = sprite.getMaterial(0);
         mat.setProperty("time", progress * 3.141592653589793 * 2.);
+    }
+
+    public OnUpdateCenterAlpha(e: cc.Slider) {
+        let sprite = this.renderNode.getComponent(cc.Sprite);
+        let mat = sprite.getMaterial(0);
+        mat.setProperty("centerAlpha", e.progress);
+        this.centerAlphaEdt.string = e.progress.toString();
+    }
+
+    public OnCenterAlphaEditEnd(e: cc.EditBox) {
+        let progress = parseFloat(e.string);
+        let sprite = this.renderNode.getComponent(cc.Sprite);
+        let mat = sprite.getMaterial(0);
+        mat.setProperty("centerAlpha", progress);
+        this.centerAlphaSlider.progress = progress;
+    }
+
+    public OnUpdateBlur(e: cc.Slider) {
+        let sprite = this.renderNode.getComponent(cc.Sprite);
+        let mat = sprite.getMaterial(0);
+        mat.setProperty("blur", e.progress);
+        this.blurEdt.string = e.progress.toString();
+    }
+
+    public OnBlurEditEnd(e: cc.EditBox) {
+        let progress = parseFloat(e.string);
+        let sprite = this.renderNode.getComponent(cc.Sprite);
+        let mat = sprite.getMaterial(0);
+        mat.setProperty("blur", progress);
+        this.blurSlider.progress = progress;
     }
 }
 
