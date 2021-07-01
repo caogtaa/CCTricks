@@ -1,7 +1,7 @@
 /*
  * @Date: 2021-05-20 18:09:25
  * @LastEditors: GT<caogtaa@gmail.com>
- * @LastEditTime: 2021-06-30 19:08:26
+ * @LastEditTime: 2021-07-01 12:15:49
  */
 
 const Path = require("path")
@@ -129,52 +129,11 @@ module.exports = {
                 let assetdb = Editor.assetdb;
                 let url = assetdb.fspathToUrl(outputPath);
                 url = Path.dirname(url);
-                Editor.log(`[VIS] refresh ${url}`);
+                Editor.log(`[SDF-GEN] refresh ${url}`);
                 assetdb.refresh(url, (err, results) => {
                     if (err) {
-                        Editor.log('[VIS]', err);
+                        Editor.log('[SDF-GEN]', err);
                         return;
-                    }
-
-                    let outUuid = assetdb.fspathToUuid(outputPath);
-                    Editor.log(`[VIS] outUuid = ${outUuid}`);
-                    let meta = assetdb.loadMetaByUuid(outUuid);
-                    if (meta) {
-                        meta.filterMode = 'point';
-                        meta.packable = false;
-
-                        // Editor自带的meta功能太难用了，stringify meta时还不包含subMeta信息。改用自己读写meta文件。
-                        let metaPath = outputPath + ".meta";
-                        let data = Fs.readFileSync(metaPath, 'utf8');
-                        let obj = JSON.parse(data);
-                        obj.filterMode = 'point';
-                        obj.packable = false;
-                        Fs.writeFileSync(metaPath, JSON.stringify(obj, null, 2));
-                        Editor.log("[VIS] meta updated");
-                        Editor.log("[VIS] finished");
-
-                        /*var cache = [];
-                        var str = JSON.stringify(meta, function(key, value) {
-                            if (key.startsWith('_'))
-                                return undefined;
-
-                            if (typeof value === 'object' && value !== null) {
-                                if (cache.indexOf(value) !== -1) {
-                                    // 移除
-                                    return undefined;
-                                }
-                                // 收集所有的值
-                                cache.push(value);
-                            }
-                            return value;
-                        });
-
-                        cache = null;
-                        Editor.log(`[VIS] ${str}`);
-                        // assetdb.saveMeta(url, str, (err, meta) => {
-                        //     Editor.log("[VIS] meta updated");
-                        //     Editor.log("[VIS] finished");
-                        // });*/
                     }
                 });
             } catch (e) {

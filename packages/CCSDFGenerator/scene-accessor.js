@@ -6,7 +6,7 @@
 /*
  * Date: 2021-05-20 20:45:01
  * @LastEditors: GT<caogtaa@gmail.com>
- * @LastEditTime: 2021-07-01 00:57:37
+ * @LastEditTime: 2021-07-01 12:18:12
 */ 
 
 // let fs = require("fs");
@@ -38,7 +38,7 @@ function Extend(imgData, width, height, extend) {
     return result;
 }
 
-function SaveSDFTexture(imgData, width, height, inputPath) {
+function SaveSDFTexture(imgData, width, height, outputPath) {
     let output = new Png({
         // colorType: 6,
         // inputColorType: 6,
@@ -46,10 +46,6 @@ function SaveSDFTexture(imgData, width, height, inputPath) {
         height: height
     });
 
-    const dir = Path.dirname(inputPath);
-    const ext = Path.extname(inputPath);
-    const baseName = Path.basename(inputPath, ext);
-    const outputPath = Path.join(dir, baseName + "-sdf.png");
     output.data = imgData;
     output.pack().pipe(Fs.createWriteStream(outputPath));
 }
@@ -60,22 +56,22 @@ module.exports = {
         try {
             let selection = Editor.Selection.curSelection('asset');
             if (selection.length === 0) {
-                event.reply("未选中图片文件");
+                event.reply("[SDF-GEN] 未选中图片文件");
                 return;
             }
 
             let uuid = selection[0];
             if (!isPngFile(uuid)) {
-                event.reply("未选中图片文件");
+                event.reply("[SDF-GEN] 未选中图片文件");
                 return;
             }
 
-            let path = Editor.assetdb.remote.uuidToFspath(uuid);
+            let inputPath = Editor.assetdb.remote.uuidToFspath(uuid);
             let SDF = require("./SDF").SDF;
             let sdf = new SDF;
 
             // read image data from path
-            let data = Fs.readFileSync(path);
+            let data = Fs.readFileSync(inputPath);
             let png = Png.sync.read(data);
             let imgData = png.data;
             let width = png.width;
@@ -92,7 +88,13 @@ module.exports = {
             let newWidth = width + 2 * extend;
             let newHeight = height + 2 * extend;
             sdf.RenderSDFToData(newImgData, newWidth, newHeight, sdfRadius, cutoff);
-            SaveSDFTexture(newImgData, newWidth, newHeight, path);
+
+            const dir = Path.dirname(inputPath);
+            const ext = Path.extname(inputPath);
+            const baseName = Path.basename(inputPath, ext);
+            const outputPath = Path.join(dir, baseName + "-sdf.png");
+            SaveSDFTexture(newImgData, newWidth, newHeight, outputPath);
+            Editor.Ipc.sendToMain("sdf-generator:on-gen-finished", outputPath);
 
             event.reply(null);
         } catch (e) {

@@ -10,10 +10,6 @@
         }
     },
     "scene-script": "scene-accessor.js",
-    "runtime-resource": {
-        "path": "scripts",
-        "name": "plugin"
-    },
     "reload": {
         "ignore": [
             "scripts/**/*"

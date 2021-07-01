@@ -5,8 +5,8 @@
 
 /*
  * Date: 2021-05-20 20:45:01
- * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-05-20 20:45:42
+ * @LastEditors: GT<caogtaa@gmail.com>
+ * @LastEditTime: 2021-07-01 12:18:32
 */ 
 
 // let fs = require("fs");
@@ -51,13 +51,13 @@ module.exports = {
         try {
             let selection = Editor.Selection.curSelection('asset');
             if (selection.length === 0) {
-                event.reply("未选中声音文件");
+                event.reply("[VIS] 未选中声音文件");
                 return;
             }
 
             let uuid = selection[0];
             if (!isAudioFile(uuid)) {
-                event.reply("未选中声音文件");
+                event.reply("[VIS] 未选中声音文件");
                 return;
             }
 
