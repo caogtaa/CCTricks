@@ -27,7 +27,7 @@ export class SDF {
      * @param extend 内存纹理相比较原图的扩边大小，上下左右分别多出extend宽度的像素
      * @returns 
      */
-    public RenderToMemory(root: cc.Node, others: cc.Node[], target: cc.Node, extend: number = 0): cc.RenderTexture {
+    public RenderToMemory(root: cc.Node, others: cc.Node[], target: cc.Node, extend: number = 0, zoom: number = 1): cc.RenderTexture {
         // 使截屏处于被截屏对象中心（两者有同样的父节点）
         let node = new cc.Node;
         node.parent = root;
@@ -48,8 +48,8 @@ export class SDF {
             //@ts-ignore
             let gl = cc.game._renderContext;
 
-            let targetWidth = Math.floor(root.width * scaleX + extend * 2);      // texture's width/height must be integer
-            let targetHeight = Math.floor(root.height * scaleY + extend * 2);
+            let targetWidth = Math.floor(root.width * scaleX + extend * 2) / zoom;      // texture's width/height must be integer
+            let targetHeight = Math.floor(root.height * scaleY + extend * 2) / zoom;
 
             // 内存纹理创建后缓存在目标节点上
             // 如果尺寸和上次不一样也重新创建
@@ -62,8 +62,7 @@ export class SDF {
             }
         
             camera.alignWithScreen = false;
-            // camera.orthoSize = root.height / 2;
-            camera.orthoSize = targetHeight / 2;
+            camera.orthoSize = targetHeight / 2 * zoom;
             camera.targetTexture = texture;
 
             // 渲染一次摄像机，即更新一次内容到 RenderTexture 中
@@ -111,7 +110,7 @@ export class SDF {
         return target["__gt_texture"];
     }
 
-    public RenderSDFToData(imgData: Uint8Array, width: number, height: number, radius?: number, cutoff?: number): Uint8ClampedArray {
+    public RenderSDFToData(imgData: Uint8Array, width: number, height: number, radius?: number, cutoff?: number, zoom: number = 1): Uint8ClampedArray {
 
         // initialize members
         // let cutoff = this.cutoff || 0.25;
@@ -129,14 +128,16 @@ export class SDF {
         this.z = new Float64Array(longSide + 1);
         this.v = new Int16Array(longSide);
 
-        var alphaChannel = new Uint8ClampedArray(area);
+        // var alphaChannel = new Uint8ClampedArray(area);
+        // todo: 先用4个8位表示32位，避免讨论大小端问题
+        let alpha32 = new Uint8ClampedArray(area * 4);
 
         // Initialize grids outside the glyph range to alpha 0
         gridOuter.fill(INF, 0, area);
         gridInner.fill(0, 0, area);
     
-        for (var i = 0; i < area; i++) {
-            var a = imgData[i * 4 + 3] / 255; // alpha value
+        for (let i = 0; i < area; ++i) {
+            let a = imgData[i * 4 + 3] / 255; // alpha value
             if (a === 0) continue; // empty pixels
             if (a === 1) { // fully drawn pixels
                 gridOuter[i] = 0;
@@ -151,26 +152,39 @@ export class SDF {
         this.edt(gridOuter, width, height, this.f, this.d, this.v, this.z);
         this.edt(gridInner, width, height, this.f, this.d, this.v, this.z);
     
-        for (i = 0; i < area; i++) {
+        let offset = 0;
+        for (let i = 0; i < area; ++i) {
             const d = Math.sqrt(gridOuter[i]) - Math.sqrt(gridInner[i]);
-            alphaChannel[i] = Math.round(255 - 255 * (d / radius + cutoff));
-            imgData[i * 4 + 3] = alphaChannel[i];
+            // 1 byte version
+            // alphaChannel[i] = Math.round(255 - 255 * (d / radius + cutoff));
+            // compose with original image
+            // imgData[i * 4 + 3] = alphaChannel[i];
+
+            // 4 bytes version
+            let a = d / radius + cutoff;    // a in range [0, 1]
+            for (let k = 0; k < 4; ++k) {
+                a *= 256;
+                alpha32[offset++] = Math.floor(a);
+                a -= Math.floor(a);
+            }
         }
 
-        return alphaChannel;
+        return alpha32;
     }
 
-    public RenderSDF(texture: cc.RenderTexture, radius?: number, cutoff?: number): { texture: cc.RenderTexture, alpha: Uint8ClampedArray } {
+    public RenderSDF(texture: cc.RenderTexture, radius?: number, cutoff?: number, zoom: number = 1): { texture: cc.RenderTexture, alphaTexture: cc.RenderTexture } {
         let imgData = texture.readPixels();
         let width = texture.width;
         let height = texture.height;
 
-        let alphaChannel = this.RenderSDFToData(imgData, width, height, radius, cutoff);
-        let resultTexture = new cc.RenderTexture;
-        resultTexture.initWithData(imgData, cc.Texture2D.PixelFormat.RGBA8888, width, height);
+        let alpha32 = this.RenderSDFToData(imgData, width, height, radius, cutoff, zoom);
+        // let resultTexture = new cc.RenderTexture;
+        // resultTexture.initWithData(imgData, cc.Texture2D.PixelFormat.RGBA8888, width, height);
+        let alpha32Texture = new cc.RenderTexture;
+        alpha32Texture.initWithData(alpha32, cc.Texture2D.PixelFormat.RGBA8888, width, height);
         return {
-            texture: resultTexture,
-            alpha: alphaChannel
+            texture: null,  // resultTexture,
+            alphaTexture: alpha32Texture
         };
     };
     

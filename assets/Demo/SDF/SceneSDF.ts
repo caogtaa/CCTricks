@@ -76,22 +76,32 @@ export class TestSDF extends cc.Component {
         this.renderNode.height = this.objNode.height = sz.height;
 
         // let sdfRadius = 60;
-        let sdfRadius = 10;//Math.max(60, sz.height / 3);
-        let cutoff = 0;//0.5;
-        let texture = this._sdf.RenderToMemory(this.objNode, null, this.renderNode, sdfRadius * (1-cutoff));
-        let result = this._sdf.RenderSDF(texture, sdfRadius, cutoff);
+        let sdfRadius = Math.max(60, sz.height / 3);
+        let cutoff = 0.5;
+        let zoom = 1;
+        let texture = this._sdf.RenderToMemory(this.objNode, null, this.renderNode, sdfRadius * (1-cutoff), zoom);
+        let result = this._sdf.RenderSDF(texture, sdfRadius, cutoff, zoom);
 
         let sprite = this.renderNode.getComponent(cc.Sprite);
-        sprite.spriteFrame = new cc.SpriteFrame(result.texture);
+        // sprite.spriteFrame = new cc.SpriteFrame(result.texture);
+        sprite.spriteFrame = new cc.SpriteFrame(result.alphaTexture);
+        sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+        sprite.node.width = texture.width * zoom;
+        sprite.node.height = texture.height * zoom;
+
         this.FlushMatProperties(sprite, sdfRadius, cc.size(texture.width, texture.height));
     }
 
     protected FlushMatProperties(sprite: cc.Sprite, sdfRadius: number, sz: cc.Size) {
+        let mat = sprite.getMaterial(0);
+        let blur = 2./Math.min(sprite.node.height, sprite.node.width);
+        mat.setProperty("blur", blur);
+        this.blurEdt.string = blur.toString();
+
         // 只有Morphy效果需要设置
         if (this._effectIndex !== 2)
             return;
 
-        let mat = sprite.getMaterial(0);
         mat.setProperty("yRatio", sz.height / sz.width);
         mat.setProperty("sdfRatio", sdfRadius * 2.0 / sz.width);       // 'SDF区间/x'
         mat.setProperty("outlineHalfWidth", 3.0 / sdfRadius);
