@@ -6,7 +6,7 @@
 /*
  * Date: 2021-05-20 20:45:01
  * @LastEditors: GT<caogtaa@gmail.com>
- * @LastEditTime: 2021-07-01 12:18:12
+ * @LastEditTime: 2021-07-03 00:19:49
 */ 
 
 // let fs = require("fs");
@@ -87,13 +87,13 @@ module.exports = {
             let newImgData = Extend(imgData, width, height, extend);
             let newWidth = width + 2 * extend;
             let newHeight = height + 2 * extend;
-            sdf.RenderSDFToData(newImgData, newWidth, newHeight, sdfRadius, cutoff);
+            let alpha32 = sdf.RenderSDFToData(newImgData, newWidth, newHeight, sdfRadius, cutoff);
 
             const dir = Path.dirname(inputPath);
             const ext = Path.extname(inputPath);
             const baseName = Path.basename(inputPath, ext);
             const outputPath = Path.join(dir, baseName + "-sdf.png");
-            SaveSDFTexture(newImgData, newWidth, newHeight, outputPath);
+            SaveSDFTexture(alpha32, newWidth, newHeight, outputPath);
             Editor.Ipc.sendToMain("sdf-generator:on-gen-finished", outputPath);
 
             event.reply(null);

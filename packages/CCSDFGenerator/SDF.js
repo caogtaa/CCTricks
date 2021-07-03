@@ -17,8 +17,9 @@ var SDF = /** @class */ (function () {
      * @param extend 内存纹理相比较原图的扩边大小，上下左右分别多出extend宽度的像素
      * @returns
      */
-    SDF.prototype.RenderToMemory = function (root, others, target, extend) {
+    SDF.prototype.RenderToMemory = function (root, others, target, extend, zoom) {
         if (extend === void 0) { extend = 0; }
+        if (zoom === void 0) { zoom = 1; }
         // 使截屏处于被截屏对象中心（两者有同样的父节点）
         var node = new cc.Node;
         node.parent = root;
@@ -35,8 +36,8 @@ var SDF = /** @class */ (function () {
             var scaleY = 1.0; //this.fitArea.scaleY;
             //@ts-ignore
             var gl = cc.game._renderContext;
-            var targetWidth = Math.floor(root.width * scaleX + extend * 2); // texture's width/height must be integer
-            var targetHeight = Math.floor(root.height * scaleY + extend * 2);
+            var targetWidth = Math.floor(root.width * scaleX + extend * 2) / zoom; // texture's width/height must be integer
+            var targetHeight = Math.floor(root.height * scaleY + extend * 2) / zoom;
             // 内存纹理创建后缓存在目标节点上
             // 如果尺寸和上次不一样也重新创建
             var texture = target["__gt_texture"];
@@ -46,8 +47,7 @@ var SDF = /** @class */ (function () {
                 texture.packable = false;
             }
             camera.alignWithScreen = false;
-            // camera.orthoSize = root.height / 2;
-            camera.orthoSize = targetHeight / 2;
+            camera.orthoSize = targetHeight / 2 * zoom;
             camera.targetTexture = texture;
             // 渲染一次摄像机，即更新一次内容到 RenderTexture 中
             camera.render(root);
@@ -88,7 +88,8 @@ var SDF = /** @class */ (function () {
         }
         return target["__gt_texture"];
     };
-    SDF.prototype.RenderSDFToData = function (imgData, width, height, radius, cutoff) {
+    SDF.prototype.RenderSDFToData = function (imgData, width, height, radius, cutoff, zoom) {
+        if (zoom === void 0) { zoom = 1; }
         // initialize members
         // let cutoff = this.cutoff || 0.25;
         if (cutoff === undefined)
@@ -102,11 +103,13 @@ var SDF = /** @class */ (function () {
         this.d = new Float64Array(longSide);
         this.z = new Float64Array(longSide + 1);
         this.v = new Int16Array(longSide);
-        var alphaChannel = new Uint8ClampedArray(area);
+        // var alphaChannel = new Uint8ClampedArray(area);
+        // todo: 先用4个8位表示32位，避免讨论大小端问题
+        var alpha32 = new Uint8ClampedArray(area * 4);
         // Initialize grids outside the glyph range to alpha 0
         gridOuter.fill(INF, 0, area);
         gridInner.fill(0, 0, area);
-        for (var i = 0; i < area; i++) {
+        for (var i = 0; i < area; ++i) {
             var a = imgData[i * 4 + 3] / 255; // alpha value
             if (a === 0)
                 continue; // empty pixels
@@ -115,30 +118,45 @@ var SDF = /** @class */ (function () {
                 gridInner[i] = INF;
             }
             else { // aliased pixels
-                var d = 0.5 - a;
+                // todo: lerp with 0.75
+                // const d = 0.5 - a;
+                var d = -(a * 1.5 - 0.75); // map from [0, 1] to [0.75, -0.75]
                 gridOuter[i] = d > 0 ? d * d : 0;
                 gridInner[i] = d < 0 ? d * d : 0;
             }
         }
         this.edt(gridOuter, width, height, this.f, this.d, this.v, this.z);
         this.edt(gridInner, width, height, this.f, this.d, this.v, this.z);
-        for (i = 0; i < area; i++) {
+        var offset = 0;
+        for (var i = 0; i < area; ++i) {
             var d = Math.sqrt(gridOuter[i]) - Math.sqrt(gridInner[i]);
-            alphaChannel[i] = Math.round(255 - 255 * (d / radius + cutoff));
-            imgData[i * 4 + 3] = alphaChannel[i];
+            // 1 byte version
+            // alphaChannel[i] = Math.round(255 - 255 * (d / radius + cutoff));
+            // compose with original image
+            // imgData[i * 4 + 3] = alphaChannel[i];
+            // 4 bytes version
+            var a = 1.0 - (d / radius + cutoff); // a in range [0, 1]
+            for (var k = 0; k < 4; ++k) {
+                a *= 256;
+                alpha32[offset++] = Math.floor(a);
+                a -= Math.floor(a);
+            }
         }
-        return alphaChannel;
+        return alpha32;
     };
-    SDF.prototype.RenderSDF = function (texture, radius, cutoff) {
+    SDF.prototype.RenderSDF = function (texture, radius, cutoff, zoom) {
+        if (zoom === void 0) { zoom = 1; }
         var imgData = texture.readPixels();
         var width = texture.width;
         var height = texture.height;
-        var alphaChannel = this.RenderSDFToData(imgData, width, height, radius, cutoff);
-        var resultTexture = new cc.RenderTexture;
-        resultTexture.initWithData(imgData, cc.Texture2D.PixelFormat.RGBA8888, width, height);
+        var alpha32 = this.RenderSDFToData(imgData, width, height, radius, cutoff, zoom);
+        // let resultTexture = new cc.RenderTexture;
+        // resultTexture.initWithData(imgData, cc.Texture2D.PixelFormat.RGBA8888, width, height);
+        var alpha32Texture = new cc.RenderTexture;
+        alpha32Texture.initWithData(alpha32, cc.Texture2D.PixelFormat.RGBA8888, width, height);
         return {
-            texture: resultTexture,
-            alpha: alphaChannel
+            texture: null,
+            alphaTexture: alpha32Texture
         };
     };
     ;
