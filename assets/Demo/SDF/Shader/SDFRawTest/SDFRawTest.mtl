@@ -1,0 +1,19 @@
+{
+  "__type__": "cc.Material",
+  "_name": "SDFRawTest",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "99c84587-24d5-465f-abd0-d794f29731da"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "texture": {
+          "__uuid__": "790bc609-ee34-419d-90b7-a17df6307f37"
+        }
+      }
+    }
+  }
+}
