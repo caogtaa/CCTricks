@@ -4,18 +4,33 @@
 %
 
 % Texture 1, B/W with AA, 1024x1024 pixels
-[img, map, alpha] = imread('sword_256.png');  % Read from file
+[img, map, alpha] = imread('sword_120x256.png');  % Read from file
 alpha = double(alpha);               % Convert to double
 %if size(img,3) > 1
 %    img = img(:,:,1);            % Convert to grayscale if RGB
 %end
+% use only alpha channel
 img = alpha;
 img = img - min(min(img));       % Map darkest black to 0
 img = img / max(max(img));       % Map brightest white to 1
-dist = makedisttex(img, 256, 256); % No size reduction needed
-tgawrite(distquant(dist),'sword_256.tga');
-tgawrite(img,'sword_256_ref.tga');
-return
+dist = makedisttex(img, 120, 256); % No size reduction needed
+tgawrite(distquant(dist),'sword_120x256.tga');
+tgawrite(img,'sword_120x256_ref.tga');
+
+% Texture 1, B/W with AA, 1024x1024 pixels
+img = imread('NPOT_flipper128.png');  % Read from file
+img = double(img);
+if size(img,3) > 1
+    img = img(:,:,1);            % Convert to grayscale if RGB
+end
+
+img = img - min(min(img));       % Map darkest black to 0
+img = img / max(max(img));       % Map brightest white to 1
+dist = makedisttex(img, 100, 128); % No size reduction needed
+tgawrite(distquant(dist),'NPOT_flipper128.tga');
+tgawrite(img,'NPOT_flipper128_ref.tga');
+
+return;
 
 % Texture 1, B/W with AA, 1024x1024 pixels
 img = imread('splash1024.png');  % Read from file
