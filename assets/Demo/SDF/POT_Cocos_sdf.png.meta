@@ -1,6 +1,6 @@
 {
   "ver": "2.3.5",
-  "uuid": "fbb877a3-5764-47af-af06-1b5d73e40adf",
+  "uuid": "00dbf901-55de-4327-ac6a-72da8f8e515c",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -11,10 +11,10 @@
   "height": 128,
   "platformSettings": {},
   "subMetas": {
-    "dolphin_sdf": {
+    "POT_Cocos_sdf": {
       "ver": "1.0.4",
-      "uuid": "f7a4fec8-03c7-48fa-ba83-bcb1124c5c25",
-      "rawTextureUuid": "fbb877a3-5764-47af-af06-1b5d73e40adf",
+      "uuid": "7048522e-8f7a-4170-be02-8d7dd7184e92",
+      "rawTextureUuid": "00dbf901-55de-4327-ac6a-72da8f8e515c",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,

@@ -217,5 +217,14 @@ export class TestSDF extends cc.Component {
         // mat.setProperty("q", [left, bottom]);
     }
 
+    public OnEdgeSliderChanged(comp: cc.Slider) {
+        let edge = comp.progress - 0.5;
+
+        let mat = this.dolphin.getMaterial(0);
+        if (!mat)
+            return;
+
+        mat.setProperty("edge", edge);
+    }
 }
 
