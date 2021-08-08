@@ -17,8 +17,8 @@ const { ccclass, menu, property } = cc._decorator;
 
 @ccclass
 export class TestSDF extends cc.Component {
-    @property(cc.Node)
-    renderNode: cc.Node = null;
+    @property([cc.Node])
+    renderNodes: cc.Node[] = [];
 
     @property(cc.Node)
     objNode: cc.Node = null;
@@ -81,19 +81,27 @@ export class TestSDF extends cc.Component {
         let sz = sf.getOriginalSize();
 
         this.objNode.getComponent(cc.Sprite).spriteFrame = sf;
-        this.renderNode.width = this.objNode.width = sz.width;
-        this.renderNode.height = this.objNode.height = sz.height;
+        for (let i = 0; i < 2; ++i) {
+            let renderNode = this.renderNodes[i];
+            renderNode.width = this.objNode.width = sz.width;
+            renderNode.height = this.objNode.height = sz.height;
 
-        // let sdfRadius = Math.max(60, sz.height / 3);
-        // let cutoff = 0.5;
-        let maxDist = 8;
-        let texture = this.RenderToMemory(this.objNode, null, this.renderNode, maxDist);
-        let result = this._edt.RenderSDF(texture, maxDist);
-        // let result = this._edtaa3.RenderSDF(texture, maxDist);
+            // let sdfRadius = Math.max(60, sz.height / 3);
+            // let cutoff = 0.5;
+            let maxDist = 8;
+            let texture = this.RenderToMemory(this.objNode, null, renderNode, maxDist);
 
-        let sprite = this.renderNode.getComponent(cc.Sprite);
-        sprite.spriteFrame = new cc.SpriteFrame(result.texture);
-        this.FlushMatProperties(sprite, maxDist, cc.size(texture.width, texture.height));
+            let result: { texture: cc.RenderTexture, alpha: Uint8ClampedArray } = null;
+            if (i === 0) {
+                result = this._edt.RenderSDF(texture, maxDist);
+            } else {
+                result = this._edtaa3.RenderSDF(texture, maxDist);
+            }
+
+            let sprite = renderNode.getComponent(cc.Sprite);
+            sprite.spriteFrame = new cc.SpriteFrame(result.texture);
+            this.FlushMatProperties(sprite, maxDist, cc.size(texture.width, texture.height));
+        }
     }
 
     // todo: remove sdf Radius
@@ -113,22 +121,16 @@ export class TestSDF extends cc.Component {
         let index = this._effectIndex = (this._effectIndex + 1) % this.materials.length;
         let mat = this.materials[index];
 
-        let sprite = this.renderNode.getComponent(cc.Sprite);
-        sprite.setMaterial(0, mat);
+        for (let renderNode of this.renderNodes) {
+            let sprite = renderNode.getComponent(cc.Sprite);
+            sprite.setMaterial(0, mat);
 
-        let sf = sprite.spriteFrame;
-        let sz = sf.getOriginalSize();
-        let sdfRadius = Math.max(60, sz.height / 3);
-        this.FlushMatProperties(sprite, sdfRadius, sz);
+            let sf = sprite.spriteFrame;
+            let sz = sf.getOriginalSize();
+            let sdfRadius = Math.max(60, sz.height / 3);
+            this.FlushMatProperties(sprite, sdfRadius, sz);
+        }
     }
-
-    public OnTimeChanged(e: any) {
-        let progress = e.progress;
-        let sprite = this.renderNode.getComponent(cc.Sprite);
-        let mat = sprite.getMaterial(0);
-        mat.setProperty("time", progress * 3.141592653589793 * 2.);
-    }
-
     
     protected OnDisplayTouchStart(e: cc.Event.EventTouch) {
     }

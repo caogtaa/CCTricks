@@ -11,7 +11,7 @@
 
 export class EDTAA3 {
     // 目前Distance Texture是8bit的，所以maxDist最大是8（4bit表示16，内外平分）
-    public RenderSDF(texture: cc.RenderTexture, maxDist: number = 8): { texture: cc.Texture2D, alpha: Uint8ClampedArray } {
+    public RenderSDF(texture: cc.RenderTexture, maxDist: number = 8): { texture: cc.RenderTexture, alpha: Uint8ClampedArray } {
         let imgData = texture.readPixels();
         let width = texture.width;
         let height = texture.height;
