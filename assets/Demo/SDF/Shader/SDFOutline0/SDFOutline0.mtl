@@ -25,7 +25,8 @@
         }
       },
       "defines": {
-        "SDF_DUAL_CHANNEL": true
+        "SDF_DUAL_CHANNEL": true,
+        "SDF_HI_RES": true
       }
     }
   }

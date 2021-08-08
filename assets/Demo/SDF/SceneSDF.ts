@@ -110,7 +110,9 @@ export class TestSDF extends cc.Component {
             let th = sprite.node.height;
             mat.setProperty("texSize", [tw, th]);
             mat.setProperty("texStep", [1./tw, 1./th]);
-            mat.define("SDF_DUAL_CHANNEL", useDualChannel );
+            mat.setProperty("maxDist", this._maxDist);
+            mat.define("SDF_HI_RES", useDualChannel);
+            mat.define("SDF_DUAL_CHANNEL", useDualChannel);
         }
 
         // 只有Morphy效果需要设置

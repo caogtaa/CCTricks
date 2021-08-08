@@ -182,9 +182,9 @@ CCProgram fs %{
 
     // Compute g_u, g_v, D coefficients from four closest 8-bit RGBA texels
     vec4 rawtex00 = texture2D(texture, st00);
-    vec4 rawtex10 = texture2D(texture, st00 + vec2(0.5*onestepu, 0.0));
-    vec4 rawtex01 = texture2D(texture, st00 + vec2(0.0, 0.5*onestepv));
-    vec4 rawtex11 = texture2D(texture, st00 + vec2(0.5*onestepu, 0.5*onestepv));
+    vec4 rawtex10 = texture2D(texture, st00 + vec2(onestepu, 0.0));
+    vec4 rawtex01 = texture2D(texture, st00 + vec2(0.0, onestepv));
+    vec4 rawtex11 = texture2D(texture, st00 + vec2(onestepu, onestepv));
 
     // Restore the value for D from its 8-bit encoding
     // 做了一次线性变换，对结果并没有很明显的影响
