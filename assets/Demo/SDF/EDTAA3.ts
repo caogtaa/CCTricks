@@ -34,7 +34,7 @@ export class EDTAA3 {
      * @param height 
      * @param width 
      */
-    // TODO: NOTE: 这里mrows和ncols的含义可能正好相反，mrows对应w，ncols对应h
+    // NOTE: 这里mrows和ncols的含义可能正好相反，mrows对应w，ncols对应h
     public GenerateSDF(imgorigin: Uint8Array, mrows: number, ncols: number): Uint8ClampedArray {
         // imgorigin是RGBA类型
         // alpha通道[0,256)转换成float64类型[0,1)
@@ -50,21 +50,17 @@ export class EDTAA3 {
         }
         let inside = this.edtaa_main(img, mrows, ncols);
 
-        // todo: 这里之用1通道可以吗？
+        // todo: 这里只用1通道可以吗？
         // distmap = outside - inside;
         let sdf = new Uint8ClampedArray(mrows * ncols * 4);
         let dist: number;
         let base: number;
-        // let mx = Number.MIN_VALUE;
-        // let mn = Number.MAX_VALUE;
         for (let i = 0, n = mrows * ncols; i < n; ++i) {
             // dist = outside[i] - inside[i];        // todo: 可能要取反
             dist = inside[i] - outside[i];
             base = i * 4;
             sdf[base] = sdf[base+1] = sdf[base+2] = sdf[base+3] = 128 + dist * 16;             // 8bit拆分成2个4bit，分别表示整数部分和小数部分。此时1个像素距离色值差16
             // sdf[base+3] = 128 + dist * 16;    // 只处理alpha部分
-            // mx = Math.max(mx, dist);
-            // mn = Math.min(mn, dist);
         }
 
         return sdf;
@@ -124,13 +120,8 @@ export class EDTAA3 {
     */
     // void computegradient(double *img, int w, int h, double *gx, double *gy)
     protected computegradient(img: Float64Array, w: number, h: number, gx: Float64Array, gy: Float64Array) {
-    // {
-    //     int i,j,k,p,q;
-    //     double glength, phi, phiscaled, ascaled, errsign, pfrac, qfrac, err0, err1, err;
-    // #define SQRT2 1.4142136
         let i: number, j: number, k: number, p: number, q: number;
-        let glength: number, phi: number, phiscaled: number, ascaled: number,
-            errsign: number, pfrac: number, qfrac: number, err0: number, err1: number, err: number;
+        let glength: number;
         let SQRT2: number = 1.4142136;
         for(i = 1; i < h-1; i++) { // Avoid edges where the kernels would spill over
             for(j = 1; j < w-1; j++) {
@@ -147,16 +138,11 @@ export class EDTAA3 {
                 }
             }
         }
-    //     // TODO: Compute reasonable values for gx, gy also around the image edges.
-    //     // (These are zero now, which reduces the accuracy for a 1-pixel wide region
-    //     // around the image edge.) 2x2 kernels would be suitable for this.
-    // }
-
     }
 
     protected edgedf(gx: number, gy: number, a: number)
     {
-        let df, glength, temp, a1;      // double
+        let df: number, glength: number, temp: number, a1: number;      // double
     
         if ((gx == 0) || (gy == 0)) { // Either A) gu or gv are zero, or B) both
             df = 0.5-a;  // Linear approximation is A) correct or B) a fair guess
@@ -192,7 +178,7 @@ export class EDTAA3 {
     protected distaa3(img: Float64Array, gximg: Float64Array, gyimg: Float64Array, 
         w: number, c: number, xc: number, yc: number, xi: number, yi: number)
     {
-      let di, df, dx, dy, gx, gy, a;    // double
+      let di: number, df: number, dx: number, dy: number, gx: number, gy: number, a: number;    // double
       let closest: number;      // int
       
       closest = c-xc-yc*w; // Index to the edge pixel pointed to from c
