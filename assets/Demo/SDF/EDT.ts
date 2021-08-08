@@ -19,14 +19,12 @@ export class EDT {
 
     }
 
-    public RenderSDFToData(imgData: Uint8Array, width: number, height: number, radius?: number, cutoff?: number): Uint8ClampedArray {
+    protected RenderSDFToData(imgData: Uint8Array, width: number, height: number, maxDist: number = 16): Uint8ClampedArray {
 
         // initialize members
         // let cutoff = this.cutoff || 0.25;
-        if (cutoff === undefined)
-            cutoff = 0;
-
-        radius = radius || this.radius || 18;
+        let cutoff = 0.5;           // dist = 0永远在边线上，tinySDF中radius是maxDist的2倍
+        let radius = maxDist ? maxDist * 2 : 18;
 
         let area = width * height;
         let longSide = Math.max(width, height);
@@ -68,12 +66,12 @@ export class EDT {
         return alphaChannel;
     }
 
-    public RenderSDF(texture: cc.RenderTexture, radius?: number, cutoff?: number): { texture: cc.RenderTexture, alpha: Uint8ClampedArray } {
+    public RenderSDF(texture: cc.RenderTexture, maxDist: number): { texture: cc.RenderTexture, alpha: Uint8ClampedArray } {
         let imgData = texture.readPixels();
         let width = texture.width;
         let height = texture.height;
 
-        let alphaChannel = this.RenderSDFToData(imgData, width, height, radius, cutoff);
+        let alphaChannel = this.RenderSDFToData(imgData, width, height, maxDist);
         let resultTexture = new cc.RenderTexture;
         resultTexture.initWithData(imgData, cc.Texture2D.PixelFormat.RGBA8888, width, height);
         return {

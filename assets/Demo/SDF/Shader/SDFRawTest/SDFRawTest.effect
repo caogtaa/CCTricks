@@ -121,7 +121,7 @@ CCProgram fs %{
   }
 
   float GetD_naive(vec2 st) {
-    float D = texture2D(texture, st).r;
+    float D = texture2D(texture, st).a;
     // D = 16.0 * (D - 0.50196);
     D -= 0.50196;
     return D;

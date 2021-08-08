@@ -84,18 +84,19 @@ export class TestSDF extends cc.Component {
         this.renderNode.width = this.objNode.width = sz.width;
         this.renderNode.height = this.objNode.height = sz.height;
 
-        // let sdfRadius = 60;
-        let sdfRadius = Math.max(60, sz.height / 3);
-        let cutoff = 0.5;
-        let texture = this.RenderToMemory(this.objNode, null, this.renderNode, sdfRadius * (1-cutoff));
-        // let result = this._edt.RenderSDF(texture, sdfRadius, cutoff);
-        let result = this._edtaa3.RenderSDF(texture, sz.width, sz.height);
+        // let sdfRadius = Math.max(60, sz.height / 3);
+        // let cutoff = 0.5;
+        let maxDist = 16;
+        let texture = this.RenderToMemory(this.objNode, null, this.renderNode, maxDist);
+        let result = this._edt.RenderSDF(texture, maxDist);
+        // let result = this._edtaa3.RenderSDF(texture, maxDist);
 
         let sprite = this.renderNode.getComponent(cc.Sprite);
         sprite.spriteFrame = new cc.SpriteFrame(result.texture);
-        this.FlushMatProperties(sprite, sdfRadius, cc.size(texture.width, texture.height));
+        this.FlushMatProperties(sprite, maxDist, cc.size(texture.width, texture.height));
     }
 
+    // todo: remove sdf Radius
     protected FlushMatProperties(sprite: cc.Sprite, sdfRadius: number, sz: cc.Size) {
         // 只有Morphy效果需要设置
         if (this._effectIndex !== 2)

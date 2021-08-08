@@ -10,7 +10,8 @@
 */ 
 
 export class EDTAA3 {
-    public RenderSDF(texture: cc.RenderTexture, radius?: number, cutoff?: number): { texture: cc.Texture2D, alpha: Uint8ClampedArray } {
+    // 目前Distance Texture是8bit的，所以maxDist最大是16（4bit表示）
+    public RenderSDF(texture: cc.RenderTexture, maxDist: number = 16): { texture: cc.Texture2D, alpha: Uint8ClampedArray } {
         let imgData = texture.readPixels();
         let width = texture.width;
         let height = texture.height;
@@ -177,7 +178,7 @@ export class EDTAA3 {
 
     protected distaa3(img: Float64Array, gximg: Float64Array, gyimg: Float64Array, 
         w: number, c: number, xc: number, yc: number, xi: number, yi: number)
-    {
+      {
       let di: number, df: number, dx: number, dy: number, gx: number, gy: number, a: number;    // double
       let closest: number;      // int
       
@@ -206,416 +207,411 @@ export class EDTAA3 {
     protected edtaa3(img: Float64Array, gx: Float64Array, gy: Float64Array, 
         w: number, h: number, distx: Int16Array, disty: Int16Array, dist: Float64Array)
     {
-      let x: number, y: number, i: number, c: number;       // int
-      let offset_u: number, offset_ur: number, offset_r: number, offset_rd: number,
-        offset_d: number, offset_dl: number, offset_l: number, offset_lu: number;       // int
-      let olddist: number, newdist: number;     // double
-      let cdistx: number, cdisty: number, newdistx: number, newdisty: number;   // int
-      let changed: number;      // int
-      let epsilon = 1e-3;
-    
-      /* Initialize index offsets for the current image width */
-      offset_u = -w;
-      offset_ur = -w+1;
-      offset_r = 1;
-      offset_rd = w+1;
-      offset_d = w;
-      offset_dl = w-1;
-      offset_l = -1;
-      offset_lu = -w-1;
-    
-      /* Initialize the distance images */
-      for(i=0; i<w*h; i++) {
-        distx[i] = 0; // At first, all pixels point to
-        disty[i] = 0; // themselves as the closest known.
-        if(img[i] <= 0.0)
-          {
-        dist[i]= 1000000.0; // Big value, means "not set yet"
-          }
-        else if (img[i]<1.0) {
-          dist[i] = this.edgedf(gx[i], gy[i], img[i]); // Gradient-assisted estimate
+        let x: number, y: number, i: number, c: number;       // int
+        let offset_u: number, offset_ur: number, offset_r: number, offset_rd: number,
+          offset_d: number, offset_dl: number, offset_l: number, offset_lu: number;       // int
+        let olddist: number, newdist: number;     // double
+        let cdistx: number, cdisty: number, newdistx: number, newdisty: number;   // int
+        let changed: number;      // int
+        let epsilon = 1e-3;
+      
+        /* Initialize index offsets for the current image width */
+        offset_u = -w;
+        offset_ur = -w+1;
+        offset_r = 1;
+        offset_rd = w+1;
+        offset_d = w;
+        offset_dl = w-1;
+        offset_l = -1;
+        offset_lu = -w-1;
+      
+        /* Initialize the distance images */
+        for(i=0; i<w*h; i++) {
+            distx[i] = 0; // At first, all pixels point to
+            disty[i] = 0; // themselves as the closest known.
+            if(img[i] <= 0.0) {
+                dist[i]= 1000000.0; // Big value, means "not set yet"
+            } else if (img[i]<1.0) {
+                dist[i] = this.edgedf(gx[i], gy[i], img[i]); // Gradient-assisted estimate
+            } else {
+                dist[i]= 0.0; // Inside the object
+            }
         }
-        else {
-          dist[i]= 0.0; // Inside the object
-        }
-      }
-    
-      /* Perform the transformation */
-      do
-        {
-          changed = 0;
-    
-          /* Scan rows, except first row */
-          for(y=1; y<h; y++)
-            {
-    
-              /* move index to leftmost pixel of current row */
-              i = y*w;
-    
-              /* scan right, propagate distances from above & left */
-    
-              /* Leftmost pixel is special, has no left neighbors */
-              olddist = dist[i];
-              if(olddist > 0) // If non-zero distance or not set yet
+      
+        /* Perform the transformation */
+        do {
+            changed = 0;
+      
+            /* Scan rows, except first row */
+            for(y=1; y<h; y++) {
+      
+                /* move index to leftmost pixel of current row */
+                i = y*w;
+      
+                /* scan right, propagate distances from above & left */
+      
+                /* Leftmost pixel is special, has no left neighbors */
+                olddist = dist[i];
+                if(olddist > 0) // If non-zero distance or not set yet
                 {
-              c = i + offset_u; // Index of candidate for testing
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx;
-                  newdisty = cdisty+1;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  // newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+                    c = i + offset_u; // Index of candidate for testing
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx;
+                    newdisty = cdisty+1;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    // newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      olddist=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        olddist=newdist;
+                        changed = 1;
                     }
-    
-              c = i+offset_ur;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx-1;
-                  newdisty = cdisty+1;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+      
+                    c = i+offset_ur;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx-1;
+                    newdisty = cdisty+1;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        changed = 1;
                     }
                 }
-              i++;
-    
-              /* Middle pixels have all neighbors */
-              for(x=1; x<w-1; x++, i++)
+                i++;
+      
+                /* Middle pixels have all neighbors */
+                for(x=1; x<w-1; x++, i++)
                 {
-                  olddist = dist[i];
-                  if(olddist <= 0) continue; // No need to update further
-    
-              c = i+offset_l;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx+1;
-                  newdisty = cdisty;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+                    olddist = dist[i];
+                    if(olddist <= 0) continue; // No need to update further
+      
+                    c = i+offset_l;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx+1;
+                    newdisty = cdisty;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      olddist=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        olddist=newdist;
+                        changed = 1;
                     }
-    
-              c = i+offset_lu;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx+1;
-                  newdisty = cdisty+1;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+      
+                    c = i+offset_lu;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx+1;
+                    newdisty = cdisty+1;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      olddist=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        olddist=newdist;
+                        changed = 1;
                     }
-    
-              c = i+offset_u;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx;
-                  newdisty = cdisty+1;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+      
+                    c = i+offset_u;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx;
+                    newdisty = cdisty+1;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      olddist=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        olddist=newdist;
+                        changed = 1;
                     }
-    
-              c = i+offset_ur;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx-1;
-                  newdisty = cdisty+1;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+      
+                    c = i+offset_ur;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx-1;
+                    newdisty = cdisty+1;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        changed = 1;
                     }
                 }
-    
-              /* Rightmost pixel of row is special, has no right neighbors */
-              olddist = dist[i];
-              if(olddist > 0) // If not already zero distance
+      
+                /* Rightmost pixel of row is special, has no right neighbors */
+                olddist = dist[i];
+                if(olddist > 0) // If not already zero distance
                 {
-              c = i+offset_l;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx+1;
-                  newdisty = cdisty;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+                    c = i+offset_l;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx+1;
+                    newdisty = cdisty;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      olddist=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        olddist=newdist;
+                        changed = 1;
                     }
-    
-              c = i+offset_lu;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx+1;
-                  newdisty = cdisty+1;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+      
+                    c = i+offset_lu;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx+1;
+                    newdisty = cdisty+1;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      olddist=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        olddist=newdist;
+                        changed = 1;
                     }
-    
-              c = i+offset_u;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx;
-                  newdisty = cdisty+1;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+      
+                    c = i+offset_u;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx;
+                    newdisty = cdisty+1;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        changed = 1;
                     }
                 }
-    
-              /* Move index to second rightmost pixel of current row. */
-              /* Rightmost pixel is skipped, it has no right neighbor. */
-              i = y*w + w-2;
-    
-              /* scan left, propagate distance from right */
-              for(x=w-2; x>=0; x--, i--)
+      
+                /* Move index to second rightmost pixel of current row. */
+                /* Rightmost pixel is skipped, it has no right neighbor. */
+                i = y*w + w-2;
+      
+                /* scan left, propagate distance from right */
+                for(x=w-2; x>=0; x--, i--)
                 {
-                  olddist = dist[i];
-                  if(olddist <= 0) continue; // Already zero distance
-    
-              c = i+offset_r;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx-1;
-                  newdisty = cdisty;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+                    olddist = dist[i];
+                    if(olddist <= 0) continue; // Already zero distance
+      
+                    c = i+offset_r;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx-1;
+                    newdisty = cdisty;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        changed = 1;
                     }
                 }
             }
-          
-          /* Scan rows in reverse order, except last row */
-          for(y=h-2; y>=0; y--)
+            
+            /* Scan rows in reverse order, except last row */
+            for(y=h-2; y>=0; y--)
             {
-              /* move index to rightmost pixel of current row */
-              i = y*w + w-1;
-    
-              /* Scan left, propagate distances from below & right */
-    
-              /* Rightmost pixel is special, has no right neighbors */
-              olddist = dist[i];
-              if(olddist > 0) // If not already zero distance
+                /* move index to rightmost pixel of current row */
+                i = y*w + w-1;
+      
+                /* Scan left, propagate distances from below & right */
+      
+                /* Rightmost pixel is special, has no right neighbors */
+                olddist = dist[i];
+                if(olddist > 0) // If not already zero distance
                 {
-              c = i+offset_d;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx;
-                  newdisty = cdisty-1;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+                    c = i+offset_d;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx;
+                    newdisty = cdisty-1;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      olddist=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        olddist=newdist;
+                        changed = 1;
                     }
-    
-              c = i+offset_dl;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx+1;
-                  newdisty = cdisty-1;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+      
+                    c = i+offset_dl;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx+1;
+                    newdisty = cdisty-1;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        changed = 1;
                     }
                 }
-              i--;
-    
-              /* Middle pixels have all neighbors */
-              for(x=w-2; x>0; x--, i--)
+                i--;
+      
+                /* Middle pixels have all neighbors */
+                for(x=w-2; x>0; x--, i--)
                 {
-                  olddist = dist[i];
-                  if(olddist <= 0) continue; // Already zero distance
-    
-              c = i+offset_r;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx-1;
-                  newdisty = cdisty;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+                    olddist = dist[i];
+                    if(olddist <= 0) continue; // Already zero distance
+      
+                    c = i+offset_r;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx-1;
+                    newdisty = cdisty;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      olddist=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        olddist=newdist;
+                        changed = 1;
                     }
-    
-              c = i+offset_rd;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx-1;
-                  newdisty = cdisty-1;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+      
+                    c = i+offset_rd;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx-1;
+                    newdisty = cdisty-1;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      olddist=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        olddist=newdist;
+                        changed = 1;
                     }
-    
-              c = i+offset_d;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx;
-                  newdisty = cdisty-1;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+      
+                    c = i+offset_d;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx;
+                    newdisty = cdisty-1;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-                      dist[i]=newdist;
-                      olddist=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        olddist=newdist;
+                        changed = 1;
                     }
-    
-              c = i+offset_dl;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx+1;
-                  newdisty = cdisty-1;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+      
+                    c = i+offset_dl;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx+1;
+                    newdisty = cdisty-1;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-                      dist[i]=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        changed = 1;
                     }
                 }
-              /* Leftmost pixel is special, has no left neighbors */
-              olddist = dist[i];
-              if(olddist > 0) // If not already zero distance
+                /* Leftmost pixel is special, has no left neighbors */
+                olddist = dist[i];
+                if(olddist > 0) // If not already zero distance
                 {
-              c = i+offset_r;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx-1;
-                  newdisty = cdisty;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+                    c = i+offset_r;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx-1;
+                    newdisty = cdisty;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-                      dist[i]=newdist;
-                      olddist=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        olddist=newdist;
+                        changed = 1;
                     }
-    
-              c = i+offset_rd;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx-1;
-                  newdisty = cdisty-1;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+      
+                    c = i+offset_rd;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx-1;
+                    newdisty = cdisty-1;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-              dist[i]=newdist;
-                      olddist=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        olddist=newdist;
+                        changed = 1;
                     }
-    
-              c = i+offset_d;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx;
-                  newdisty = cdisty-1;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+      
+                    c = i+offset_d;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx;
+                    newdisty = cdisty-1;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-                      dist[i]=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        changed = 1;
                     }
                 }
-    
-              /* Move index to second leftmost pixel of current row. */
-              /* Leftmost pixel is skipped, it has no left neighbor. */
-              i = y*w + 1;
-              for(x=1; x<w; x++, i++)
+      
+                /* Move index to second leftmost pixel of current row. */
+                /* Leftmost pixel is skipped, it has no left neighbor. */
+                i = y*w + 1;
+                for(x=1; x<w; x++, i++)
                 {
-                  /* scan right, propagate distance from left */
-                  olddist = dist[i];
-                  if(olddist <= 0) continue; // Already zero distance
-    
-              c = i+offset_l;
-              cdistx = distx[c];
-              cdisty = disty[c];
-                  newdistx = cdistx+1;
-                  newdisty = cdisty;
-                  newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
-                  if(newdist < olddist-epsilon)
+                    /* scan right, propagate distance from left */
+                    olddist = dist[i];
+                    if(olddist <= 0) continue; // Already zero distance
+      
+                    c = i+offset_l;
+                    cdistx = distx[c];
+                    cdisty = disty[c];
+                    newdistx = cdistx+1;
+                    newdisty = cdisty;
+                    newdist = this.distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty);
+                    if(newdist < olddist-epsilon)
                     {
-                      distx[i]=newdistx;
-                      disty[i]=newdisty;
-                      dist[i]=newdist;
-                      changed = 1;
+                        distx[i]=newdistx;
+                        disty[i]=newdisty;
+                        dist[i]=newdist;
+                        changed = 1;
                     }
                 }
             }
         }
-      while(changed); // Sweep until no more updates are made
-    
-      /* The transformation is completed. */
-    
+        while(changed); // Sweep until no more updates are made
+      
+        /* The transformation is completed. */
+      
     }
 }
