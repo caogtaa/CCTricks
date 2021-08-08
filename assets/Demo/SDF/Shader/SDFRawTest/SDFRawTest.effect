@@ -220,9 +220,11 @@ CCProgram fs %{
   void main( void )
   {
     vec2 st = v_uv0.xy;
-#define USE_VERSION 6
+#define USE_VERSION 2
 #if USE_VERSION == 0
-    float D = texture(texture, st).r;
+    float D = texture2D(texture, st).a;
+    gl_FragColor = vec4(D);
+    return;
     // D = 16.0 * (D - 0.50196);
     D -= 0.50196;
 
@@ -252,7 +254,7 @@ CCProgram fs %{
 
     // float pattern = smoothstep(edge-aastep, edge+aastep, D);
     // vec3 color = vec3(pattern);
-    float mask = smoothstep(edge+aastep, edge-aastep, D);
+    float mask = smoothstep(edge-aastep, edge+aastep, D);
     vec3 color = vec3(mask);
 #elif USE_VERSION == 3
     // Glow effect

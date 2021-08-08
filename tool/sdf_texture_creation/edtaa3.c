@@ -48,6 +48,10 @@ THE SOFTWARE.
  */
 #include "edtaa3func.c"
 
+// nlhs - Number of output arguments
+// plhs - Array of pointers to the expected mxArray output arguments
+// nrhs - Number of input arguments
+// mxArray - Array of pointers to the mxArray input arguments
 void mexFunction( int nlhs, mxArray *plhs[],
                   int nrhs, const mxArray *prhs[] )
 {

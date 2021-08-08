@@ -9,6 +9,7 @@
  * LastEditTime: 2021-04-12 19:15:20
 */ 
 
+import { EDTAA3 } from "./EDTAA3";
 import { SDF } from "./SDF";
 
 const { ccclass, menu, property } = cc._decorator;
@@ -85,7 +86,9 @@ export class TestSDF extends cc.Component {
         let sdfRadius = Math.max(60, sz.height / 3);
         let cutoff = 0.5;
         let texture = this._sdf.RenderToMemory(this.objNode, null, this.renderNode, sdfRadius * (1-cutoff));
-        let result = this._sdf.RenderSDF(texture, sdfRadius, cutoff);
+        // let result = this._sdf.RenderSDF(texture, sdfRadius, cutoff);
+        let edtaa = new EDTAA3;
+        let result = edtaa.RenderSDF(texture, sz.width, sz.height);
 
         let sprite = this.renderNode.getComponent(cc.Sprite);
         sprite.spriteFrame = new cc.SpriteFrame(result.texture);
