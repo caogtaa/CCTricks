@@ -1,0 +1,19 @@
+{
+  "__type__": "cc.Material",
+  "_name": "SDFRawTestDual8",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "eb5e2e7b-e42c-4ab8-8c55-65f8272ce99d"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "texture": {
+          "__uuid__": "790bc609-ee34-419d-90b7-a17df6307f37"
+        }
+      }
+    }
+  }
+}

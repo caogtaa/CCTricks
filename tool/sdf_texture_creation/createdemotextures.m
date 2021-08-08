@@ -4,6 +4,21 @@
 %
 
 % Texture 1, B/W with AA, 1024x1024 pixels
+img = imread('POT_Cocos_1024.png');  % Read from file
+img = double(img);
+if size(img,3) > 1
+    img = img(:,:,1);            % Convert to grayscale if RGB
+end
+
+img = img - min(min(img));       % Map darkest black to 0
+img = img / max(max(img));       % Map brightest white to 1
+dist = makedisttex(img, 1024, 1024); % No size reduction needed
+tgawrite(dualchanneldistquant(dist),'POT_Cocos_1024_dual.tga');
+%tgawrite(distquant(dist),'POT_Cocos_1024_dual.tga');
+tgawrite(img,'POT_Cocos_1024_ref_dual.tga');
+return;
+
+% Texture 1, B/W with AA, 1024x1024 pixels
 [img, map, alpha] = imread('sword_120x256.png');  % Read from file
 alpha = double(alpha);               % Convert to double
 %if size(img,3) > 1

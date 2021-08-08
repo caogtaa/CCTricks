@@ -1,0 +1,352 @@
+// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2021-08-05 17:16:27
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2021-08-05 17:24:21
+*/ 
+// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2021-06-30 00:40:59
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2021-06-30 00:43:24
+*/ 
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+        texSize: { value: [128., 128.] }
+        stepUV: { value: [0.01, 0.01] }
+        edge: { value: 0. }
+}%
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+  
+  void main() {
+    vec4 pos = vec4(a_position, 1);
+    pos = cc_matViewProj * pos;
+    v_uv0 = a_uv0;
+
+    v_color = a_color;
+    gl_Position = pos;
+  }
+}%
+
+CCProgram fs %{
+  #extension GL_OES_standard_derivatives: enable
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+  
+  in vec4 v_color;
+  in vec2 v_uv0;
+
+  uniform sampler2D texture;
+  uniform UARGS {
+    vec2 texSize;
+    vec2 stepUV;
+    float edge;
+  };
+
+  // void main()
+  // {
+  //   vec2 uv = v_uv0.xy;
+  //   vec4 col = texture(texture, uv);
+  //   float blur = 2.0 / min(texSize.x, texSize.y);
+  //   col.rgb = smoothstep(0.5, 0.5+blur, col.rgb);
+  //   // col.rgb = mix()
+
+  //   gl_FragColor = col;
+  // }
+
+  // 2D Random
+  float random (in vec2 st) {
+      return fract(sin(dot(st.xy,
+                          vec2(12.9898,78.233)))
+                  * 43758.5453123);
+  }
+
+
+  // 2D Noise based on Morgan McGuire @morgan3d
+  // https://www.shadertoy.com/view/4dS3Wd
+  // Perlin Noise
+  float noise (in vec2 st) {
+    vec2 i = floor(st);
+    vec2 f = fract(st);
+
+    // Four corners in 2D of a tile
+    float a = random(i);
+    float b = random(i + vec2(1.0, 0.0));
+    float c = random(i + vec2(0.0, 1.0));
+    float d = random(i + vec2(1.0, 1.0));
+
+    // Smooth Interpolation
+
+    // Cubic Hermine Curve.  Same as SmoothStep()
+    vec2 u = f*f*(3.0-2.0*f);
+    // u = smoothstep(0.,1.,f);
+
+    // Mix 4 coorners percentages
+    return mix(a, b, u.x) +
+            (c - a)* u.y * (1.0 - u.x) +
+            (d - b) * u.x * u.y;
+  }
+
+  float GetD_naive(vec2 st) {
+    float D = texture2D(texture, st).r;
+    // D = 16.0 * (D - 0.50196);
+    D -= 0.50196;
+    return D;
+  }
+
+  float GetD_dual8(vec2 st) {
+    float texw = texSize.x;
+    float texh = texSize.y;
+    // Scale texcoords to range ([0,texw], [0,texh])
+    vec2 uv = st.xy * vec2(texw, texh);
+
+    // Compute texel-local (u,v) coordinates for the four closest texels
+    vec2 uv00 = floor(uv - vec2(0.5)); // Lower left corner of lower left texel
+    // vec2 uvthis = floor(uv); // Lower left corner of texel containing (u,v)
+    vec2 uvlerp = uv - uv00 - vec2(0.5); // Texel-local lerp blends [0,1]
+
+    // Perform explicit texture interpolation of D coefficient.
+    // This works around the currently very bad texture interpolation
+    // precision in ATI hardware.
+
+    float onestepu = stepUV.x;
+    float onestepv = stepUV.y;
+
+    // Center st00 on lower left texel and rescale to [0,1] for texture lookup
+    vec2 st00 = (uv00  + vec2(0.5)) * vec2(onestepu, onestepv);
+
+    // Compute g_u, g_v, D coefficients from four closest 8-bit RGBA texels
+    vec4 rawtex00 = texture2D(texture, st00);
+    vec4 rawtex10 = texture2D(texture, st00 + vec2(0.5*onestepu, 0.0));
+    vec4 rawtex01 = texture2D(texture, st00 + vec2(0.0, 0.5*onestepv));
+    vec4 rawtex11 = texture2D(texture, st00 + vec2(0.5*onestepu, 0.5*onestepv));
+
+#define DECODE_DUAL_8(raw)  raw.r = raw.r + raw.g / 256.;
+    DECODE_DUAL_8(rawtex00);
+    DECODE_DUAL_8(rawtex10);
+    DECODE_DUAL_8(rawtex01);
+    DECODE_DUAL_8(rawtex11);
+
+    vec2 D00_10 = vec2(rawtex00.r, rawtex10.r) - 0.50196;
+    vec2 D01_11 = vec2(rawtex01.r, rawtex11.r) - 0.50196;
+
+    // Interpolate D between four closest texels
+    // vec2 uvlocal = fract(uv)-0.5; // Texel-local uv coordinates [-0.5,0.5]
+    // Interpolate along v
+    vec2 D0_1 = mix(D00_10, D01_11, uvlerp.y);
+    // Interpolate along u
+    float D = mix(D0_1.x, D0_1.y, uvlerp.x);
+    return D;
+  }
+
+  // 论文里的D系数算法，基于高精度单通道纹理
+  // 外部的aastep需要 * 0.7
+  float GetD_alpha32(vec2 st) {
+    float texw = texSize.x;
+    float texh = texSize.y;
+    float oneu = stepUV.x;
+    float onev = stepUV.y;
+
+    // Scale texcoords to range ([0,texw], [0,texh])
+    vec2 uv = st.xy * vec2(texw, texh);
+
+    // Compute texel-local (u,v) coordinates for the four closest texels
+    vec2 uv00 = floor(uv - vec2(0.5)); // Lower left corner of lower left texel
+    vec2 uvlerp = uv - uv00 - vec2(0.5); // Texel-local lerp blends [0,1]
+
+    // Center st00 on lower left texel and rescale to [0,1] for texture lookup
+    vec2 st00 = (uv00  + vec2(0.5)) * vec2(oneu, onev);
+
+    float D00 = texture2D(texture, st00).r;
+    float D10 = texture2D(texture, st00 + vec2(0.5 * oneu, 0.)).r;
+    float D01 = texture2D(texture, st00 + vec2(0., 0.5 * onev)).r;
+    float D11 = texture2D(texture, st00 + vec2(0.5 * oneu, 0.5 * onev)).r;
+
+    vec2 D00_10 = vec2(D00, D10);
+    vec2 D01_11 = vec2(D01, D11);
+    vec2 D0_1 = mix(D00_10, D01_11, uvlerp.y);
+    float D = mix(D0_1.x, D0_1.y, uvlerp.x);
+    return D;
+  }
+
+  // 针对8bit单通道distance texture的D系数算法
+  // 和Demo里使用的相同，和论文(单通道高精度)不同
+  float GetD(vec2 st) {
+    float texw = texSize.x;
+    float texh = texSize.y;
+    // Scale texcoords to range ([0,texw], [0,texh])
+    vec2 uv = st.xy * vec2(texw, texh);
+
+    // Compute texel-local (u,v) coordinates for the four closest texels
+    vec2 uv00 = floor(uv - vec2(0.5)); // Lower left corner of lower left texel
+    // vec2 uvthis = floor(uv); // Lower left corner of texel containing (u,v)
+    vec2 uvlerp = uv - uv00 - vec2(0.5); // Texel-local lerp blends [0,1]
+
+    // Perform explicit texture interpolation of D coefficient.
+    // This works around the currently very bad texture interpolation
+    // precision in ATI hardware.
+
+    float onestepu = stepUV.x;
+    float onestepv = stepUV.y;
+
+    // Center st00 on lower left texel and rescale to [0,1] for texture lookup
+    vec2 st00 = (uv00  + vec2(0.5)) * vec2(onestepu, onestepv);
+
+    // Compute g_u, g_v, D coefficients from four closest 8-bit RGBA texels
+    vec4 rawtex00 = texture2D(texture, st00);
+    vec4 rawtex10 = texture2D(texture, st00 + vec2(0.5*onestepu, 0.0));
+    vec4 rawtex01 = texture2D(texture, st00 + vec2(0.0, 0.5*onestepv));
+    vec4 rawtex11 = texture2D(texture, st00 + vec2(0.5*onestepu, 0.5*onestepv));
+
+    // Restore the value for D from its 8-bit encoding
+    // 做了一次线性变换，对结果并没有很明显的影响
+    // 1. 这里并没有对dual 8-bits channels进行组装。后续针对dual 8-bits channels的decode可以放在这里
+    // 2. 如果是8-bits放大到16-bits，应该乘以256
+    vec2 D00_10 = 16.0*(vec2(rawtex00.r, rawtex10.r)-0.50196);
+    vec2 D01_11 = 16.0*(vec2(rawtex01.r, rawtex11.r)-0.50196);
+
+    // Interpolate D between four closest texels
+    // vec2 uvlocal = fract(uv)-0.5; // Texel-local uv coordinates [-0.5,0.5]
+    // Interpolate along v
+    vec2 D0_1 = mix(D00_10, D01_11, uvlerp.y);
+    // Interpolate along u
+    float D = mix(D0_1.x, D0_1.y, uvlerp.x);
+    return D;
+  }
+
+  // 脉冲函数
+  // X,Y区间都是[0,1]，X=0.5位置Y=1
+  // https://www.iquilezles.org/www/articles/functions/functions.htm
+  float Pulse(float x) {
+    return pow(4.0 * x * (1.0 - x), 16.0);
+  }
+
+  float Remap01(float a, float b, float t) {
+    return (t-a) / (b-a);
+  }
+
+  float Remap(float a, float b, float c, float d, float t) {
+    return Remap01(a, b, t) * (d-c) + c;
+  }
+
+  void main( void )
+  {
+    vec2 st = v_uv0.xy;
+#define USE_VERSION 6
+#if USE_VERSION == 0
+    float D = texture(texture, st).r;
+    // D = 16.0 * (D - 0.50196);
+    D -= 0.50196;
+
+    // Perform anisotropic analytic antialiasing (fwidth() is slightly wrong)
+    // float aastep = length(vec2(dFdx(D), dFdy(D)));
+    float aastep = fwidth(D);   // fwidth = abs(dFdx(D)) + abs(dFdy(D))
+    
+    // 'pattern' is 1 where D>0, 0 where D<0, with proper AA around D=0.
+    float pattern = smoothstep(-aastep, aastep, D);
+    vec3 color = vec3(pattern);
+#elif USE_VERSION == 1
+    // 无损放大
+    float D = GetD(st);
+
+    // Perform anisotropic analytic antialiasing (fwidth() is slightly wrong)
+    float aastep = length(vec2(dFdx(D), dFdy(D)));
+    
+    // 'pattern' is 1 where D>0, 0 where D<0, with proper AA around D=0.
+    float pattern = smoothstep(-aastep, aastep, D);
+    vec3 color = vec3(pattern);
+#elif USE_VERSION == 2
+    // 无损放大版本2，用fwidth会有轻微误差
+    float D = GetD_naive(st);
+    // D += 0.50196;
+    float aastep = fwidth(D);
+    aastep = max(aastep, 1e-6);   // never be 0, otherwise smoothstep result unexpectly
+
+    // float pattern = smoothstep(edge-aastep, edge+aastep, D);
+    // vec3 color = vec3(pattern);
+    float mask = smoothstep(edge+aastep, edge-aastep, D);
+    vec3 color = vec3(mask);
+#elif USE_VERSION == 3
+    // Glow effect
+    float D = GetD_naive(st) * 16.;   // in range [-8, 8]
+    float inside = 1.0 - smoothstep ( -2.0 , 2.0 , D) ;
+    float glow = 1.0 - smoothstep (0.0 , 20.0 , D);
+    vec3 insidecolor = vec3 (1.0 , 1.0 , 0.0) ;
+    vec3 glowcolor = vec3 (1.0 , 0.3 , 0.0) ;
+    vec3 color = mix( glow * glowcolor , insidecolor , inside );
+#elif USE_VERSION == 4
+    float D = GetD(st);
+    // Pulsate effect
+    D = D - 2.0 + 2.0 * sin( st .s * 10.0) ;
+    vec3 color = vec3 ( smoothstep ( -0.5 , 0.5 , D ));
+#elif USE_VERSION == 5
+    // Squiggle effect
+    float D = GetD(st);
+    D = D + 2.0 * noise (20.0* st );
+    vec3 color = vec3 (1.0 - smoothstep ( -2.0 , -1.0 , D ) + smoothstep (1.0 , 2.0 , D)) ;
+#elif USE_VERSION == 6
+    float D = GetD_dual8(st);
+    // float aastep = fwidth(D);
+    float aastep = length(vec2(dFdx(D), dFdy(D)));
+    aastep = max(aastep, 1e-10);
+
+    float mask = smoothstep(aastep, -aastep, abs(D)-edge);
+    vec3 color = vec3(0., 1., 0.);
+    gl_FragColor = vec4(color, mask);
+    return;
+#elif USE_VERSION == 7
+    float D = GetD_naive(st);
+    float aastep = length(vec2(dFdx(D), dFdy(D)));
+    aastep = max(aastep, 1e-6);
+
+    float alphaDist = abs(D);// - edge;
+    float mask = smoothstep(aastep+edge, -aastep, alphaDist);
+    vec3 color = vec3(1., 0., 1.);
+    
+    // 底色基础上叠加一个亮度，叠加后中心位置变白
+    // 对亮度做一个动画
+    float brightness = 0.7;// Remap(0., 1., 0.7, 1.0, abs(sin(cc_time.x * 2.0)));
+    color += Pulse((alphaDist + 0.5)) * brightness;
+    gl_FragColor = vec4(color, mask);
+    return;
+#elif USE_VERSION == 8
+
+#endif
+
+    // Final fragment color
+    gl_FragColor = vec4(vec3(1.0), color.r);
+  }
+}%
