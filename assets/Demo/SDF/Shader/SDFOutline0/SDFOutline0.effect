@@ -22,6 +22,8 @@ CCEffect %{
       properties:
         texture: { value: white }
         outlineHalfWidth: { value: 0.05, inspector: { displayName: '二分之一轮廓宽度/SDF区间' } }
+        texSize: { value: [128., 128.] }
+        texStep: { value: [0.01, 0.01] }
 }%
 
 CCProgram vs %{
@@ -54,41 +56,81 @@ CCProgram fs %{
   #include <cc-global>
   #include <cc-local>
 
-  #define PI 3.141592653589793
-  
   in vec4 v_color;
   in vec2 v_uv0;
 
   uniform sampler2D texture;
   uniform ARGS {
+    vec2 texSize;
+    vec2 texStep;
     float outlineHalfWidth;
   };
 
-  float GetD_naive(vec2 st) {
+#if SDF_DUAL_CHANNEL
+  float GetD(vec2 st) {
+    // Scale texcoords to range ([0,texw], [0,texh])
+    vec2 uv = st.xy * texSize;
+
+    // Compute texel-local (u,v) coordinates for the four closest texels
+    vec2 uv00 = floor(uv - vec2(0.5)); // Lower left corner of lower left texel
+    // vec2 uvthis = floor(uv); // Lower left corner of texel containing (u,v)
+    vec2 uvlerp = uv - uv00 - vec2(0.5); // Texel-local lerp blends [0,1]
+
+    // Perform explicit texture interpolation of D coefficient.
+    // This works around the currently very bad texture interpolation
+    // precision in ATI hardware.
+
+    // vec3 onestep = vec3(0.5 * onestepu, 0.5 * onestepv, 0.);   // 偏移0.5个单位，有可能因为精度问题导致采样点错误
+    vec3 onestep = vec3(texStep, 0.);
+
+    // Center st00 on lower left texel and rescale to [0,1] for texture lookup
+    vec2 st00 = (uv00  + vec2(0.5)) * texStep.xy;
+
+    // Compute g_u, g_v, D coefficients from four closest 8-bit RGBA texels
+    vec4 rawtex00 = texture2D(texture, st00);
+    vec4 rawtex10 = texture2D(texture, st00 + onestep.xz);
+    vec4 rawtex01 = texture2D(texture, st00 + onestep.zy);
+    vec4 rawtex11 = texture2D(texture, st00 + onestep.xy);
+
+    // decode r & g channel by (r*256+g)
+// #define DECODE_DUAL_8(raw)  raw.r = raw.g * 0.00390625 + raw.r;
+#define DECODE_DUAL_8(raw)  raw.r = raw.r * 256. + raw.g
+    DECODE_DUAL_8(rawtex00);
+    DECODE_DUAL_8(rawtex10);
+    DECODE_DUAL_8(rawtex01);
+    DECODE_DUAL_8(rawtex11);
+
+    vec2 D00_10 = vec2(rawtex00.r, rawtex10.r) - 0.5;
+    vec2 D01_11 = vec2(rawtex01.r, rawtex11.r) - 0.5;
+
+    // Interpolate D between four closest texels
+    // vec2 uvlocal = fract(uv)-0.5; // Texel-local uv coordinates [-0.5,0.5]
+    // Interpolate along v
+    vec2 D0_1 = mix(D00_10, D01_11, uvlerp.y);
+    // Interpolate along u
+    float D = mix(D0_1.x, D0_1.y, uvlerp.x);
+    return D - 128.;    // dist(edge) = 0
+  }
+#else
+  float GetD(vec2 st) {
     float D = texture2D(texture, st).a;
-    D = 16.0 * (D - 0.50196);   // single 8-bit channel
-    // D = 256. * (D - 0.50196);
+    D = 16.0 * (D - 0.5);   // single 8-bit channel
     return D;
   }
+#endif
   
   void main()
   {
     vec2 uv = v_uv0.xy;
-    // vec4 col = texture(texture, uv) * v_color;
-    // float alpha = col.a;
 
-    // 选择一个alpha值做为轮廓的中线
-    // float centerAlpha = 0.5;
-    float D = GetD_naive(uv);
-    float w = mod(floor(cc_time.x), 8.);     // 边线粗度(单边)
+    float D = GetD(uv);
+    float w = mod(floor(cc_time.x), 8.) + 0.5;     // 边线粗度(单边)
 
-    // float outlineAlphaDist = outlineHalfWidth;
-    // float mask = smoothstep(outlineAlphaDist, outlineAlphaDist - 0.02, abs(alpha - centerAlpha));
     float aastep = fwidth(D);
-    aastep = max(aastep, 1e-6);   // never be 0, otherwise smoothstep result unexpectly
+    // float aastep = 0.7 * length(vec2(dFdx(D), dFdy(D)));   // 更加精确的AA，但是肉眼上和fwidth(D)已经很难区分出来
+    aastep = max(aastep, 1e-8);   // never be 0, otherwise smoothstep result unexpectly
 
     float mask = smoothstep(aastep, -aastep, abs(D)-w);
-
     gl_FragColor = vec4(1., 1., 1., mask);
   }
 }%

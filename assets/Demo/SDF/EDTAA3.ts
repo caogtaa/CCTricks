@@ -10,17 +10,26 @@
 */ 
 
 export class EDTAA3 {
+    protected _useDualChannel: boolean = false;
+
     // 目前Distance Texture是8bit的，所以maxDist最大是8（4bit表示16，内外平分）
     public RenderSDF(texture: cc.RenderTexture, maxDist: number = 8): { texture: cc.RenderTexture, alpha: Uint8ClampedArray } {
+        this._useDualChannel = (maxDist > 8);
+
         let imgData = texture.readPixels();
         let width = texture.width;
         let height = texture.height;
-        let alpha = this.GenerateSDF(imgData, width, height);
-
+        let alpha = this.GenerateSDF(imgData, width, height, maxDist);
 
         // let alphaChannel = this.RenderSDFToData(imgData, width, height, radius, cutoff);
         let resultTexture = new cc.RenderTexture;
+        if (this._useDualChannel) {
+            // 手动插值需要用point采样
+            resultTexture.setFilters(cc.Texture2D.Filter.NEAREST, cc.Texture2D.Filter.NEAREST);
+        }
+
         resultTexture.initWithData(alpha, cc.Texture2D.PixelFormat.RGBA8888, width, height);
+        resultTexture.packable = false;
         // resultTexture.initWithData(imgData, cc.Texture2D.PixelFormat.I8, width, height);
         return {
             texture: resultTexture,
@@ -36,7 +45,7 @@ export class EDTAA3 {
      * @param width 
      */
     // NOTE: 这里mrows和ncols的含义可能正好相反，mrows对应w，ncols对应h
-    public GenerateSDF(imgorigin: Uint8Array, mrows: number, ncols: number): Uint8ClampedArray {
+    public GenerateSDF(imgorigin: Uint8Array, mrows: number, ncols: number, maxDist: number = 8): Uint8ClampedArray {
         // imgorigin是RGBA类型
         // alpha通道[0,256)转换成float64类型[0,1)
         let coef = 1./255;
@@ -56,12 +65,32 @@ export class EDTAA3 {
         let sdf = new Uint8ClampedArray(mrows * ncols * 4);
         let dist: number;
         let base: number;
-        for (let i = 0, n = mrows * ncols; i < n; ++i) {
-            // dist = outside[i] - inside[i];        // todo: 可能要取反
-            dist = inside[i] - outside[i];
-            base = i * 4;
-            sdf[base] = sdf[base+1] = sdf[base+2] = sdf[base+3] = 128 + dist * 16;             // 8bit拆分成2个4bit，分别表示整数部分和小数部分。此时1个像素距离色值差16
-            // sdf[base+3] = 128 + dist * 16;    // 只处理alpha部分
+        if (this._useDualChannel) {
+            // use dual channel
+            for (let i = 0, n = mrows * ncols; i < n; ++i) {
+                dist = inside[i] - outside[i];
+
+                // clamp dist value to [0, 65535]
+                // store hi 8 bits in R channel
+                // store lo 8 bits in G channel
+                if (dist > -100) {
+                    let k = 0;
+                }
+                dist = Math.round(32768 + dist * 256);
+                if (dist < 0)   dist = 0;
+                if (dist > 65535)   dist = 65535;
+
+                base = i * 4;
+                sdf[base] = Math.floor(dist / 256);
+                sdf[base+1] = dist % 256;
+            }
+        } else {
+            for (let i = 0, n = mrows * ncols; i < n; ++i) {
+                dist = inside[i] - outside[i];
+                base = i * 4;
+                sdf[base] = sdf[base+1] = sdf[base+2] = sdf[base+3] = 128 + dist * 16;             // 8bit拆分成2个4bit，分别表示整数部分和小数部分。此时1个像素距离色值差16
+                // sdf[base+3] = 128 + dist * 16;    // 只处理alpha部分?
+            }
         }
 
         return sdf;

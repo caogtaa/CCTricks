@@ -46,6 +46,7 @@ export class TestSDF extends cc.Component {
     protected _viewCenter: cc.Vec2 = cc.v2(0, 0);   // 视图中心相对与纹理的位置，单位: 设计分辨率像素
     protected _viewScale: number = 1.0;             // 视图缩放
     protected _textureSize = cc.size(1024, 1024);   // 目前先固定纹理大小，后续如果支持其他途径加载纹理，需要调整大小
+    protected _maxDist: number = 10;
 
     onLoad() {
         this.btnSwitchImage?.on("click", this.NextImage, this);
@@ -83,12 +84,9 @@ export class TestSDF extends cc.Component {
         this.objNode.getComponent(cc.Sprite).spriteFrame = sf;
         for (let i = 0; i < 2; ++i) {
             let renderNode = this.renderNodes[i];
+            let maxDist = this._maxDist;
             renderNode.width = this.objNode.width = sz.width;
             renderNode.height = this.objNode.height = sz.height;
-
-            // let sdfRadius = Math.max(60, sz.height / 3);
-            // let cutoff = 0.5;
-            let maxDist = 8;
             let texture = this.RenderToMemory(this.objNode, null, renderNode, maxDist);
 
             let result: { texture: cc.RenderTexture, alpha: Uint8ClampedArray } = null;
@@ -100,17 +98,25 @@ export class TestSDF extends cc.Component {
 
             let sprite = renderNode.getComponent(cc.Sprite);
             sprite.spriteFrame = new cc.SpriteFrame(result.texture);
-            this.FlushMatProperties(sprite, maxDist, cc.size(texture.width, texture.height));
+            this.FlushMatProperties(sprite, maxDist, cc.size(texture.width, texture.height), i === 1);
         }
     }
 
     // todo: remove sdf Radius
-    protected FlushMatProperties(sprite: cc.Sprite, sdfRadius: number, sz: cc.Size) {
+    protected FlushMatProperties(sprite: cc.Sprite, sdfRadius: number, sz: cc.Size, useDualChannel: boolean) {
+        let mat = sprite.getMaterial(0);
+        if (mat.name.startsWith("SDFOutline0") || mat.name.startsWith("SDFRawTestDual8")) {
+            let tw = sprite.node.width;
+            let th = sprite.node.height;
+            mat.setProperty("texSize", [tw, th]);
+            mat.setProperty("texStep", [1./tw, 1./th]);
+            mat.define("SDF_DUAL_CHANNEL", useDualChannel );
+        }
+
         // 只有Morphy效果需要设置
         if (this._effectIndex !== 2)
             return;
 
-        let mat = sprite.getMaterial(0);
         mat.setProperty("yRatio", sz.height / sz.width);
         mat.setProperty("sdfRatio", sdfRadius * 2.0 / sz.width);       // 'SDF区间/x'
         mat.setProperty("outlineHalfWidth", 3.0 / sdfRadius);
@@ -121,14 +127,16 @@ export class TestSDF extends cc.Component {
         let index = this._effectIndex = (this._effectIndex + 1) % this.materials.length;
         let mat = this.materials[index];
 
-        for (let renderNode of this.renderNodes) {
+        for (let i = 0; i < 2; ++i) {
+            let renderNode = this.renderNodes[i];
             let sprite = renderNode.getComponent(cc.Sprite);
             sprite.setMaterial(0, mat);
 
             let sf = sprite.spriteFrame;
             let sz = sf.getOriginalSize();
             let sdfRadius = Math.max(60, sz.height / 3);
-            this.FlushMatProperties(sprite, sdfRadius, sz);
+            let maxDist = this._maxDist;
+            this.FlushMatProperties(sprite, sdfRadius, sz, i === 1 && maxDist > 8);
         }
     }
     
@@ -187,6 +195,7 @@ export class TestSDF extends cc.Component {
     }
 
     protected UpdateDisplayMatProperties() {
+        return;
         let sprite = this.dolphin;
         sprite.node.position = this._viewCenter;
         sprite.node.scale = this._viewScale;
@@ -213,7 +222,7 @@ export class TestSDF extends cc.Component {
         tw = this._textureSize.width;// * this._viewScale;
         th = this._textureSize.height;// * this._viewScale;
         mat.setProperty("texSize", [tw, th]);
-        mat.setProperty("stepUV", [1./tw, 1./th]);      // todo: 改成texStep
+        mat.setProperty("texStep", [1./tw, 1./th]);
 
         // mat.setProperty("left", left);
         // mat.setProperty("right", right);

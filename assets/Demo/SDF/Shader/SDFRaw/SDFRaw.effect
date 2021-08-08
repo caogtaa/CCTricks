@@ -4,10 +4,11 @@
 // License text available at https://opensource.org/licenses/MIT
 
 /*
- * Date: 2021-06-30 00:40:59
+ * Date: 2021-07-03 14:09:41
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-06-30 00:43:24
+ * LastEditTime: 2021-08-09 00:07:13
 */ 
+
 
 CCEffect %{
   techniques:
@@ -60,9 +61,10 @@ CCProgram fs %{
   void main()
   {
     vec2 uv = v_uv0.xy;
-    vec4 col = texture(texture, uv) * v_color;
-    col.g = col.a;
-    col.rb = vec2(0.);
+    vec4 col = texture(texture, uv);// * v_color;
+    col.a = 1.0;
+    //col.g = col.a;
+    //col.rb = vec2(0.);
     gl_FragColor = col;
   }
 }%

@@ -32,7 +32,7 @@ CCEffect %{
       properties:
         texture: { value: white }
         texSize: { value: [128., 128.] }
-        stepUV: { value: [0.01, 0.01] }
+        texStep: { value: [0.01, 0.01] }
         edge: { value: 0. }
 }%
 
@@ -72,7 +72,7 @@ CCProgram fs %{
   uniform sampler2D texture;
   uniform UARGS {
     vec2 texSize;
-    vec2 stepUV;
+    vec2 texStep;
     float edge;
   };
 
@@ -132,8 +132,8 @@ CCProgram fs %{
   float GetD_alpha32(vec2 st) {
     float texw = texSize.x;
     float texh = texSize.y;
-    float oneu = stepUV.x;
-    float onev = stepUV.y;
+    float oneu = texStep.x;
+    float onev = texStep.y;
 
     // Scale texcoords to range ([0,texw], [0,texh])
     vec2 uv = st.xy * vec2(texw, texh);
@@ -174,8 +174,8 @@ CCProgram fs %{
     // This works around the currently very bad texture interpolation
     // precision in ATI hardware.
 
-    float onestepu = stepUV.x;
-    float onestepv = stepUV.y;
+    float onestepu = texStep.x;
+    float onestepv = texStep.y;
 
     // Center st00 on lower left texel and rescale to [0,1] for texture lookup
     vec2 st00 = (uv00  + vec2(0.5)) * vec2(onestepu, onestepv);

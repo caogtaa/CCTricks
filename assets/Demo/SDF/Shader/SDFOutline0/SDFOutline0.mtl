@@ -10,9 +10,22 @@
   "_techniqueData": {
     "0": {
       "props": {
+        "texSize": {
+          "__type__": "cc.Vec2",
+          "x": 98,
+          "y": 229
+        },
+        "texStep": {
+          "__type__": "cc.Vec2",
+          "x": 0.0102041,
+          "y": 0.0043668
+        },
         "texture": {
           "__uuid__": "790bc609-ee34-419d-90b7-a17df6307f37"
         }
+      },
+      "defines": {
+        "SDF_DUAL_CHANNEL": true
       }
     }
   }

@@ -10,6 +10,7 @@
   "_techniqueData": {
     "0": {
       "props": {
+        "edge": 0.01,
         "texture": {
           "__uuid__": "790bc609-ee34-419d-90b7-a17df6307f37"
         }
