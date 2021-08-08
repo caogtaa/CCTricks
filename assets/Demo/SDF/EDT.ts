@@ -19,12 +19,12 @@ export class EDT {
 
     }
 
-    protected RenderSDFToData(imgData: Uint8Array, width: number, height: number, maxDist: number = 16): Uint8ClampedArray {
+    protected RenderSDFToData(imgData: Uint8Array, width: number, height: number, maxDist: number = 8): Uint8ClampedArray {
 
         // initialize members
         // let cutoff = this.cutoff || 0.25;
         let cutoff = 0.5;           // dist = 0永远在边线上，tinySDF中radius是maxDist的2倍
-        let radius = maxDist ? maxDist * 2 : 18;
+        let radius = maxDist ? maxDist * 2 : 16;
 
         let area = width * height;
         let longSide = Math.max(width, height);

@@ -86,7 +86,7 @@ export class TestSDF extends cc.Component {
 
         // let sdfRadius = Math.max(60, sz.height / 3);
         // let cutoff = 0.5;
-        let maxDist = 16;
+        let maxDist = 8;
         let texture = this.RenderToMemory(this.objNode, null, this.renderNode, maxDist);
         let result = this._edt.RenderSDF(texture, maxDist);
         // let result = this._edtaa3.RenderSDF(texture, maxDist);

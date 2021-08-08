@@ -4,9 +4,9 @@
 // License text available at https://opensource.org/licenses/MIT
 
 /*
- * Date: 2021-04-12 19:21:00
+ * Date: 2021-08-04 10:24:59
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-06-30 00:37:31
+ * LastEditTime: 2021-08-08 21:19:52
 */ 
 
 CCEffect %{
@@ -48,6 +48,7 @@ CCProgram vs %{
 }%
 
 CCProgram fs %{
+  #extension GL_OES_standard_derivatives: enable
   precision highp float;
 
   #include <cc-global>
@@ -62,21 +63,32 @@ CCProgram fs %{
   uniform ARGS {
     float outlineHalfWidth;
   };
+
+  float GetD_naive(vec2 st) {
+    float D = texture2D(texture, st).a;
+    D = 16.0 * (D - 0.50196);   // single 8-bit channel
+    // D = 256. * (D - 0.50196);
+    return D;
+  }
   
   void main()
   {
     vec2 uv = v_uv0.xy;
-    vec4 col = texture(texture, uv) * v_color;
-    float alpha = col.a;
+    // vec4 col = texture(texture, uv) * v_color;
+    // float alpha = col.a;
 
     // 选择一个alpha值做为轮廓的中线
-    float centerAlpha = 0.5;
+    // float centerAlpha = 0.5;
+    float D = GetD_naive(uv);
+    float w = mod(floor(cc_time.x), 8.);     // 边线粗度(单边)
 
-    float outlineAlphaDist = outlineHalfWidth;
-    float mask = smoothstep(outlineAlphaDist, outlineAlphaDist - 0.02, abs(alpha - centerAlpha));
+    // float outlineAlphaDist = outlineHalfWidth;
+    // float mask = smoothstep(outlineAlphaDist, outlineAlphaDist - 0.02, abs(alpha - centerAlpha));
+    float aastep = fwidth(D);
+    aastep = max(aastep, 1e-6);   // never be 0, otherwise smoothstep result unexpectly
 
-    vec4 outlineColor = vec4(1., 1., 1., mask);
-    col = outlineColor;
-    gl_FragColor = col;
+    float mask = smoothstep(aastep, -aastep, abs(D)-w);
+
+    gl_FragColor = vec4(1., 1., 1., mask);
   }
 }%
