@@ -777,7 +777,7 @@
     "_enabled": true,
     "_materials": [
       {
-        "__uuid__": "75cf9ba6-2afc-4220-804f-8327d439ce0f"
+        "__uuid__": "8cb74275-6837-4b51-b0bc-129d67fac969"
       }
     ],
     "_srcBlendFactor": 770,
@@ -3029,6 +3029,12 @@
       },
       {
         "__uuid__": "05a30419-dd92-4dd3-9880-2681df146241"
+      },
+      {
+        "__uuid__": "9ee33f58-5b80-4c5a-8a6c-ee12a0635221"
+      },
+      {
+        "__uuid__": "8cb74275-6837-4b51-b0bc-129d67fac969"
       }
     ],
     "dragArea": {
