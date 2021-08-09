@@ -60,6 +60,7 @@ export class EDT {
         for (i = 0; i < area; i++) {
             const d = Math.sqrt(gridOuter[i]) - Math.sqrt(gridInner[i]);
             alphaChannel[i] = Math.round(255 - 255 * (d / radius + cutoff));
+            // alphaChannel[i] = Math.round(255 * (d / radius + cutoff));
             imgData[i * 4 + 3] = alphaChannel[i];
         }
 

@@ -68,7 +68,7 @@
   // use EDT low res distance texture
   float GetD(sampler2D texture, vec2 st) {
     float D = texture2D(texture, st).a;
-    // map [0, 1] to [maxDist, -maxDist]
-    return (1. - D * 2.) * maxDist;
+    // map [0, 1] to [-maxDist, maxDist]
+    return (D * 2. - 1.) * maxDist;
   }
 #endif  // end SDF_HI_RES

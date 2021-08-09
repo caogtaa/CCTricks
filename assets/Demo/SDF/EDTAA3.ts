@@ -68,6 +68,7 @@ export class EDTAA3 {
         if (this._useDualChannel) {
             // use dual channel
             for (let i = 0, n = mrows * ncols; i < n; ++i) {
+                // inside > 0, outside < 0
                 dist = inside[i] - outside[i];
 
                 // clamp dist value to [0, 65535]

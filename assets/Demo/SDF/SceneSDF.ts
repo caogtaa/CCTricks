@@ -46,7 +46,7 @@ export class TestSDF extends cc.Component {
     protected _viewCenter: cc.Vec2 = cc.v2(0, 0);   // 视图中心相对与纹理的位置，单位: 设计分辨率像素
     protected _viewScale: number = 1.0;             // 视图缩放
     protected _textureSize = cc.size(1024, 1024);   // 目前先固定纹理大小，后续如果支持其他途径加载纹理，需要调整大小
-    protected _maxDist: number = 10;
+    protected _maxDist: number = 8;
 
     onLoad() {
         this.btnSwitchImage?.on("click", this.NextImage, this);
@@ -105,7 +105,8 @@ export class TestSDF extends cc.Component {
     // todo: remove sdf Radius
     protected FlushMatProperties(sprite: cc.Sprite, sdfRadius: number, sz: cc.Size, useDualChannel: boolean) {
         let mat = sprite.getMaterial(0);
-        if (mat.name.startsWith("SDFOutline0") || mat.name.startsWith("SDFRawTestDual8")) {
+        // if (mat.name.startsWith("SDFOutline0") || mat.name.startsWith("SDFRawTestDual8")) {
+        if (true) {
             let tw = sprite.node.width;
             let th = sprite.node.height;
             mat.setProperty("texSize", [tw, th]);

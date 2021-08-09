@@ -4,10 +4,11 @@
 // License text available at https://opensource.org/licenses/MIT
 
 /*
- * Date: 2021-04-12 19:21:00
+ * Date: 2021-08-09 23:35:47
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-08-09 22:54:12
+ * LastEditTime: 2021-08-09 23:36:32
 */ 
+
 
 CCEffect %{
   techniques:
@@ -47,44 +48,20 @@ CCProgram vs %{
 }%
 
 CCProgram fs %{
-  #extension GL_OES_standard_derivatives: enable
   precision highp float;
 
   #include <cc-global>
   #include <cc-local>
   #include <sdf>
-
-  #define PI 3.141592653589793
   
   in vec4 v_color;
   in vec2 v_uv0;
-  in vec2 v_uv1;
 
   uniform sampler2D texture;
-
-  
-  float Remap01(float a, float b, float t) {
-    return (t-a) / (b-a);
-  }
-
-  float Remap(float a, float b, float c, float d, float t) {
-    return Remap01(a, b, t) * (d-c) + c;
-  }
 
   void main()
   {
     vec2 uv = v_uv0.xy;
-
-    float w = 2.;
-    float offset = Remap(0., 1.0, w, w+6., abs(sin(cc_time.x * 4.0)));
-
-    float D = GetD(texture, uv) + offset;
-    float aastep = max(fwidth(D), 1e-8);
-
-    // 取轮廓线遮罩
-    float mask = smoothstep(aastep, -aastep, abs(D)-w);
-    // float mask = smoothstep(outlineWidth, outlineWidth - 0.05, abs(alpha - centerAlpha));
-
-    gl_FragColor = vec4(0., 1., 0., mask);
+    gl_FragColor = texture2D(texture, uv);
   }
 }%
