@@ -98,7 +98,7 @@ export class TestSDF extends cc.Component {
 
             let sprite = renderNode.getComponent(cc.Sprite);
             sprite.spriteFrame = new cc.SpriteFrame(result.texture);
-            this.FlushMatProperties(sprite, maxDist, cc.size(texture.width, texture.height), i === 1);
+            this.FlushMatProperties(sprite, maxDist, cc.size(texture.width, texture.height), i === 1 && maxDist > 8);
         }
     }
 
