@@ -47,6 +47,7 @@ CCProgram fs %{
 
   #include <cc-global>
   #include <cc-local>
+  #include <sdf>
 
   #define PI 3.141592653589793
   
@@ -75,9 +76,11 @@ CCProgram fs %{
   void main()
   {
     vec2 uv = v_uv0.xy;
-    vec4 col = texture(texture, uv) * v_color;
+    // vec4 col = texture(texture, uv) * v_color;
+    float D = GetD(texture, uv);
+    D = D / maxDist * 0.5 + 0.5;
 
-    float alpha = col.a;
+    float alpha = D;
     
     // 轮廓宽度(0.0, 1.0), 对应alpha区域
     // float outlineWidth = 0.45;
@@ -95,11 +98,12 @@ CCProgram fs %{
     
     // 底色基础上叠加一个亮度，叠加后中心位置变白
     float brightness = 0.3;
-    outlineColor.rgb += Pulse((alphaDist + 0.5)) * brightness;
+    outlineColor.rgb += clamp(Pulse((alphaDist + 0.5)) * brightness, 0., 1.);
 
     // 原图的轮廓alpha平滑处理
+    vec4 col = vec4(1.0);
     col.a = smoothstep(0.48, 0.49, alpha);
-    col.rgb *= col.a;
+    // col.rgb *= col.a;
 
     // 外发光和原图混合
     col = mix(outlineColor, col, smoothstep(0.49, 0.5, alpha));

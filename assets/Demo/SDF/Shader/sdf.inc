@@ -1,19 +1,11 @@
 // Note: 这是一份文件备份，需要拷贝到以下目录。拷贝后如果shader依然报错，需要重启Cocos Creator
 // C:\CocosDashboard_1.0.12\resources\.editors\Creator\2.4.0\resources\engine\cocos2d\renderer\build\chunks
 
-#if SDF_HI_RES
-  #if SDF_DUAL_CHANNEL
-  uniform SDFHIRESARGS {
-    vec2 texSize;
-    vec2 texStep;
-  };
-  #endif
-#else
-  uniform SDFLORESARGS {
-    float maxDist;
-  };
-#endif
-  
+uniform SDFARGS {
+  vec2 texSize;
+  vec2 texStep;
+  float maxDist;
+};
 
 #if SDF_HI_RES
   // use EDTAA distance texture
