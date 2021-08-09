@@ -34,10 +34,11 @@
     vec2 st00 = (uv00  + onestep.ww) * texStep.xy;
 
     // Compute g_u, g_v, D coefficients from four closest 8-bit RGBA texels
-    vec4 rawtex00 = texture2D(texture, st00);
-    vec4 rawtex10 = texture2D(texture, st00 + onestep.xz);
-    vec4 rawtex01 = texture2D(texture, st00 + onestep.zy);
-    vec4 rawtex11 = texture2D(texture, st00 + onestep.xy);
+    // 注意读取的是A、R通道
+    vec2 rawtex00 = texture2D(texture, st00).ar;
+    vec2 rawtex10 = texture2D(texture, st00 + onestep.xz).ar;
+    vec2 rawtex01 = texture2D(texture, st00 + onestep.zy).ar;
+    vec2 rawtex11 = texture2D(texture, st00 + onestep.xy).ar;
 
     // decode r & g channel by (r*256+g)
     // #define DECODE_DUAL_8(raw)  raw.r = raw.g * 0.00390625 + raw.r;

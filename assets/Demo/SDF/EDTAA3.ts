@@ -71,25 +71,22 @@ export class EDTAA3 {
                 dist = inside[i] - outside[i];
 
                 // clamp dist value to [0, 65535]
-                // store hi 8 bits in R channel
-                // store lo 8 bits in G channel
-                if (dist > -100) {
-                    let k = 0;
-                }
+                // store hi 8 bits in A channel
+                // store lo 8 bits in R channel
                 dist = Math.round(32768 + dist * 256);
                 if (dist < 0)   dist = 0;
                 if (dist > 65535)   dist = 65535;
 
                 base = i * 4;
-                sdf[base] = Math.floor(dist / 256);
-                sdf[base+1] = dist % 256;
+                sdf[base+3] = Math.floor(dist / 256);       // 特地把高位分量放到alpha通道，避免正常渲染啥都看不到
+                sdf[base] = dist % 256;
             }
         } else {
             for (let i = 0, n = mrows * ncols; i < n; ++i) {
                 dist = inside[i] - outside[i];
                 base = i * 4;
-                sdf[base] = sdf[base+1] = sdf[base+2] = sdf[base+3] = 128 + dist * 16;             // 8bit拆分成2个4bit，分别表示整数部分和小数部分。此时1个像素距离色值差16
-                // sdf[base+3] = 128 + dist * 16;    // 只处理alpha部分?
+                sdf[base+3] = 128 + dist * 16;      // 优先填充alpha通道
+                // sdf[base] = sdf[base+1] = sdf[base+2] = sdf[base+3] = 128 + dist * 16;             // 8bit拆分成2个4bit，分别表示整数部分和小数部分。此时1个像素距离色值差16
             }
         }
 
