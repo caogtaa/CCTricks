@@ -1,0 +1,1 @@
+msdf-atlas-gen.exe -font HanYiYuanLongHei60W-new.ttf -charset charset.txt -imageout testSDF.* -format png -type msdf -size 32
