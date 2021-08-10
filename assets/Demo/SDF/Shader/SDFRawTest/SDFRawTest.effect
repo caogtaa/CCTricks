@@ -59,65 +59,6 @@ CCProgram fs %{
 
   uniform sampler2D texture;
 
-  // void main()
-  // {
-  //   vec2 uv = v_uv0.xy;
-  //   vec4 col = texture(texture, uv);
-  //   float blur = 2.0 / min(texSize.x, texSize.y);
-  //   col.rgb = smoothstep(0.5, 0.5+blur, col.rgb);
-  //   // col.rgb = mix()
-
-  //   gl_FragColor = col;
-  // }
-
-  // 2D Random
-  float random (in vec2 st) {
-      return fract(sin(dot(st.xy,
-                          vec2(12.9898,78.233)))
-                  * 43758.5453123);
-  }
-
-
-  // 2D Noise based on Morgan McGuire @morgan3d
-  // https://www.shadertoy.com/view/4dS3Wd
-  // Perlin Noise
-  float noise (in vec2 st) {
-    vec2 i = floor(st);
-    vec2 f = fract(st);
-
-    // Four corners in 2D of a tile
-    float a = random(i);
-    float b = random(i + vec2(1.0, 0.0));
-    float c = random(i + vec2(0.0, 1.0));
-    float d = random(i + vec2(1.0, 1.0));
-
-    // Smooth Interpolation
-
-    // Cubic Hermine Curve.  Same as SmoothStep()
-    vec2 u = f*f*(3.0-2.0*f);
-    // u = smoothstep(0.,1.,f);
-
-    // Mix 4 coorners percentages
-    return mix(a, b, u.x) +
-            (c - a)* u.y * (1.0 - u.x) +
-            (d - b) * u.x * u.y;
-  }
-
-  // 脉冲函数
-  // X,Y区间都是[0,1]，X=0.5位置Y=1
-  // https://www.iquilezles.org/www/articles/functions/functions.htm
-  float Pulse(float x) {
-    return pow(4.0 * x * (1.0 - x), 16.0);
-  }
-
-  float Remap01(float a, float b, float t) {
-    return (t-a) / (b-a);
-  }
-
-  float Remap(float a, float b, float c, float d, float t) {
-    return Remap01(a, b, t) * (d-c) + c;
-  }
-
   void main( void )
   {
     vec2 st = v_uv0.xy;
@@ -158,51 +99,6 @@ CCProgram fs %{
     // vec3 color = vec3(pattern);
     float mask = smoothstep(edge-aastep, edge+aastep, D);
     vec3 color = vec3(mask);
-#elif USE_VERSION == 3
-    // Glow effect
-    float D = GetD(texture, st) * 16.;   // in range [-8, 8]
-    float inside = 1.0 - smoothstep ( -2.0 , 2.0 , D) ;
-    float glow = 1.0 - smoothstep (0.0 , 20.0 , D);
-    vec3 insidecolor = vec3 (1.0 , 1.0 , 0.0) ;
-    vec3 glowcolor = vec3 (1.0 , 0.3 , 0.0) ;
-    vec3 color = mix( glow * glowcolor , insidecolor , inside );
-#elif USE_VERSION == 4
-    float D = GetD(texture, st);
-    // Pulsate effect
-    D = D - 2.0 + 2.0 * sin( st .s * 10.0) ;
-    vec3 color = vec3 ( smoothstep ( -0.5 , 0.5 , D ));
-#elif USE_VERSION == 5
-    // Squiggle effect
-    float D = GetD(texture, st);
-    D = D + 2.0 * noise (20.0* st );
-    vec3 color = vec3 (1.0 - smoothstep ( -2.0 , -1.0 , D ) + smoothstep (1.0 , 2.0 , D)) ;
-#elif USE_VERSION == 6
-    float D = GetD(texture, st);
-    // float aastep = fwidth(D);
-    float aastep = length(vec2(dFdx(D), dFdy(D)));
-    aastep = max(aastep, 1e-6);
-
-    float mask = smoothstep(aastep, -aastep, abs(D)-edge);
-    vec3 color = vec3(0., 1., 0.);
-    gl_FragColor = vec4(color, mask);
-    return;
-#elif USE_VERSION == 7
-    float D = GetD(texture, st);
-    float aastep = length(vec2(dFdx(D), dFdy(D)));
-    aastep = max(aastep, 1e-6);
-
-    float alphaDist = abs(D);// - edge;
-    float mask = smoothstep(aastep+edge, -aastep, alphaDist);
-    vec3 color = vec3(1., 0., 1.);
-    
-    // 底色基础上叠加一个亮度，叠加后中心位置变白
-    // 对亮度做一个动画
-    float brightness = 0.7;// Remap(0., 1., 0.7, 1.0, abs(sin(cc_time.x * 2.0)));
-    color += Pulse((alphaDist + 0.5)) * brightness;
-    gl_FragColor = vec4(color, mask);
-    return;
-#elif USE_VERSION == 8
-
 #endif
 
     // Final fragment color
