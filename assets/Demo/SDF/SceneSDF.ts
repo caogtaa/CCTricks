@@ -138,6 +138,11 @@ export class TestSDF extends cc.Component {
             mat.define("SDF_DUAL_CHANNEL", useDualChannel);
         }
 
+        //@ts-ignore
+        if (mat.getProperty("originTexture") !== undefined) {
+            mat.setProperty("originTexture", this.objNode.getComponent(cc.Sprite).spriteFrame.getTexture());
+        }
+
         // 只有Morphy效果需要设置
         if (this._effectIndex !== 2)
             return;

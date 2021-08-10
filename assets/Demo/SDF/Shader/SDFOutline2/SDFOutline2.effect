@@ -17,6 +17,7 @@ CCEffect %{
         cullMode: none
       properties:
         texture: { value: white }
+        originTexture: { value: white }
 }%
 
 CCProgram vs %{
@@ -56,6 +57,7 @@ CCProgram fs %{
   in vec2 v_uv1;
 
   uniform sampler2D texture;
+  uniform sampler2D originTexture;
 
   
   float Remap01(float a, float b, float t) {
@@ -100,10 +102,11 @@ CCProgram fs %{
     float brightness = 0.3;
     outlineColor.rgb += clamp(Pulse((alphaDist + 0.5)) * brightness, 0., 1.);
 
-    // 原图的轮廓alpha平滑处理
-    vec4 col = vec4(1.0);
-    col.a = smoothstep(0.48, 0.49, alpha);
+    // 原图的轮廓alpha平滑处理。originTexture的尺寸和SDF Texture不匹配，这里需要进行缩放
+    // vec4 col = texture2D(originTexture, vec2(uv.x, 1.0-uv.y));
+    // col.a = smoothstep(0.48, 0.49, alpha);
     // col.rgb *= col.a;
+    vec4 col = vec4(1.0);
 
     // 外发光和原图混合
     col = mix(outlineColor, col, smoothstep(0.49, 0.5, alpha));
