@@ -67,11 +67,13 @@ export class TestSDF extends cc.Component {
         this._imageIndex = -1;
         this.NextImage();
 
-        this._viewCenter.set(this.dolphin.node.position);
-        this._viewScale = 1.0;
-        this._textureSize.width = this.dolphin.node.width;
-        this._textureSize.height = this.dolphin.node.height;
-        this.UpdateDisplayMatProperties();
+        if (this.dolphin) {
+            this._viewCenter.set(this.dolphin.node.position);
+            this._viewScale = 1.0;
+            this._textureSize.width = this.dolphin.node.width;
+            this._textureSize.height = this.dolphin.node.height;
+            this.UpdateDisplayMatProperties();
+        }
     }
 
     protected _imageIndex: number = 0;
@@ -198,7 +200,9 @@ export class TestSDF extends cc.Component {
     }
 
     protected UpdateDisplayMatProperties() {
-        return;
+        if (!this.dolphin)
+            return;
+
         let sprite = this.dolphin;
         sprite.node.position = this._viewCenter;
         sprite.node.scale = this._viewScale;
@@ -237,6 +241,9 @@ export class TestSDF extends cc.Component {
     }
 
     public OnEdgeSliderChanged(comp: cc.Slider) {
+        if (!this.dolphin)
+            return;
+
         let edge = comp.progress - 0.5;
 
         let mat = this.dolphin.getMaterial(0);
