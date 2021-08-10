@@ -1,6 +1,6 @@
 {
   "ver": "2.3.5",
-  "uuid": "64c03eea-781f-4d9c-8618-63ada58626a7",
+  "uuid": "eacdea9a-a8f4-4bbd-9924-224500a0e417",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -11,10 +11,10 @@
   "height": 512,
   "platformSettings": {},
   "subMetas": {
-    "testSDF": {
+    "HieroGen": {
       "ver": "1.0.4",
-      "uuid": "eb5ede44-0e0f-4ff5-b4d6-f069540ca7f6",
-      "rawTextureUuid": "64c03eea-781f-4d9c-8618-63ada58626a7",
+      "uuid": "07cab686-7c19-4551-a2ec-07f45b28cba3",
+      "rawTextureUuid": "eacdea9a-a8f4-4bbd-9924-224500a0e417",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,
