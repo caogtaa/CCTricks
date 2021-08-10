@@ -100,8 +100,8 @@ CCProgram fs %{
 
     // 3秒切换一次，在5种状态中循环
     float seed = mod(floor(cc_time.x * 3.), 5.);
-    D = D + 2.0 * noise(20. * uv + seed);
+    D = D + 3.0 * noise(20. * uv + seed);
     float mask = 1.0 - smoothstep(-2.0, -1.0, D) + smoothstep(1.0, 2.0, D);
-    gl_FragColor = vec4(vec3(mask), 1.-mask);
+    gl_FragColor = vec4(vec3(1.-mask), 1.-mask);
   }
 }%

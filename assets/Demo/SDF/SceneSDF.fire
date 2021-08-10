@@ -287,9 +287,9 @@
     "_opacity": 255,
     "_color": {
       "__type__": "cc.Color",
-      "r": 153,
-      "g": 110,
-      "b": 255,
+      "r": 166,
+      "g": 166,
+      "b": 166,
       "a": 255
     },
     "_contentSize": {
@@ -777,7 +777,7 @@
     "_enabled": true,
     "_materials": [
       {
-        "__uuid__": "c79a4f7c-39d3-4518-918a-1b802bc4b562"
+        "__uuid__": "75cf9ba6-2afc-4220-804f-8327d439ce0f"
       }
     ],
     "_srcBlendFactor": 770,
@@ -3038,6 +3038,9 @@
       },
       {
         "__uuid__": "5564b879-2351-4cb1-a3be-62b3b0b48ce4"
+      },
+      {
+        "__uuid__": "a471b875-b701-443e-94ea-d538f5de3df5"
       }
     ],
     "dragArea": {
