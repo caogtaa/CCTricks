@@ -121,5 +121,10 @@ export default class SceneSDFFont extends cc.Component {
         let dolphin = this.dolphin;
         dolphin.position = this._viewCenter;
         dolphin.scale = this._viewScale;
+        
+        let mat = dolphin.getComponent(cc.RenderComponent).getMaterial(0);
+        if (mat.getProperty("sz", 0) !== undefined) {
+            mat.setProperty("sz", [dolphin.width * this._viewScale, dolphin.height * this._viewScale]);
+        }
     }
 }

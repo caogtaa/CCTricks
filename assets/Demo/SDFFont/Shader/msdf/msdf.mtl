@@ -1,0 +1,19 @@
+{
+  "__type__": "cc.Material",
+  "_name": "msdf",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "3c92b705-eac9-4f53-aefb-d9808839cf20"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "texture": {
+          "__uuid__": "790bc609-ee34-419d-90b7-a17df6307f37"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,110 @@
+// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2021-08-11 02:57:50
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2021-08-11 03:00:55
+*/ 
+/*
+ * Author: GT<caogtaa@gmail.com>
+ * Date: 2021-03-29 17:04:32
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2021-04-08 20:12:34
+*/
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+}%
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+  
+  void main() {
+    vec4 pos = vec4(a_position, 1);
+    pos = cc_matViewProj * pos;
+    v_uv0 = a_uv0;
+
+    v_color = a_color;
+    gl_Position = pos;
+  }
+}%
+
+CCProgram fs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+  // #include <sdf>
+  
+  in vec4 v_color;
+  in vec2 v_uv0;
+  in vec2 v_uv1;
+
+  uniform sampler2D texture;
+  uniform UARGS {
+    vec2 sz;
+  };
+  float median(float r, float g, float b) {
+    return max(min(r, g), min(max(r, g), b));
+  }
+
+  float screenPxRange() {
+    return sz.x / 16. * 2.;    // read github
+  }
+
+  void main() {
+    vec2 uv = v_uv0.xy;
+    vec3 msd = texture(texture, uv).rgb;
+    float sd = median(msd.r, msd.g, msd.b);
+    float screenPxDistance = screenPxRange()*(sd - 0.5);
+    float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
+    gl_FragColor = vec4(1.,1.,1., opacity);
+  }
+
+  // void main()
+  // {
+  //   vec2 uv = v_uv0.xy;
+  //   float alpha = GetD(texture, uv) / maxDist * 0.5 + 0.5;
+  //   // float alpha = texture(texture, uv).a;
+    
+  //   // 轮廓宽度(0.0, 1.0), 对应alpha区域
+  //   float outlineWidth = 0.4;
+
+  //   // 选择一个alpha值做为轮廓的中线
+  //   float centerAlpha = 0.5;
+
+  //   float alphaDist = abs(alpha - centerAlpha);
+  //   float mask = smoothstep(outlineWidth, 0., alphaDist);
+  //   vec4 col = vec4(outlineColor.rgb, mask);
+    
+  //   // 底色基础上叠加一个亮度，叠加后中心位置变白
+  //   // 对亮度做一个动画
+  //   float brightness = Remap(0., 1., 0.7, 1.0, abs(sin(cc_time.x * 2.0)));
+  //   col.rgb += Pulse((alphaDist + 0.5)) * brightness;
+
+  //   gl_FragColor = col;
+  // }
+}%
