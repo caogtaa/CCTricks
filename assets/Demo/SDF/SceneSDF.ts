@@ -41,6 +41,25 @@ export class TestSDF extends cc.Component {
     @property(cc.Sprite)
     dolphin: cc.Sprite = null;
 
+    @property(cc.Label)
+    lblHint: cc.Label = null;
+
+    protected _hints = new Map<string, string>([
+        ["SpriteRaw", "原始SDF纹理"],
+        ["SDFGradient", "距离映射到灰度"],
+        ["SDFMorph", "形变"],
+        ["SDFBloom", "霓虹灯"],
+        ["SDFOutline0", "描边"],
+        ["SDFSelect", "框选动画"],
+        ["SDFOutline2", "外发光"],
+        ["SDFRawTest", ""],
+        ["SDFGlow", "外发光2"],
+        ["SDFSquiggle", "手绘线描"],
+        ["SDFColorPallete", "颜色渐变"],
+        ["SDFContour", "等高线"],
+        ["SDFDropShadow", "投影"],
+        ["SDFFake3D", "伪3D"],
+    ]);
     protected _edt: EDT;
     protected _edtaa3: EDTAA3;
     protected _viewCenter: cc.Vec2 = cc.v2(0, 0);   // 视图中心相对与纹理的位置，单位: 设计分辨率像素
@@ -66,6 +85,7 @@ export class TestSDF extends cc.Component {
         this._edtaa3 = new EDTAA3;
         this._imageIndex = -1;
         this.NextImage();
+        this.UpdateHint(0);
 
         if (this.dolphin) {
             this._viewCenter.set(this.dolphin.node.position);
@@ -130,6 +150,7 @@ export class TestSDF extends cc.Component {
     protected _effectIndex: number = 0;
     protected NextEffect() {
         let index = this._effectIndex = (this._effectIndex + 1) % this.materials.length;
+        this.UpdateHint(index);
         let mat = this.materials[index];
 
         for (let i = 0; i < 2; ++i) {
@@ -344,6 +365,15 @@ export class TestSDF extends cc.Component {
         }
 
         return target["__gt_texture"];
+    }
+
+    protected UpdateHint(materialIndex: number) {
+        let mat = this.materials[materialIndex];
+        let hint = this._hints.get(mat.name) || "";
+        if (hint)
+            this.lblHint.string = `当前效果:\n ${hint}`;
+        else
+            this.lblHint.string = "";
     }
 }
 
