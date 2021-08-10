@@ -90,6 +90,11 @@ CCProgram fs %{
 
     // be golden
     color *= vec3(1., 213./255., 0.);
-    gl_FragColor = vec4(color, edgeMask + insideMask);
+
+    // 混入白色背景便于观察
+    vec3 bg = vec3(1.0);
+    color = mix(bg, color, clamp(edgeMask + insideMask, 0., 1.));
+
+    gl_FragColor = vec4(color, 1.0/*edgeMask + insideMask*/);
   }
 }%

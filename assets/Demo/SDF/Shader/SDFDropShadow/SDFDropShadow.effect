@@ -74,6 +74,11 @@ CCProgram fs %{
     float maskD2 = smoothstep(-aastepD2, aastepD2, D2);
     maskD2 = clamp(maskD2 - maskD, 0., 1.);
 
-    gl_FragColor = vec4(vec3(0.) * maskD2 + vec3(1.) * maskD, maskD + maskD2);
+    // 混入白色背景便于观察
+    vec3 color = vec3(0.) * maskD2 + vec3(1.) * maskD;
+    vec3 bg = vec3(1.0);
+    color = mix(bg, color, clamp(maskD + maskD2, 0., 1.0));
+
+    gl_FragColor = vec4(color, 1.0/*maskD + maskD2*/);
   }
 }%
