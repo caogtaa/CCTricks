@@ -1,5 +1,6 @@
 // Note: 这是一份文件备份，需要拷贝到以下目录。拷贝后如果shader依然报错，需要重启Cocos Creator
 // C:\CocosDashboard_1.0.12\resources\.editors\Creator\2.4.0\resources\engine\cocos2d\renderer\build\chunks
+// 如果用了自定义引擎，放在对应engine工程下
 
 uniform SDFARGS {
   vec2 texSize;
