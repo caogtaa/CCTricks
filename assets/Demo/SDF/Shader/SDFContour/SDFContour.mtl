@@ -1,0 +1,23 @@
+{
+  "__type__": "cc.Material",
+  "_name": "SDFContour",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "8e8a3e85-872a-4f63-bc8c-95ddbc6075b6"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "texture": {
+          "__uuid__": "790bc609-ee34-419d-90b7-a17df6307f37"
+        }
+      },
+      "defines": {
+        "SDF_HI_RES": false,
+        "SDF_DUAL_CHANNEL": false
+      }
+    }
+  }
+}

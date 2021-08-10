@@ -1,0 +1,110 @@
+// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2021-08-10 12:32:59
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2021-08-10 12:34:52
+*/ 
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+}%
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+  
+  void main() {
+    vec4 pos = vec4(a_position, 1);
+    pos = cc_matViewProj * pos;
+    v_uv0 = a_uv0;
+
+    v_color = a_color;
+    gl_Position = pos;
+  }
+}%
+
+CCProgram fs %{
+  #extension GL_OES_standard_derivatives: enable
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+  #include <sdf>
+
+  in vec4 v_color;
+  in vec2 v_uv0;
+  in vec2 v_uv1;
+
+  uniform sampler2D texture;
+
+  vec3 Pallete(float t) {
+    vec3 dcOffset = vec3(0.938, 0.328, 0.718);
+    vec3 amp = vec3(0.659, 0.438, 0.328);
+    vec3 freq = vec3(0.388, 0.388, 0.296);
+    vec3 phase = vec3(2.538, 2.478, 0.168);
+
+    // vec3 dcOffset = vec3(-3.141, 0.3984, -0.711);
+    // vec3 amp = vec3(3.1384, 3.1384, 3.1384);
+    // vec3 freq = vec3(1.6384, -0.771, 2.2284);
+    // vec3 phase = vec3(-0.931, -0.151, -1.891);
+
+    return dcOffset + amp * sin(t * freq + phase);
+  }
+
+  void main()
+  {
+    vec2 uv = v_uv0.xy;
+    float D = GetD(texture, uv);
+
+    // 保持最外侧等高线完整，超出部分按等高线同级处理
+    // D = max(-maxDist, D);
+
+    float aastep = fwidth(D);
+    float w = 10.;
+    float mask = 1.0;
+    // float mask = smoothstep(aastep, -aastep, abs(D) - w);
+
+    // 沿等高线衰减
+    // mask *= smoothstep(-maxDist, -maxDist+3., D);
+
+    // 沿图片边缘衰减
+    // uv = abs(uv - vec2(0.5));
+    // mask *= smoothstep(0.5, 0.4, max(uv.x, uv.y));
+
+    // D scale
+    // map from [w, -w] to [0, 1]
+    D = 0.5 - D / w * 0.5;
+
+    // multiply 2PI
+    D = D * 3.14159265 * 2.;
+
+    // shift by time
+    D -= cc_time.x * 4.;
+
+    vec3 color = Pallete(D);
+    gl_FragColor = vec4(color, mask);
+  }
+}%
