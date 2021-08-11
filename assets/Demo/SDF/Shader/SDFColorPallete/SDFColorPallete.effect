@@ -71,7 +71,7 @@ CCProgram fs %{
     // vec3 freq = vec3(1.6384, -0.771, 2.2284);
     // vec3 phase = vec3(-0.931, -0.151, -1.891);
 
-    return dcOffset + amp * sin(t * freq + phase);
+    return dcOffset + amp * cos(2. * 3.14159 * (freq * t + phase));
   }
 
   void main()
@@ -98,11 +98,8 @@ CCProgram fs %{
     // map from [w, -w] to [0, 1]
     D = 0.5 - D / w * 0.5;
 
-    // multiply 2PI
-    D = D * 3.14159265 * 2.;
-
     // shift by time
-    D -= cc_time.x * 4.;
+    D -= cc_time.x;
 
     vec3 color = Pallete(D);
     gl_FragColor = vec4(color, mask);

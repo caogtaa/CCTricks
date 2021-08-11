@@ -1,0 +1,15 @@
+{
+  "__type__": "cc.Material",
+  "_name": "GraphicsRainbow",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "d5dfdfe6-0ed8-4938-b32c-29c8acb8aca8"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "defines": {}
+    }
+  }
+}
