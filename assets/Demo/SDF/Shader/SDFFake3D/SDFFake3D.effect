@@ -71,7 +71,7 @@ CCProgram fs %{
     // float mask = smoothstep(-aastep, aastep, D);
     vec2 delta = vec2(dFdx(D), dFdy(D));
     vec2 lightPos = vec2(1., -1.);
-    float brightNess = dot(delta, lightPos);
+    float brightNess = dot(normalize(delta), normalize(lightPos));
 
     // edge width/2, in pixel
     float w = 4.;

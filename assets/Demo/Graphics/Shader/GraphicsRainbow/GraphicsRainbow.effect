@@ -86,13 +86,11 @@ CCProgram fs %{
       float aa = 0.05;
     #endif
 
-    
     float alpha = smoothstep(aa, -aa, abs(v_dist) - 1.0);
     float D = v_dist * 0.5 + 0.5;
     
-    o.rgb = Pallete(D);// * 2. * 3.14159265);
+    o.rgb = Pallete(D);
     o.rgb *= alpha;
     gl_FragColor = o;
-    // gl_FragColor = vec4(D);
   }
 }%

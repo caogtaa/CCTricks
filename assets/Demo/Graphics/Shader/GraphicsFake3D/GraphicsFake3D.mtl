@@ -1,0 +1,15 @@
+{
+  "__type__": "cc.Material",
+  "_name": "GraphicsFake3D",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "ee30b057-b6bf-4802-9eb0-4aac72f31ac0"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "defines": {}
+    }
+  }
+}

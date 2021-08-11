@@ -3,6 +3,8 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
+import SimpleDraggable from "../../Scripts/Misc/SimpleDraggable";
+
 /*
  * Date: 2021-08-11 00:29:14
  * LastEditors: GT<caogtaa@gmail.com>
@@ -18,6 +20,12 @@ export default class SceneGraphics extends cc.Component {
     @property(cc.Node)
     displayArea: cc.Node = null;
 
+    @property(cc.Node)
+    light: cc.Node = null;
+
+    @property(cc.Graphics)
+    ctx: cc.Graphics = null;
+
     // LIFE-CYCLE CALLBACKS:
 
     protected _viewCenter: cc.Vec2 = cc.v2(0, 0);   // 视图中心相对与纹理的位置，单位: 设计分辨率像素
@@ -31,6 +39,14 @@ export default class SceneGraphics extends cc.Component {
         dragArea.on(cc.Node.EventType.TOUCH_CANCEL, this.OnDisplayTouchEnd, this);
 
         dragArea.on(cc.Node.EventType.MOUSE_WHEEL, this.OnDisplayMouseWheel, this);
+
+        let that = this;
+        this.light.getComponent(SimpleDraggable).Setup((pos: cc.Vec2) => {
+            let mat = that.ctx.getMaterial(0);
+            if (mat.getProperty("lightPos", 0) !== undefined) {
+                mat.setProperty("lightPos", [pos.x, pos.y]);
+            }
+        });
     }
 
     start () {
@@ -41,16 +57,39 @@ export default class SceneGraphics extends cc.Component {
             this.UpdateDisplayMatProperties();
         }
 
-        let ctx = this.node.getChildByName("graphics").getComponent(cc.Graphics);
-        ctx.strokeColor = cc.Color.WHITE;
-        ctx.fillColor = cc.Color.WHITE;
-        ctx.lineWidth = 40;
-        ctx.moveTo(0, 0);
-        ctx.bezierCurveTo(80, 400, 400, 500, 300, 300);
-        ctx.stroke();
+        this.Draw();
     }
 
     update() {
+    }
+
+    protected Draw() {
+        let ctx = this.ctx;// this.node.getChildByName("graphics").getComponent(cc.Graphics);
+        ctx.clear();
+        ctx.strokeColor = cc.Color.WHITE;
+        ctx.fillColor = cc.Color.WHITE;
+        ctx.lineWidth = 40;
+        let mat = ctx.getMaterial(0);
+        if (mat.getProperty("lineWidth", 0) !== undefined) {
+            mat.setProperty("lineWidth", ctx.lineWidth);
+        }
+
+        if (false) {
+            let ctrl = this.node.getChildByName("ctrl");
+            let [c1, c2, c3, c4] = ctrl.children;
+            ctx.moveTo(c1.x, c1.y);
+            ctx.bezierCurveTo(c2.x, c2.y, c3.x, c3.y, c4.x, c4.y);
+        }
+
+        // ctx.moveTo(-212, -139);
+        // ctx.bezierCurveTo(-213, 111, 38, 236, 246, 75);
+        // ctx.stroke();
+
+        ctx.moveTo(-100, -100);
+        ctx.lineTo(-100, 100);
+        ctx.lineTo(100, 100);
+        ctx.close();
+        ctx.stroke();
     }
 
     protected OnDisplayTouchStart(e: cc.Event.EventTouch) {

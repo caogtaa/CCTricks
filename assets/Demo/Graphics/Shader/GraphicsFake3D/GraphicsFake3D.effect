@@ -1,0 +1,131 @@
+// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2021-08-11 14:39:15
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2021-08-11 14:40:09
+*/ 
+// Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.  
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: one
+          blendDst: one_minus_src_alpha
+          blendSrcAlpha: one
+          blendDstAlpha: one_minus_src_alpha
+      rasterizerState:
+        cullMode: none
+      properties:
+        alphaThreshold: { value: 0.5 }
+        lightPos: { value: [1., -1.] }
+        lineWidth: { value: 40. }
+}%
+
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  
+  in vec4 a_color;
+  out vec4 v_color;
+
+  in float a_dist;
+  out float v_dist;
+
+  void main () {
+    vec4 pos = vec4(a_position, 1);
+    pos = cc_matViewProj * cc_matWorld * pos;
+
+    v_color = a_color;
+    v_dist = a_dist;
+
+    gl_Position = pos;
+  }
+}%
+
+
+CCProgram fs %{
+  #if CC_SUPPORT_standard_derivatives
+    #extension GL_OES_standard_derivatives : enable
+  #endif
+
+  precision highp float;
+  
+  #include <cc-global>
+  #include <alpha-test>
+
+  in vec4 v_color;
+  in float v_dist;
+
+  uniform UARGS {
+    vec2 lightPos;
+    float lineWidth;
+  };
+
+  void main () {
+    vec4 o = v_color;
+
+    // ALPHA_TEST(o);
+
+    // #if CC_SUPPORT_standard_derivatives
+    //   float aa = fwidth(v_dist);
+    // #else
+    //   float aa = 0.05;
+    // #endif
+
+    // 左右各留1/4作为斜面
+    // v_dist范围[-1, 1], 其中[-0.75, 0.75]处为物体水平面
+    // 距离中心0.75处D = 0，D按texel坐标计算
+    float maxDist = lineWidth / 4.;
+    float D = abs(v_dist) * 2.0 - 1.0;
+    D *= -maxDist;
+
+    float aastep = fwidth(D);
+
+    // 在边缘处做aa
+    float aaMask = smoothstep(-aastep, aastep, abs(D) - 1.0);
+
+    // do a simple color mix, note the AA is not accurate
+    vec2 delta = vec2(dFdx(D), dFdy(D));
+    float brightNess = dot(normalize(delta), normalize(-lightPos));
+
+    // neither too bright nor too dark
+    brightNess = clamp(brightNess, 0.15, 0.85);
+
+    // edge width/2, in pixel
+    float w = maxDist / 2.;
+
+    // edge range, [-2w, 0]
+    float edgeMask = smoothstep(aastep, -aastep, abs(D + w) - w);
+
+    // inside range, (0, +)
+    float insideMask = smoothstep(-aastep, aastep, D);
+
+    // map [-1,1] to [0, 1]
+    // delta = delta * 0.5 + 0.5;
+    // gl_FragColor = vec4(delta, 0., 1.);
+    // return;
+
+    // mix color
+    vec3 color = vec3(brightNess * edgeMask) + vec3(1.0) * insideMask;
+
+    // be golden
+    color *= vec3(1., 213./255., 0.);
+
+    float finalMask = (edgeMask + insideMask);
+    gl_FragColor = vec4(color * finalMask, finalMask);
+  }
+}%
