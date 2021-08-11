@@ -60,7 +60,7 @@ class RenderBuff {
 }
 
 @ccclass
-export default class SceneTest extends cc.Component {
+export default class SceneDrawingBoard extends cc.Component {
     @property(cc.Node)
     board: cc.Node = null;
 
@@ -138,6 +138,7 @@ export default class SceneTest extends cc.Component {
             0);
     }
 
+    protected static _tmpV2 = cc.v2(0, 0);
     update() {
         let points = this._points;
         if (points.length < 3)
@@ -161,6 +162,16 @@ export default class SceneTest extends cc.Component {
         if (!useBezier && A.equals(B)) {
             isValid = false;
         }
+
+        // if (useBezier) {
+        //     // 距离太短的也不要用bezier
+        //     let tmpV2 = SceneDrawingBoard._tmpV2;
+        //     A.sub(B, tmpV2);
+        //     let dist2 = tmpV2.dot(tmpV2);
+        //     if (dist2 < 16) {
+        //         useBezier = false;
+        //     }
+        // }
 
         if (!useBezier) {
             sprite.setMaterial(0, this.matCapsule);

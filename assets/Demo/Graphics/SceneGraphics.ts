@@ -11,12 +11,9 @@
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class SceneSDFFont extends cc.Component {
+export default class SceneGraphics extends cc.Component {
     @property(cc.Node)
     dragArea: cc.Node = null;
-
-    @property(cc.Label)
-    targetLabel: cc.Label = null;
 
     @property(cc.Node)
     displayArea: cc.Node = null;
@@ -44,20 +41,17 @@ export default class SceneSDFFont extends cc.Component {
             this.UpdateDisplayMatProperties();
         }
 
-        this.UpdateSDFNodeProperty(this.targetLabel.node);
-        this.UpdateSDFNodeProperty(this.node.getChildByName("hintLabel"));
+        let ctx = this.node.getChildByName("graphics").getComponent(cc.Graphics);
+        ctx.strokeColor = cc.Color.WHITE;
+        ctx.fillColor = cc.Color.WHITE;
+        ctx.lineWidth = 40;
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(80, 400, 400, 500, 300, 300);
+        ctx.stroke();
     }
 
     update() {
     }
-
-    protected UpdateSDFNodeProperty(node: cc.Node) {
-        let mat = node.getComponent(cc.RenderComponent).getMaterial(0);
-        mat.setProperty("maxDist", 4);
-        mat.define("SDF_HI_RES", false);
-        mat.define("SDF_DUAL_CHANNEL", false);
-    }
-
 
     protected OnDisplayTouchStart(e: cc.Event.EventTouch) {
     }
