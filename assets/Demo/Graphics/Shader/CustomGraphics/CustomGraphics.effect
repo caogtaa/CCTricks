@@ -37,8 +37,9 @@ CCProgram vs %{
 
   in vec3 a_position;
   
-  in vec4 a_color;
-  out vec4 v_color;
+  in float a_index;
+  out float v_index;
+  out vec4 v_lineFlags;
 
   in float a_dist;
   out float v_dist;
@@ -47,7 +48,11 @@ CCProgram vs %{
     vec4 pos = vec4(a_position, 1);
     pos = cc_matViewProj * cc_matWorld * pos;
 
-    v_color = a_color;
+    // v_color = a_color;
+    v_index = a_index;
+    v_lineFlags.x = floor(a_index * 0.5);       // 0-1连线等高
+    v_lineFlags.y = floor((a_index + 1.) * 0.5); // 1-2连线等高
+
     v_dist = a_dist;
 
     gl_Position = pos;
@@ -65,7 +70,8 @@ CCProgram fs %{
   #include <cc-global>
   #include <alpha-test>
 
-  in vec4 v_color;
+  in float v_index;
+  in vec4 v_lineFlags;
   in float v_dist;
 
   float Remap01(float a, float b, float t) {
@@ -84,9 +90,9 @@ CCProgram fs %{
   }
 
   void main () {
-    vec4 o = v_color;
+    // vec4 o = v_color;
 
-    ALPHA_TEST(o);
+    // ALPHA_TEST(o);
 
     #if CC_SUPPORT_standard_derivatives
       float aa = fwidth(v_dist);
@@ -94,7 +100,7 @@ CCProgram fs %{
       float aa = 0.05;
     #endif
     
-#define TEST_VERSION 1
+#define TEST_VERSION 2
 #if TEST_VERSION == 0
     // abs(v_dist): [1...0...1]
     // float alpha = 1. - smoothstep(-aa, 0., abs(v_dist) - 1.0);
@@ -120,7 +126,32 @@ CCProgram fs %{
 
     col.rgb *= col.a;
     gl_FragColor = col;
+#elif TEST_VERSION == 2
+    // 展示网格化
+    // substract by nearest integer to generate distance field
+    // vec2 flags = abs(v_lineFlags.xy - floor(v_lineFlags.xy + 0.5));
+    // // vec2 aa2 = fwidth(abs(flags));
+    // vec2 delta1 = vec2(dFdx(flags.x), dFdy(flags.x));
+    // vec2 delta2 = vec2(dFdx(flags.y), dFdy(flags.y));
+    // vec2 aa2 = vec2(length(delta1), length(delta2));// * 0.7;
+    // vec2 lineMask = smoothstep(vec2(1.), vec2(0.0), flags);
+    // // float mask = max(lineMask.x, lineMask.y);
+    // float mask = max(lineMask.x, 0.);//lineMask.y);
+    // // vec2 t = floor(v_lineFlags.xy) / 25.;   // 拆分两个点
+
+    // mask = flags.x;
+    vec2 ff = fract(v_lineFlags.xy);
+    float green = min(ff.x, ff.y);
+    green = 0.3 + min(green, 0.7);
+    gl_FragColor = vec4(0., green, 0., 1.0);
+
+    // float flag = v_lineFlags.y - floor(v_lineFlags.y + 0.5);
+    // float aax = fwidth(abs(flag));
+
+    // vec4 color = vec4(abs(flag), aax, -aax, 1.);
+    // gl_FragColor = color;
 #endif
+
 
     // o.rgb *= o.a;
     // o *= alpha;
