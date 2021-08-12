@@ -183,7 +183,7 @@
       "array": [
         0,
         0,
-        723.3296939343722,
+        723.3928592393968,
         0,
         0,
         0,
@@ -583,7 +583,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 352,
+      "width": 223,
       "height": 40
     },
     "_anchorPoint": {
@@ -636,8 +636,8 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_useOriginalSize": false,
-    "_string": "Drag & Drop & Scale",
-    "_N$string": "Drag & Drop & Scale",
+    "_string": "Drag & Scale",
+    "_N$string": "Drag & Scale",
     "_fontSize": 32,
     "_lineHeight": 40,
     "_enableWrapText": true,
@@ -670,7 +670,7 @@
       "height": 1280
     },
     "_fitWidth": true,
-    "_fitHeight": false,
+    "_fitHeight": true,
     "_id": "59Cd0ovbdF4byw5sbjJDx7"
   },
   {
