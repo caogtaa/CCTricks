@@ -76,11 +76,15 @@ export default class SceneDrawingBoard extends cc.Component {
     @property(cc.Material)
     matBezier: cc.Material = null;
 
+    @property(cc.Graphics)
+    ctx: cc.Graphics = null;
+
     protected _autoRender: boolean = true;
     protected _renderBuffMap = new Map<cc.Node, RenderBuff>();
     protected _isDragging: boolean = false;
     protected _points: cc.Vec2[] = [];
     protected _debug: boolean = false;
+    protected _lineWidth: number = 0.05;        // ratio of screen width
 
     onLoad() {
         let renderBuff = RenderBuff.CreateRederBuff(this.board.width, this.board.height);
@@ -177,7 +181,13 @@ export default class SceneDrawingBoard extends cc.Component {
             sprite.setMaterial(0, this.matCapsule);
             let mat = sprite.getComponent(cc.Sprite).getMaterial(0);
             this.SetBlendEqToMax(mat);
+            mat.setProperty("width", this._lineWidth);
             mat.setProperty("PP", [A.x, A.y, B.x, B.y]);
+
+            if (this.ctx.node.active) {
+                this.ctx.stroke();
+                this.ctx.moveTo(B.x, B.y);
+            }
         } else {
             sprite.setMaterial(0, this.matBezier);
             let mat = sprite.getComponent(cc.Sprite).getMaterial(0);
@@ -201,9 +211,15 @@ export default class SceneDrawingBoard extends cc.Component {
                 B.subSelf(A).subSelf(C).divSelf(2);
             }
 
+            mat.setProperty("width", this._lineWidth);
             mat.setProperty("PA", [A.x, A.y]);
             mat.setProperty("PB", [B.x, B.y]);
             mat.setProperty("PC", [C.x, C.y]);
+
+            if (this.ctx.node.active) {
+                this.ctx.bezierCurveTo(A.x, A.y, B.x, B.y, C.x, C.y);
+                this.ctx.stroke();
+            }
         }
 
         if (this._debug)
@@ -248,6 +264,11 @@ export default class SceneDrawingBoard extends cc.Component {
         this._isDragging = true;
         this._points.length = 0;
         this._points.push(this.TouchPosToPassPos(e.getLocation()));
+
+        if (this.ctx.node.active) {
+            let localPos = this.node.convertToNodeSpaceAR(e.getLocation());
+            this.ctx.moveTo(localPos.x, localPos.y);
+        }
     }
 
     protected _colorIndex: number = 0;
@@ -259,6 +280,12 @@ export default class SceneDrawingBoard extends cc.Component {
 
         let cur = this.TouchPosToPassPos(e.getLocation());
         this._points.push(cur);
+
+        if (this.ctx.node.active) {
+            // let localPos = this.node.convertToNodeSpaceAR(e.getLocation());
+            // this.ctx.lineTo(localPos.x, localPos.y);
+            // this.ctx.stroke();
+        }
     }
 
     protected OnBoardTouchEnd() {

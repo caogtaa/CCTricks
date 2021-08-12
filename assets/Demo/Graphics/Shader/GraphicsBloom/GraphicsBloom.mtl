@@ -1,0 +1,15 @@
+{
+  "__type__": "cc.Material",
+  "_name": "GraphicsBloom",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "418aad78-ee74-4057-af84-6cf4c4c8ffc3"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "defines": {}
+    }
+  }
+}

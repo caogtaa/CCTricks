@@ -21,6 +21,7 @@ CCEffect %{
               PA: { value: [0., 0.] }
               PB: { value: [0., 0.] }
               PC: { value: [0., 0.] }
+              width: { value: [0.01] }
 }%
 
 CCProgram vs %{
@@ -64,6 +65,7 @@ CCProgram fs %{
         vec2 PA;
         vec2 PB;        // 控制点，在外部根据途经点m计算控制点 PB = (4.0 * m - PA - PC) / 2.0
         vec2 PC;
+        float width;
     };
 
     float dot2( in vec2 v ) { return dot(v,v); }
@@ -115,7 +117,6 @@ CCProgram fs %{
         uv = uv * 2. - 1.;
         uv.y *= 1280./720.;
 
-        float width = 0.01;
         float blur = 4. / 720.;
         float mask = sdBezier(uv, PA, PB, PC);
         mask = smoothstep(width, width-blur, mask);

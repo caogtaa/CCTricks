@@ -22,6 +22,7 @@ CCEffect %{
           properties:
               texture: { value: white }
               PP: { value: [0.5, 0., 0., 0.5] }
+              width: { value: [0.01] }
 }%
 
 CCProgram vs %{
@@ -64,6 +65,7 @@ CCProgram fs %{
     // uniform sampler2D tex2;
     uniform UARGS {
         vec4 PP;
+        float width;
     };
 
     float Capsule(vec2 p, float o, float width, float height, float blur) {
@@ -87,7 +89,6 @@ CCProgram fs %{
         uv.y *= 1280./720.;
 
         float height = 0.01;
-        float width = 0.01;
         float blur = 4. / 720.;
         
     #if 1
