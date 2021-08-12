@@ -447,7 +447,7 @@
     "_enabled": true,
     "_materials": [
       {
-        "__uuid__": "768f2f89-6193-409b-87ac-6871987fecd1"
+        "__uuid__": "7c69118d-b989-4cd5-b2cf-7196640d7928"
       }
     ],
     "_lineWidth": 2,
@@ -2023,6 +2023,9 @@
       },
       {
         "__uuid__": "768f2f89-6193-409b-87ac-6871987fecd1"
+      },
+      {
+        "__uuid__": "69910680-8d2d-4efe-9c3c-be9900f0e74f"
       }
     ],
     "_id": "77wUdU5H1FtJg/jeGhlZta"

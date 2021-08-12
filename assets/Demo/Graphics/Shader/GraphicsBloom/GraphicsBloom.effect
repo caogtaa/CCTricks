@@ -80,17 +80,22 @@ CCProgram fs %{
   // X,Y区间都是[0,1]，X=0.5位置Y=1
   // https://www.iquilezles.org/www/articles/functions/functions.htm
   float Pulse(float x) {
-    return pow(4.0 * x * (1.0 - x), 16.0);
+    x *= 0.6;
+    x = x + 0.5;
+    
+    float k = 16.;
+    return pow(4.0 * x * (1.0 - x), k);
   }
 
   void main () {
-    float alpha = v_dist * 0.5 + 0.5;
+    // float alpha = v_dist * 0.5 + 0.5;
+    float alpha = abs(v_dist);
 
     // 轮廓宽度(0.0, 1.0), 对应alpha区域
-    float outlineWidth = 0.4;
+    float outlineWidth = 1.0;
 
     // 选择一个alpha值做为轮廓的中线
-    float centerAlpha = 0.5;
+    float centerAlpha = 0.;
 
     float alphaDist = abs(alpha - centerAlpha);
     float mask = smoothstep(outlineWidth, 0., alphaDist);
@@ -99,7 +104,8 @@ CCProgram fs %{
     // 底色基础上叠加一个亮度，叠加后中心位置变白
     // 对亮度做一个动画
     float brightness = Remap(0., 1., 0.7, 1.0, abs(sin(cc_time.x * 2.0)));
-    col.rgb += Pulse((alphaDist + 0.5)) * brightness;
+    // col.rgb = vec3(0.);
+    col.rgb += Pulse(alphaDist) * brightness;
 
     col.rgb *= col.a;
     gl_FragColor = col;

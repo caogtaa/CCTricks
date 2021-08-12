@@ -6,6 +6,16 @@
 /*
  * Date: 2021-08-11 19:23:15
  * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2021-08-13 00:42:15
+*/ 
+// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2021-08-11 19:23:15
+ * LastEditors: GT<caogtaa@gmail.com>
  * LastEditTime: 2021-08-11 19:30:40
 */ 
 
@@ -68,6 +78,9 @@ CCProgram fs %{
   in float v_dist;
 
   vec3 Pallete(float t) {
+    // 动起来
+    t += cc_time.x;
+
     vec3 dcOffset = vec3(0.5, 0.5, 0.5);
     vec3 amp = vec3(1., 1., 1.);
     vec3 freq = vec3(1., 1., 1.);

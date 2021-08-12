@@ -90,10 +90,6 @@ CCProgram fs %{
   }
 
   void main () {
-    // vec4 o = v_color;
-
-    // ALPHA_TEST(o);
-
     #if CC_SUPPORT_standard_derivatives
       float aa = fwidth(v_dist);
     #else
