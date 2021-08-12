@@ -26,6 +26,9 @@ export default class SceneGraphics extends cc.Component {
     @property(cc.Graphics)
     ctx: cc.Graphics = null;
 
+    @property([cc.Material])
+    materials: cc.Material[] = [];
+
     // LIFE-CYCLE CALLBACKS:
 
     protected _viewCenter: cc.Vec2 = cc.v2(0, 0);   // 视图中心相对与纹理的位置，单位: 设计分辨率像素
@@ -57,39 +60,49 @@ export default class SceneGraphics extends cc.Component {
             this.UpdateDisplayMatProperties();
         }
 
-        this.Draw();
+        this.NextGraph();
     }
 
     update() {
     }
+    
+    protected _graphIndex: number = -1;
+    public NextGraph() {
+        this._graphIndex = (this._graphIndex + 1) % 2;
 
-    protected Draw() {
-        let ctx = this.ctx;// this.node.getChildByName("graphics").getComponent(cc.Graphics);
+        let ctx = this.ctx;
         ctx.clear();
         ctx.strokeColor = cc.Color.WHITE;
         ctx.fillColor = cc.Color.WHITE;
         ctx.lineWidth = 40;
+        if (this._graphIndex === 0) {
+            ctx.moveTo(-212, -139);
+            ctx.bezierCurveTo(-213, 111, 38, 236, 246, 75);
+            ctx.stroke();
+        } else {
+            ctx.moveTo(-100, -100);
+            ctx.lineTo(-100, 100);
+            ctx.lineTo(100, 100);
+            ctx.close();
+            ctx.stroke();
+        }
+
+        this.FlushMatProperties(this.ctx);
+    }
+
+    protected _effectIndex: number = 0;
+    public NextEffect() {
+        let index = this._effectIndex = (this._effectIndex + 1) % this.materials.length;
+        let mat = this.materials[index];
+        this.ctx.setMaterial(0, mat);
+        this.FlushMatProperties(this.ctx);
+    }
+
+    protected FlushMatProperties(ctx: cc.Graphics) {
         let mat = ctx.getMaterial(0);
         if (mat.getProperty("lineWidth", 0) !== undefined) {
             mat.setProperty("lineWidth", ctx.lineWidth);
         }
-
-        if (false) {
-            let ctrl = this.node.getChildByName("ctrl");
-            let [c1, c2, c3, c4] = ctrl.children;
-            ctx.moveTo(c1.x, c1.y);
-            ctx.bezierCurveTo(c2.x, c2.y, c3.x, c3.y, c4.x, c4.y);
-        }
-
-        // ctx.moveTo(-212, -139);
-        // ctx.bezierCurveTo(-213, 111, 38, 236, 246, 75);
-        // ctx.stroke();
-
-        ctx.moveTo(-100, -100);
-        ctx.lineTo(-100, 100);
-        ctx.lineTo(100, 100);
-        ctx.close();
-        ctx.stroke();
     }
 
     protected OnDisplayTouchStart(e: cc.Event.EventTouch) {
