@@ -107,7 +107,7 @@ export default class SceneGraphics extends cc.Component {
 
     // 记录需要定制assembler的Graphics
     protected _specialGraphicsCls = new Map<string, any>([
-        ["CustomGraphics", GraphicsShowMesh]
+        ["GraphicsShowMesh", GraphicsShowMesh]
     ]);
 
     protected FlushEffect(index: number) {

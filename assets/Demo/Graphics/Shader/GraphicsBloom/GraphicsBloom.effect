@@ -80,7 +80,7 @@ CCProgram fs %{
   // X,Y区间都是[0,1]，X=0.5位置Y=1
   // https://www.iquilezles.org/www/articles/functions/functions.htm
   float Pulse(float x) {
-    x *= 0.6;
+    x *= 0.4;
     x = x + 0.5;
     
     float k = 16.;
@@ -103,7 +103,7 @@ CCProgram fs %{
     
     // 底色基础上叠加一个亮度，叠加后中心位置变白
     // 对亮度做一个动画
-    float brightness = Remap(0., 1., 0.7, 1.0, abs(sin(cc_time.x * 2.0)));
+    float brightness = Remap(0., 1., 0.6, 1.0, abs(sin(cc_time.x * 2.5)));
     // col.rgb = vec3(0.);
     col.rgb += Pulse(alphaDist) * brightness;
 
