@@ -3,13 +3,16 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-import SimpleDraggable from "../../Scripts/Misc/SimpleDraggable";
-
 /*
- * Date: 2021-08-11 00:29:14
+ * Date: 2021-08-11 17:58:44
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-08-11 00:29:36
+ * LastEditTime: 2021-08-12 21:35:31
 */ 
+
+
+import SimpleDraggable from "../../Scripts/Misc/SimpleDraggable";
+import GraphicsShowMesh from "./GraphicsShowMesh";
+
 const {ccclass, property} = cc._decorator;
 
 @ccclass
@@ -53,74 +56,32 @@ export default class SceneGraphics extends cc.Component {
     }
 
     start () {
-        // this.targetLabel.string = "12345";
         if (this.displayArea) {
             this._viewCenter.set(this.displayArea.position);
             this._viewScale = 1.0;
             this.UpdateDisplayMatProperties();
         }
 
-        this.InjectAssembler();
-
-        this.NextGraph();
-    }
-
-    protected InjectAssembler() {
-        let ctx = this.ctx;
-
-        let assembler = ctx._assembler;
-        //@ts-ignore
-        let originFn = assembler._vset;
-
-        //@ts-ignore
-        let gfx = cc.gfx;
-        let vfmtPosIndexSdf = new gfx.VertexFormat([
-            { name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
-            { name: 'a_index', type: gfx.ATTR_TYPE_FLOAT32, num: 1 },
-            { name: 'a_dist', type: gfx.ATTR_TYPE_FLOAT32, num: 1 },
-        ]);
-        
-        vfmtPosIndexSdf.name = 'vfmtPosIndexSdf';
-        assembler.getVfmt = () => {
-            return vfmtPosIndexSdf;
-        };
-
-        //@ts-ignore
-        assembler._vset = (x, y, distance = 0) => {
-            //@ts-ignore
-            let buffer = assembler._buffer;
-            let meshbuffer = buffer.meshbuffer;
-            //@ts-ignore
-            let dataOffset = buffer.vertexStart * assembler.getVfmtFloatCount();
-    
-            let vData = meshbuffer._vData;
-            let uintVData = meshbuffer._uintVData;
-    
-            vData[dataOffset] = x;
-            vData[dataOffset+1] = y;
-            //@ts-ignore
-            // uintVData[dataOffset+2] = assembler._curColor;
-            vData[dataOffset+2] = Math.floor(buffer.vertexStart);
-            vData[dataOffset+3] = distance;
-    
-            buffer.vertexStart ++;
-            meshbuffer._dirty = true;
-        };
+        this.FlushEffect(0);
+        this.FlushGraph(0);
     }
 
     update() {
     }
     
-    protected _graphIndex: number = -1;
+    protected _graphIndex: number = 0;
     public NextGraph() {
         this._graphIndex = (this._graphIndex + 1) % 2;
+        this.FlushGraph(this._graphIndex);
+    }
 
+    protected FlushGraph(index: number) {
         let ctx = this.ctx;
         ctx.clear();
         ctx.strokeColor = cc.Color.WHITE;
         ctx.fillColor = cc.Color.WHITE;
         ctx.lineWidth = 40;
-        if (this._graphIndex === 0) {
+        if (index === 0) {
             ctx.moveTo(-212, -139);
             ctx.bezierCurveTo(-213, 111, 38, 236, 246, 75);
             ctx.stroke();
@@ -132,13 +93,39 @@ export default class SceneGraphics extends cc.Component {
             ctx.stroke();
         }
 
-        this.FlushMatProperties(this.ctx);
+        this.FlushMatProperties(ctx);
     }
 
     protected _effectIndex: number = 0;
     public NextEffect() {
         let index = this._effectIndex = (this._effectIndex + 1) % this.materials.length;
+        this.FlushEffect(index);
+    }
+
+    // 当前使用的Graphics组件
+    protected _curGraphicsCls: any = cc.Graphics;
+
+    // 记录需要定制assembler的Graphics
+    protected _specialGraphicsCls = new Map<string, any>([
+        ["CustomGraphics", GraphicsShowMesh]
+    ]);
+
+    protected FlushEffect(index: number) {
         let mat = this.materials[index];
+        let cls = this._specialGraphicsCls.get(mat.name);
+        if (cls == void 0) {
+            cls = cc.Graphics;
+        }
+
+        // 如果需要的Graphics组件变化了，切换一下组件，并且重新刷一次路径
+        if (cls !== this._curGraphicsCls) {
+            let ctxNode = this.ctx.node;
+            ctxNode.removeComponent(this._curGraphicsCls);
+            this.ctx = ctxNode.addComponent(cls);
+            this.FlushGraph(this._graphIndex);
+            this._curGraphicsCls = cls;
+        }
+
         this.ctx.setMaterial(0, mat);
         this.FlushMatProperties(this.ctx);
     }
