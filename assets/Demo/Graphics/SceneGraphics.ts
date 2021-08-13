@@ -62,8 +62,8 @@ export default class SceneGraphics extends cc.Component {
             this.UpdateDisplayMatProperties();
         }
 
-        this.FlushEffect(0);
-        this.FlushGraph(0);
+        this.FlushEffect(this._effectIndex);
+        this.FlushGraph(this._graphIndex);
     }
 
     update() {
@@ -71,7 +71,7 @@ export default class SceneGraphics extends cc.Component {
     
     protected _graphIndex: number = 0;
     public NextGraph() {
-        this._graphIndex = (this._graphIndex + 1) % 2;
+        this._graphIndex = (this._graphIndex + 1) % 3;
         this.FlushGraph(this._graphIndex);
     }
 
@@ -85,11 +85,53 @@ export default class SceneGraphics extends cc.Component {
             ctx.moveTo(-212, -139);
             ctx.bezierCurveTo(-213, 111, 38, 236, 246, 75);
             ctx.stroke();
-        } else {
+        } else if (index === 1) {
             ctx.moveTo(-100, -100);
             ctx.lineTo(-100, 100);
             ctx.lineTo(100, 100);
             ctx.close();
+            ctx.stroke();
+        } else {
+            let letterPath = new Map<string, cc.Vec2[]>([
+                ["C", [
+                    cc.v2(0.5, 0.7), cc.v2(-0.7, 0.8), cc.v2(-0.8, -0.9), cc.v2(0.3, -0.7)
+                ]],
+                ["O", [
+                    cc.v2(0.1, 0.7), cc.v2(-0.7, 0.6), cc.v2(-0.7, -0.8), cc.v2(-0.1, -0.7), 
+                    cc.v2(0.6, -0.6), cc.v2(0.8, 0.8)
+                ]],
+                ["S", [
+                    cc.v2(0.4, 0.7), cc.v2(-0.5, 0.7), cc.v2(-0.6, 0.1), cc.v2(0.0, 0.0), 
+                    cc.v2(0.6, 0.0), cc.v2(0.5, -0.8), cc.v2(-0.4, -0.7)
+                ]]
+            ]);
+
+            let word = "COCOS";
+            let scale = 100;
+            let offsetx = -300;
+            
+            for (let k = 0; k < word.length; ++k) {
+                let letter = word[k];
+                let path = letterPath.get(letter);
+
+                for (let i = 0, n = path.length; i < n; ) {
+                    let p = path[i];
+                    if (i === 0) {
+                        ctx.moveTo(offsetx + p.x * scale, p.y * scale);
+                        ++ i;
+                    } else {
+                        let p1 = path[i], p2 = path[(i+1) % n], p3 = path[(i+2) % n];
+                        i += 3;
+                        ctx.bezierCurveTo(
+                            offsetx + p1.x * scale, p1.y * scale,
+                            offsetx + p2.x * scale, p2.y * scale,
+                            offsetx + p3.x * scale, p3.y * scale);
+                    }
+                }
+
+                offsetx += 150;
+            }
+
             ctx.stroke();
         }
 
