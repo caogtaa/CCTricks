@@ -2,11 +2,16 @@
 工程收录了个人使用Cocos Creator时积累的开发技巧</br>
 请使用Cocos Creator 2.4.0或以上版本打开
 
+### 自定义渲染
+* [SDF](http://caogtaa.gitee.io/ccdemos/?scene=SceneSDF)
+* [Graphics组件渲染](http://caogtaa.gitee.io/ccdemos/?scene=SceneGraphics)
+* [音频可视化](http://caogtaa.gitee.io/ccdemos?scene=SceneVisualizeMusic)
+
 ### 合批系列
-* [自定义顶点格式](http://caogtaa.gitee.io/ccdemos/?scene=SceneCustomVertexFormat)</br>
+* [Assembler自定义顶点格式](http://caogtaa.gitee.io/ccdemos/?scene=SceneCustomVertexFormat)</br>
 [讨论帖](https://forum.cocos.org/t/topic/95087)
 
-* [自定义渲染应用——图片遮罩合批](http://caogtaa.gitee.io/ccdemos/?scene=SceneAvatars)</br>
+* [图片遮罩合批](http://caogtaa.gitee.io/ccdemos/?scene=SceneAvatars)</br>
 [讨论帖](https://forum.cocos.org/t/topic/95986)
 
 * [自动分层合批](http://caogtaa.gitee.io/ccdemos/?scene=SceneLayeredBatchingScrollView) (不支持native)</br>
@@ -15,19 +20,15 @@
 * [粒子系统合批](http://caogtaa.gitee.io/ccdemos/?scene=SceneParticlesBatching) (不支持native)</br>
 [讨论帖](https://forum.cocos.org/t/topic/95087/47?u=caogtaa)
 
-### shader系列
-* [EShop加载动画](http://caogtaa.gitee.io/ccdemos?scene=SceneEnterEShop)
+### 个人shader练习
+* [康威生命游戏](http://caogtaa.gitee.io/ccdemos?scene=SceneCellularAutomata)
 * [螺旋形变](http://caogtaa.gitee.io/ccdemos/?scene=SceneSpiralZoom)
-* [SDF](http://caogtaa.gitee.io/ccdemos/?scene=SceneSDF)
-* [Graphics组件渲染](http://caogtaa.gitee.io/ccdemos/?scene=SceneGraphics)
-* [音频可视化](http://caogtaa.gitee.io/ccdemos?scene=SceneVisualizeMusic)
-* [生命游戏](http://caogtaa.gitee.io/ccdemos?scene=SceneCellularAutomata)
+* [EShop加载动画](http://caogtaa.gitee.io/ccdemos?scene=SceneEnterEShop)
 
-### 其他
+### 模拟
 * [liquidfun + metaballs流体效果](http://caogtaa.gitee.io/ccdemos/?scene=SceneMetaBalls)</br>
 [讨论帖](https://forum.cocos.org/t/topic/97137)</br>
 优化后调试模式下华为P9手机浏览器1000+个粒子可在60fps下运行
-
 
 ## Attributions
 https://opengameart.org/content/buttons-with-hover</br>
