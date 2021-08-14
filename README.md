@@ -19,6 +19,7 @@
 * [EShop加载动画](http://caogtaa.gitee.io/ccdemos?scene=SceneEnterEShop)
 * [螺旋形变](http://caogtaa.gitee.io/ccdemos/?scene=SceneSpiralZoom)
 * [SDF](http://caogtaa.gitee.io/ccdemos/?scene=SceneSDF)
+* [Graphics组件渲染](http://caogtaa.gitee.io/ccdemos/?scene=SceneGraphics)
 * [音频可视化](http://caogtaa.gitee.io/ccdemos?scene=SceneVisualizeMusic)
 * [生命游戏](http://caogtaa.gitee.io/ccdemos?scene=SceneCellularAutomata)
 
