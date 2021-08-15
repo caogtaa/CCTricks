@@ -84,7 +84,7 @@ export default class SceneDrawingBoard extends cc.Component {
     protected _isDragging: boolean = false;
     protected _points: cc.Vec2[] = [];
     protected _debug: boolean = false;
-    protected _lineWidth: number = 0.05;        // ratio of screen width
+    protected _lineWidth: number = 0.01;        // ratio of screen width
 
     onLoad() {
         let renderBuff = RenderBuff.CreateRederBuff(this.board.width, this.board.height);
@@ -181,6 +181,7 @@ export default class SceneDrawingBoard extends cc.Component {
             sprite.setMaterial(0, this.matCapsule);
             let mat = sprite.getComponent(cc.Sprite).getMaterial(0);
             this.SetBlendEqToMax(mat);
+            sprite.node.color = cc.Color.WHITE;
             mat.setProperty("width", this._lineWidth);
             mat.setProperty("PP", [A.x, A.y, B.x, B.y]);
 
@@ -211,6 +212,7 @@ export default class SceneDrawingBoard extends cc.Component {
                 B.subSelf(A).subSelf(C).divSelf(2);
             }
 
+            sprite.node.color = cc.Color.YELLOW;
             mat.setProperty("width", this._lineWidth);
             mat.setProperty("PA", [A.x, A.y]);
             mat.setProperty("PB", [B.x, B.y]);
