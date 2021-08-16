@@ -507,12 +507,13 @@ export default class SmoothTrailAssembler extends cc.Assembler {
         let x0, y0, x1, y1;
 
         if (bevel !== 0) {
-            x0 = x + p0.dy * w;
+            // INNERBEVEL模式，不经过dm点
+            x0 = x + p0.dy * w;         // (x0, y0)是沿P0法线走w
             y0 = y - p0.dx * w;
-            x1 = x + p1.dy * w;
+            x1 = x + p1.dy * w;         // (x1, y1)是沿P1法线走w
             y1 = y - p1.dx * w;
         } else {
-            x0 = x1 = x + p1.dmx * w;
+            x0 = x1 = x + p1.dmx * w;   // (x0, y0), (x1, y1)都和dm点重合
             y0 = y1 = y + p1.dmy * w;
         }
 
