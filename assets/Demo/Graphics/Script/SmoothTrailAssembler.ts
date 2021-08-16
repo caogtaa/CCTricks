@@ -14,21 +14,21 @@ cc.game.on(cc.game.EVENT_ENGINE_INITED, () => {
 const MAX_VERTEX = 65535;
 const MAX_INDICE = MAX_VERTEX * 2;
 
-const PI      = Math.PI;
-const min     = Math.min;
-const max     = Math.max;
-const ceil    = Math.ceil;
-const acos    = Math.acos;
-const cos     = Math.cos;
-const sin     = Math.sin;
-const atan2   = Math.atan2;
+const PI = Math.PI;
+const min = Math.min;
+const max = Math.max;
+const ceil = Math.ceil;
+const acos = Math.acos;
+const cos = Math.cos;
+const sin = Math.sin;
+const atan2 = Math.atan2;
 
-function curveDivs (r, arc, tol) {
+function curveDivs(r, arc, tol) {
     let da = acos(r / (r + tol)) * 2.0;
     return max(2, ceil(arc / da));
 }
 
-function clamp (v, min, max) {
+function clamp(v, min, max) {
     if (v < min) {
         return min;
     }
@@ -53,24 +53,24 @@ export default class SmoothTrailAssembler extends cc.Assembler {
     _bufferOffset = 0;
     _curColor = 0;
 
-    constructor (graphics) {
+    constructor(graphics) {
         // super(graphics);
         super();
-        
+
         // this._buffer = null;
         // this._buffers = [];
         // this._bufferOffset = 0;
     }
 
-    getVfmt () {
+    getVfmt() {
         return vfmtPosColorSdf;
     }
 
-    getVfmtFloatCount () {
+    getVfmtFloatCount() {
         return 4;
     }
 
-    requestBuffer (dummy?: any) {
+    requestBuffer(dummy?: any) {
         let buffer = {
             indiceStart: 0,
             vertexStart: 0,
@@ -91,7 +91,7 @@ export default class SmoothTrailAssembler extends cc.Assembler {
         return buffer;
     }
 
-    getBuffers () {
+    getBuffers() {
         if (this._buffers.length === 0) {
             this.requestBuffer();
         }
@@ -99,7 +99,7 @@ export default class SmoothTrailAssembler extends cc.Assembler {
         return this._buffers;
     }
 
-    clear (clean) {
+    clear(clean) {
         this._bufferOffset = 0;
 
         let datas = this._buffers;
@@ -124,7 +124,7 @@ export default class SmoothTrailAssembler extends cc.Assembler {
         }
     }
 
-    fillBuffers (graphics, renderer) {
+    fillBuffers(graphics, renderer) {
         renderer._flush();
 
         renderer.node = graphics.node;
@@ -140,8 +140,8 @@ export default class SmoothTrailAssembler extends cc.Assembler {
         }
     }
 
-    genBuffer (graphics, cverts) {
-        let buffers = this.getBuffers(); 
+    genBuffer(graphics, cverts) {
+        let buffers = this.getBuffers();
         let buffer = buffers[this._bufferOffset];
         let meshbuffer = buffer.meshbuffer;
 
@@ -150,7 +150,7 @@ export default class SmoothTrailAssembler extends cc.Assembler {
             maxVertsCount * 3 > MAX_INDICE) {
             ++this._bufferOffset;
             maxVertsCount = cverts;
-            
+
             if (this._bufferOffset < buffers.length) {
                 buffer = buffers[this._bufferOffset];
             }
@@ -163,43 +163,43 @@ export default class SmoothTrailAssembler extends cc.Assembler {
         }
 
         if (maxVertsCount > meshbuffer.vertexOffset) {
-            meshbuffer.requestStatic(cverts, cverts*3);
+            meshbuffer.requestStatic(cverts, cverts * 3);
         }
 
         this._buffer = buffer;
         return buffer;
     }
 
-    stroke (graphics) {
+    stroke(graphics) {
         this._curColor = graphics._strokeColor._val;
 
         this._flattenPaths(graphics._impl);
         this._expandStroke(graphics);
-    
+
         graphics._impl._updatePathOffset = true;
     }
 
-    fill (graphics) {
+    fill(graphics) {
         this._curColor = graphics._fillColor._val;
 
         this._expandFill(graphics);
         graphics._impl._updatePathOffset = true;
     }
 
-    _expandStroke (graphics) {
+    _expandStroke(graphics) {
         let w = graphics.lineWidth * 0.5,
             lineCap = graphics.lineCap,
             lineJoin = graphics.lineJoin,
             miterLimit = graphics.miterLimit;
 
         let impl = graphics._impl;
-    
+
         let ncap = curveDivs(w, PI, impl._tessTol);
-    
+
         this._calculateJoins(impl, w, lineJoin, miterLimit);
-    
+
         let paths = impl._paths;
-        
+
         // Calculate max vertex usage.
         let cverts = 0;
         for (let i = impl._pathOffset, l = impl._pathLength; i < l; i++) {
@@ -218,12 +218,12 @@ export default class SmoothTrailAssembler extends cc.Assembler {
                 }
             }
         }
-        
+
         let buffer = this.genBuffer(graphics, cverts),
             meshbuffer = buffer.meshbuffer,
             vData = meshbuffer._vData,
             iData = meshbuffer._iData;
-            
+
         for (let i = impl._pathOffset, l = impl._pathLength; i < l; i++) {
             let path = paths[i];
             let pts = path.points;
@@ -248,15 +248,15 @@ export default class SmoothTrailAssembler extends cc.Assembler {
             }
 
             p1 = p1 || p0;
-    
+
             if (!loop) {
                 // Add cap
                 let dPos = p1.sub(p0);
                 dPos.normalizeSelf();
-    
+
                 let dx = dPos.x;
                 let dy = dPos.y;
-    
+
                 if (lineCap === LineCap.BUTT)
                     this._buttCapStart(p0, dx, dy, w, 0);
                 else if (lineCap === LineCap.SQUARE)
@@ -264,7 +264,7 @@ export default class SmoothTrailAssembler extends cc.Assembler {
                 else if (lineCap === LineCap.ROUND)
                     this._roundCapStart(p0, dx, dy, w, ncap);
             }
-    
+
             for (let j = start; j < end; ++j) {
                 if (lineJoin === LineJoin.ROUND) {
                     this._roundJoin(p0, p1, w, w, ncap);
@@ -276,25 +276,25 @@ export default class SmoothTrailAssembler extends cc.Assembler {
                     this._vset(p1.x + p1.dmx * w, p1.y + p1.dmy * w, 1);
                     this._vset(p1.x - p1.dmx * w, p1.y - p1.dmy * w, -1);
                 }
-    
+
                 p0 = p1;
                 p1 = pts[j + 1];
             }
-    
+
             if (loop) {
                 // Loop it
                 let floatCount = this.getVfmtFloatCount();
                 let vDataoOfset = offset * floatCount;
-                this._vset(vData[vDataoOfset],   vData[vDataoOfset+1], 1);
-                this._vset(vData[vDataoOfset+floatCount], vData[vDataoOfset+floatCount+1], -1);
+                this._vset(vData[vDataoOfset], vData[vDataoOfset + 1], 1);
+                this._vset(vData[vDataoOfset + floatCount], vData[vDataoOfset + floatCount + 1], -1);
             } else {
                 // Add cap
                 let dPos = p1.sub(p0);
                 dPos.normalizeSelf();
-    
+
                 let dx = dPos.x;
                 let dy = dPos.y;
-    
+
                 if (lineCap === LineCap.BUTT)
                     this._buttCapEnd(p1, dx, dy, w, 0);
                 else if (lineCap === LineCap.SQUARE)
@@ -305,7 +305,7 @@ export default class SmoothTrailAssembler extends cc.Assembler {
 
             // stroke indices
             let indicesOffset = buffer.indiceStart;
-            for (let start = offset+2, end = buffer.vertexStart; start < end; start++) {
+            for (let start = offset + 2, end = buffer.vertexStart; start < end; start++) {
                 iData[indicesOffset++] = start - 2;
                 iData[indicesOffset++] = start - 1;
                 iData[indicesOffset++] = start;
@@ -314,8 +314,8 @@ export default class SmoothTrailAssembler extends cc.Assembler {
             buffer.indiceStart = indicesOffset;
         }
     }
-    
-    _expandFill (graphics) {
+
+    _expandFill(graphics) {
         //@ts-ignore
         let Earcut = cc.Graphics.earcut;
         let impl = graphics._impl;
@@ -340,42 +340,42 @@ export default class SmoothTrailAssembler extends cc.Assembler {
             let path = paths[i];
             let pts = path.points;
             let pointsLength = pts.length;
-    
+
             if (pointsLength === 0) {
                 continue;
             }
-    
+
             // Calculate shape vertices.
             let offset = buffer.vertexStart;
-    
+
             for (let j = 0; j < pointsLength; ++j) {
                 this._vset(pts[j].x, pts[j].y);
             }
-    
+
             let indicesOffset = buffer.indiceStart;
-    
+
             if (path.complex) {
                 let earcutData = [];
                 let floatCount = this.getVfmtFloatCount();
                 for (let j = offset, end = buffer.vertexStart; j < end; j++) {
                     let vDataOffset = j * floatCount;
                     earcutData.push(vData[vDataOffset]);
-                    earcutData.push(vData[vDataOffset+1]);
+                    earcutData.push(vData[vDataOffset + 1]);
                 }
-    
+
                 let newIndices = Earcut(earcutData, null, 2);
-    
+
                 if (!newIndices || newIndices.length === 0) {
                     continue;
                 }
-    
+
                 for (let j = 0, nIndices = newIndices.length; j < nIndices; j++) {
                     iData[indicesOffset++] = newIndices[j] + offset;
                 }
             }
             else {
                 let first = offset;
-                for (let start = offset+2, end = buffer.vertexStart; start < end; start++) {
+                for (let start = offset + 2, end = buffer.vertexStart; start < end; start++) {
                     iData[indicesOffset++] = first;
                     iData[indicesOffset++] = start - 1;
                     iData[indicesOffset++] = start;
@@ -386,35 +386,35 @@ export default class SmoothTrailAssembler extends cc.Assembler {
         }
     }
 
-    _calculateJoins (impl, w, lineJoin, miterLimit) {
+    _calculateJoins(impl, w, lineJoin, miterLimit) {
         let iw = 0.0;
-    
+
         if (w > 0.0) {
             iw = 1 / w;
         }
-    
+
         // Calculate which joins needs extra vertices to append, and gather vertex count.
         let paths = impl._paths;
         for (let i = impl._pathOffset, l = impl._pathLength; i < l; i++) {
             let path = paths[i];
-    
+
             let pts = path.points;
             let ptsLength = pts.length;
             let p0 = pts[ptsLength - 1];
             let p1 = pts[0];
             let nleft = 0;
-    
+
             path.nbevel = 0;
-    
+
             for (let j = 0; j < ptsLength; j++) {
                 let dmr2, cross, limit;
-    
+
                 // perp normals
                 let dlx0 = p0.dy;
                 let dly0 = -p0.dx;
                 let dlx1 = p1.dy;
                 let dly1 = -p1.dx;
-    
+
                 // Calculate extrusions
                 p1.dmx = (dlx0 + dlx1) * 0.5;
                 p1.dmy = (dly0 + dly1) * 0.5;
@@ -427,14 +427,14 @@ export default class SmoothTrailAssembler extends cc.Assembler {
                     p1.dmx *= scale;
                     p1.dmy *= scale;
                 }
-    
+
                 // Keep track of left turns.
                 cross = p1.dx * p0.dy - p0.dx * p1.dy;
                 if (cross > 0) {
                     nleft++;
                     p1.flags |= PointFlags.PT_LEFT;
                 }
-    
+
                 // Calculate if we should use bevel or miter for inner join.
                 limit = max(11, min(p0.len, p1.len) * iw);
                 if (dmr2 * limit * limit < 1) {
@@ -444,43 +444,43 @@ export default class SmoothTrailAssembler extends cc.Assembler {
                 // Check whether dm length is too long
                 let dmwx = p1.dmx * w;
                 let dmwy = p1.dmy * w;
-                let dmlen = dmwx*dmwx + dmwy*dmwy;
+                let dmlen = dmwx * dmwx + dmwy * dmwy;
                 if (dmlen > (p1.len * p1.len) || dmlen > (p0.len * p0.len)) {
                     p1.flags |= PointFlags.PT_INNERBEVEL;
                 }
-    
+
                 // Check to see if the corner needs to be beveled.
                 if (p1.flags & PointFlags.PT_CORNER) {
                     if (dmr2 * miterLimit * miterLimit < 1 || lineJoin === LineJoin.BEVEL || lineJoin === LineJoin.ROUND) {
                         p1.flags |= PointFlags.PT_BEVEL;
                     }
                 }
-    
+
                 if ((p1.flags & (PointFlags.PT_BEVEL | PointFlags.PT_INNERBEVEL)) !== 0) {
                     path.nbevel++;
                 }
-    
+
                 p0 = p1;
                 p1 = pts[j + 1];
             }
         }
     }
-    
-    _flattenPaths (impl) {
+
+    _flattenPaths(impl) {
         let paths = impl._paths;
         for (let i = impl._pathOffset, l = impl._pathLength; i < l; i++) {
             let path = paths[i];
             let pts = path.points;
-    
+
             let p0 = pts[pts.length - 1];
             let p1 = pts[0];
-    
+
             if (pts.length > 2 && p0.equals(p1)) {
                 path.closed = true;
                 pts.pop();
                 p0 = pts[pts.length - 1];
             }
-    
+
             for (let j = 0, size = pts.length; j < size; j++) {
                 // Calculate segment direction and length
                 let dPos = p1.sub(p0);
@@ -496,11 +496,11 @@ export default class SmoothTrailAssembler extends cc.Assembler {
         }
     }
 
-    _chooseBevel (bevel, p0, p1, w) {
+    _chooseBevel(bevel, p0, p1, w) {
         let x = p1.x;
         let y = p1.y;
         let x0, y0, x1, y1;
-    
+
         if (bevel !== 0) {
             x0 = x + p0.dy * w;
             y0 = y - p0.dx * w;
@@ -510,36 +510,36 @@ export default class SmoothTrailAssembler extends cc.Assembler {
             x0 = x1 = x + p1.dmx * w;
             y0 = y1 = y + p1.dmy * w;
         }
-    
+
         return [x0, y0, x1, y1];
     }
-    
-    _buttCapStart (p, dx, dy, w, d) {
+
+    _buttCapStart(p, dx, dy, w, d) {
         let px = p.x - dx * d;
         let py = p.y - dy * d;
         let dlx = dy;
         let dly = -dx;
-    
+
         this._vset(px + dlx * w, py + dly * w, 1);
         this._vset(px - dlx * w, py - dly * w, -1);
     }
 
-    _buttCapEnd (p, dx, dy, w, d) {
+    _buttCapEnd(p, dx, dy, w, d) {
         let px = p.x + dx * d;
         let py = p.y + dy * d;
         let dlx = dy;
         let dly = -dx;
-    
+
         this._vset(px + dlx * w, py + dly * w, 1);
         this._vset(px - dlx * w, py - dly * w, -1);
     }
-    
-    _roundCapStart (p, dx, dy, w, ncap) {
+
+    _roundCapStart(p, dx, dy, w, ncap) {
         let px = p.x;
         let py = p.y;
         let dlx = dy;
         let dly = -dx;
-    
+
         for (let i = 0; i < ncap; i++) {
             let a = i / (ncap - 1) * PI;
             let ax = cos(a) * w,
@@ -550,13 +550,13 @@ export default class SmoothTrailAssembler extends cc.Assembler {
         this._vset(px + dlx * w, py + dly * w, 1);
         this._vset(px - dlx * w, py - dly * w, -1);
     }
-    
-    _roundCapEnd (p, dx, dy, w, ncap) {
+
+    _roundCapEnd(p, dx, dy, w, ncap) {
         let px = p.x;
         let py = p.y;
         let dlx = dy;
         let dly = -dx;
-    
+
         this._vset(px + dlx * w, py + dly * w, 1);
         this._vset(px - dlx * w, py - dly * w, -1);
         for (let i = 0; i < ncap; i++) {
@@ -567,30 +567,30 @@ export default class SmoothTrailAssembler extends cc.Assembler {
             this._vset(px - dlx * ax + dx * ay, py - dly * ax + dy * ay, 1);
         }
     }
-    
-    _roundJoin (p0, p1, lw, rw, ncap) {
+
+    _roundJoin(p0, p1, lw, rw, ncap) {
         let dlx0 = p0.dy;
         let dly0 = -p0.dx;
         let dlx1 = p1.dy;
         let dly1 = -p1.dx;
-    
+
         let p1x = p1.x;
         let p1y = p1.y;
-    
+
         if ((p1.flags & PointFlags.PT_LEFT) !== 0) {
             let out = this._chooseBevel(p1.flags & PointFlags.PT_INNERBEVEL, p0, p1, lw);
             let lx0 = out[0];
             let ly0 = out[1];
             let lx1 = out[2];
             let ly1 = out[3];
-    
+
             let a0 = atan2(-dly0, -dlx0);
             let a1 = atan2(-dly1, -dlx1);
             if (a1 > a0) a1 -= PI * 2;
-    
+
             this._vset(lx0, ly0, 1);
             this._vset(p1x - dlx0 * rw, p1.y - dly0 * rw, -1);
-    
+
             let n = clamp(ceil((a0 - a1) / PI) * ncap, 2, ncap);
             for (let i = 0; i < n; i++) {
                 let u = i / (n - 1);
@@ -600,7 +600,7 @@ export default class SmoothTrailAssembler extends cc.Assembler {
                 this._vset(p1x, p1y, 0);
                 this._vset(rx, ry, -1);
             }
-    
+
             this._vset(lx1, ly1, 1);
             this._vset(p1x - dlx1 * rw, p1y - dly1 * rw, -1);
         } else {
@@ -609,14 +609,14 @@ export default class SmoothTrailAssembler extends cc.Assembler {
             let ry0 = out[1];
             let rx1 = out[2];
             let ry1 = out[3];
-    
+
             let a0 = atan2(dly0, dlx0);
             let a1 = atan2(dly1, dlx1);
             if (a1 < a0) a1 += PI * 2;
-    
+
             this._vset(p1x + dlx0 * rw, p1y + dly0 * rw, 1);
             this._vset(rx0, ry0, -1);
-    
+
             let n = clamp(ceil((a1 - a0) / PI) * ncap, 2, ncap);
             for (let i = 0; i < n; i++) {
                 let u = i / (n - 1);
@@ -626,30 +626,30 @@ export default class SmoothTrailAssembler extends cc.Assembler {
                 this._vset(lx, ly, 1);
                 this._vset(p1x, p1y, 0);
             }
-    
+
             this._vset(p1x + dlx1 * rw, p1y + dly1 * rw, 1);
             this._vset(rx1, ry1, -1);
         }
     }
-    
-    _bevelJoin (p0, p1, lw, rw) {
+
+    _bevelJoin(p0, p1, lw, rw) {
         let rx0, ry0, rx1, ry1;
         let lx0, ly0, lx1, ly1;
         let dlx0 = p0.dy;
         let dly0 = -p0.dx;
         let dlx1 = p1.dy;
         let dly1 = -p1.dx;
-    
+
         if (p1.flags & PointFlags.PT_LEFT) {
             let out = this._chooseBevel(p1.flags & PointFlags.PT_INNERBEVEL, p0, p1, lw);
             lx0 = out[0];
             ly0 = out[1];
             lx1 = out[2];
             ly1 = out[3];
-    
+
             this._vset(lx0, ly0, 1);
             this._vset(p1.x - dlx0 * rw, p1.y - dly0 * rw, -1);
-    
+
             this._vset(lx1, ly1, 1);
             this._vset(p1.x - dlx1 * rw, p1.y - dly1 * rw, -1);
         } else {
@@ -658,16 +658,16 @@ export default class SmoothTrailAssembler extends cc.Assembler {
             ry0 = out[1];
             rx1 = out[2];
             ry1 = out[3];
-    
+
             this._vset(p1.x + dlx0 * lw, p1.y + dly0 * lw, 1);
             this._vset(rx0, ry0, -1);
-    
+
             this._vset(p1.x + dlx1 * lw, p1.y + dly1 * lw, 1);
             this._vset(rx1, ry1, -1);
         }
     }
-    
-    _vset (x, y, distance = 0) {
+
+    _vset(x, y, distance = 0) {
         let buffer = this._buffer;
         let meshbuffer = buffer.meshbuffer;
         let dataOffset = buffer.vertexStart * this.getVfmtFloatCount();
@@ -676,11 +676,11 @@ export default class SmoothTrailAssembler extends cc.Assembler {
         let uintVData = meshbuffer._uintVData;
 
         vData[dataOffset] = x;
-        vData[dataOffset+1] = y;
-        uintVData[dataOffset+2] = this._curColor;
-        vData[dataOffset+3] = distance;
+        vData[dataOffset + 1] = y;
+        uintVData[dataOffset + 2] = this._curColor;
+        vData[dataOffset + 3] = distance;
 
-        buffer.vertexStart ++;
+        buffer.vertexStart++;
         meshbuffer._dirty = true;
     }
 }
