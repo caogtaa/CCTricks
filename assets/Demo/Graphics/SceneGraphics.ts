@@ -12,6 +12,7 @@
 
 import SimpleDraggable from "../../Scripts/Misc/SimpleDraggable";
 import GraphicsShowMesh from "./GraphicsShowMesh";
+import { SmoothTrail } from "./Script/SmoothTrail";
 
 const {ccclass, property} = cc._decorator;
 
@@ -157,7 +158,7 @@ export default class SceneGraphics extends cc.Component {
         let mat = this.materials[index];
         let cls = this._specialGraphicsCls.get(mat.name);
         if (cls == void 0) {
-            cls = cc.Graphics;
+            cls = SmoothTrail;
         }
 
         // 如果需要的Graphics组件变化了，切换一下组件，并且重新刷一次路径

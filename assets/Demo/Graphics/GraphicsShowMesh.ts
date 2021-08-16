@@ -1,7 +1,6 @@
-// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
-// https://caogtaa.github.io
-// This file is licensed under the MIT License.
-// License text available at https://opensource.org/licenses/MIT
+
+
+import { SmoothTrail } from "./Script/SmoothTrail";
 
 /*
  * Date: 2021-08-12 21:28:37
@@ -12,7 +11,7 @@
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class GraphicsShowMesh extends cc.Graphics {
+export default class GraphicsShowMesh extends SmoothTrail {
     onLoad () {
         this.InjectAssembler();
     }

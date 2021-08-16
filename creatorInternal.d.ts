@@ -1,12 +1,12 @@
-// Copyright 2020 Cao Gaoting<caogtaa@gmail.com>
+// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
 // https://caogtaa.github.io
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
 /*
- * Date: 2020-07-13 02:44:16
+ * Date: 2020-07-24 11:44:36
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2020-07-23 17:40:19
+ * LastEditTime: 2021-08-16 13:58:56
 */ 
 
 declare interface Object {
@@ -24,6 +24,7 @@ declare namespace cc {
 	export class Assembler {
 		public init(comp: cc.RenderComponent);
 		public getVfmt();
+		static public register(renderCompCtor, assembler);
 	}
 
 	export class RenderData {
