@@ -14,9 +14,10 @@ const { ccclass, property } = cc._decorator;
 //@ts-ignore
 const Helper = cc.Graphics.Helper;
 //@ts-ignore
-const PointFlags = cc.Graphics.PointFlags;
+const PointFlags = cc.Graphics.Types.PointFlags;
 //@ts-ignore
-const Point = cc.Graphics.Point;
+//const Point = cc.Graphics.Point;
+const Point;        // init this in onLoad()
 
 function Path () {
     this.reset();
@@ -189,14 +190,12 @@ cc.js.mixin(Impl.prototype, {
 
 @ccclass
 export class SmoothTrail extends cc.Graphics {
-    ctor() {
+    onLoad() {
+        //@ts-ignore;
+        Point = cc.Graphics.Point;
+
         //@ts-ignore
         this._impl = new Impl(this);
-    }
-
-    onLoad() {
-        //@ts-ignore
-        let impl = this._impl;
 
         let vv = Helper;
         let k = 0;
