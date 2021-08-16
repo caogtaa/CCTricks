@@ -38,6 +38,7 @@ export default class SceneGraphics extends cc.Component {
     protected _viewScale: number = 1.0;             // 视图缩放
 
     onLoad () {
+        this.displayArea = this.ctx.node;
         let dragArea = this.dragArea;
         dragArea.on(cc.Node.EventType.TOUCH_START, this.OnDisplayTouchStart, this);
         dragArea.on(cc.Node.EventType.TOUCH_MOVE, this.OnDisplayTouchMove, this);
