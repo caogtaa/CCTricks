@@ -441,11 +441,16 @@ export default class SmoothTrailAssembler extends cc.Assembler {
                     p1.flags |= PointFlags.PT_INNERBEVEL;
                 }
 
+                // TODO: 2.4.4的commit，会导致INNERBEVEL渲染错误
+                // https://github.com/cocos-creator/engine/pull/7780/commits/06320339dae5419a6e96058344a35254429862f1
                 // Check whether dm length is too long
                 let dmwx = p1.dmx * w;
                 let dmwy = p1.dmy * w;
-                let dmlen = dmwx * dmwx + dmwy * dmwy;
-                if (dmlen > (p1.len * p1.len) || dmlen > (p0.len * p0.len)) {
+                let w2 = w * w;
+                let dmlen2 = dmwx * dmwx + dmwy * dmwy;
+                // 设交点P到dm点的连线为S，和len、w围成三角形。S对应的角是O
+                // 只要O不是钝角，则dm点一定在线段内部。极限情况下O是直角，此时根据勾股定理求S的最大容忍值
+                if (dmlen2 > (p1.len * p1.len) + w2 && dmlen2 > (p0.len * p0.len) + w2) {
                     p1.flags |= PointFlags.PT_INNERBEVEL;
                 }
 
@@ -685,4 +690,4 @@ export default class SmoothTrailAssembler extends cc.Assembler {
     }
 }
 
-// cc.Assembler.register(SmoothTrail, SmoothTrailAssembler);
+cc.Assembler.register(SmoothTrail, SmoothTrailAssembler);
