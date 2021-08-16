@@ -9,6 +9,7 @@ import { SmoothTrailImpl } from "./SmoothTrailImpl";
 // //@ts-ignore
 // //const Point = cc.Graphics.Point;
 // const Point;        // init this in onLoad()
+//cc.Graphics._Impl = SmoothTrailImpl;
 
 @ccclass
 export class SmoothTrail extends cc.Graphics {
@@ -18,7 +19,7 @@ export class SmoothTrail extends cc.Graphics {
 
         // replace impl with custom version
         //@ts-ignore
-        this._impl = new SmoothTrailImpl(this);
+        //this._impl = new SmoothTrailImpl(this);
     }
 
     public StartPath(p: cc.Vec2): void {
