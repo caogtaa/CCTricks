@@ -117,15 +117,15 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
             isValid = false;
         }
 
-        if (useBezier) {
-            // 距离太短的也不要用bezier
-            let tmpV2 = this._tmpV2;
-            A.sub(B, tmpV2);
-            let dist2 = tmpV2.dot(tmpV2);
-            if (dist2 <= 16) {
-                useBezier = false;
-            }
-        }
+        // if (useBezier) {
+        //     // 距离太短的也不要用bezier
+        //     let tmpV2 = this._tmpV2;
+        //     A.sub(B, tmpV2);
+        //     let dist2 = tmpV2.dot(tmpV2);
+        //     if (dist2 <= 16) {
+        //         useBezier = false;
+        //     }
+        // }
 
         if (!useBezier) {
             // sprite.setMaterial(0, this.matCapsule);
