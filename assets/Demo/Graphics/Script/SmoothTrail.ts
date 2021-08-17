@@ -3,6 +3,9 @@ const { ccclass, property } = cc._decorator;
 import { SmoothTrailAssembler } from "./SmoothTrailAssembler";
 import { SmoothTrailImpl } from "./SmoothTrailImpl";
 
+//@ts-ignore
+const PointFlags = cc.Graphics.Types.PointFlags;
+
 // //@ts-ignore
 // const Helper = cc.Graphics.Helper;
 // //@ts-ignore
@@ -18,6 +21,7 @@ export class SmoothTrail extends cc.Graphics {
     
     protected _renderHead: number = 0;
     protected _tailImpl: SmoothTrailImpl;
+    protected _debug: boolean = false;
 
     onLoad() {
         //@ts-ignore;
@@ -25,16 +29,24 @@ export class SmoothTrail extends cc.Graphics {
 
         // replace impl with custom version
         //@ts-ignore
-        this._impl = new SmoothTrailImpl(this);
+        this._tailImpl = this._impl = new SmoothTrailImpl(this);
     }
 
     public StartPath(p: cc.Vec2): void {
         this.clear();       // TODO: for debug
         this.pnts.length = 0;
-        // this.moveTo(p.x, p.y);
         this.pnts.push(p);
-
-        // todo: add cap begin
+        if (this._debug) {
+            this.moveTo(p.x, p.y);
+        } else {
+            let x = p.x, y = p.y;
+            let impl = this._tailImpl;
+            impl._addPath();
+            impl._addPoint(x, y, PointFlags.PT_CORNER);
+        
+            impl._commandx = x;
+            impl._commandy = y;
+        }
     }
 
     public AddPathPoint(p: cc.Vec2): void {
@@ -50,14 +62,32 @@ export class SmoothTrail extends cc.Graphics {
         }
 
         this.pnts.push(p);
-        this.RenderNext();
         
-        // this.lineTo(p.x, p.y);
+        if (this._debug)
+            this.lineTo(p.x, p.y);
+        else {
+            let x = p.x, y = p.y;
+            let impl = this._tailImpl;
+            impl._addPoint(x, y, PointFlags.PT_CORNER);
+            impl._commandx = x;
+            impl._commandy = y;
+
+            this.RenderNext();
+        }
     }
 
     public EndPath(): void {
         // TODO: 绘制补齐最后一个线段（加cap end）
-        // this.stroke();
+        if (this._debug) {
+            this.stroke();
+        } else {
+            // 渲染剩余的路径
+            this.RenderNext();
+            let as = this._assembler as SmoothTrailAssembler;
+            as.CapEnd(this, this._renderHead);
+            this._renderHead = this.pnts.length;
+        }
+
     }
 
     public RenderNext() {
@@ -66,14 +96,22 @@ export class SmoothTrail extends cc.Graphics {
             this._resetAssembler();
         }
 
+        if (this._renderHead >= this.pnts.length-2)
+            return;
+
         let as = this._assembler as SmoothTrailAssembler;
-        as.stroke(this);
-
-        while (this._renderHead < this.pnts.length-1) {
-            let index = this._renderHead;
-            // TODO: 绘制index到index+1的拐点
-
-            ++this._renderHead;
+        if (this._renderHead === 0) {
+            as.CapStart(this, 0);
         }
+
+        // TODO: 曲线细分，目前是直线就不用细分了
+        as.strokeV2(this, this._renderHead, this.pnts.length-2);
+        this._renderHead = this.pnts.length-2;
+        // while (this._renderHead < this.pnts.length-1) {
+        //     let index = this._renderHead;
+        //     // TODO: 绘制index到index+1的拐点
+
+        //     as.strokeV2(this, this._renderHead++);
+        // }
     }
 }
