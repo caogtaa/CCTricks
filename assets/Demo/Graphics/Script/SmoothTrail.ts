@@ -1,5 +1,6 @@
 
 const { ccclass, property } = cc._decorator;
+import { SmoothTrailAssembler } from "./SmoothTrailAssembler";
 import { SmoothTrailImpl } from "./SmoothTrailImpl";
 
 // //@ts-ignore
@@ -61,6 +62,13 @@ export class SmoothTrail extends cc.Graphics {
 
     public RenderNext() {
         // 有剩余2个未处理的点则继续绘制
+        if (!this._assembler) {
+            this._resetAssembler();
+        }
+
+        let as = this._assembler as SmoothTrailAssembler;
+        as.stroke(this);
+
         while (this._renderHead < this.pnts.length-1) {
             let index = this._renderHead;
             // TODO: 绘制index到index+1的拐点
