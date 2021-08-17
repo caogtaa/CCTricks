@@ -47,7 +47,7 @@ let vfmtPosColorSdf = new gfx.VertexFormat([
 ]);
 vfmtPosColorSdf.name = 'vfmtPosColorSdf';
 
-export default class SmoothTrailAssembler extends cc.Assembler {
+export class SmoothTrailAssembler extends cc.Assembler {
     _buffer = null;
     _buffers = [];
     _bufferOffset = 0;
@@ -690,6 +690,16 @@ export default class SmoothTrailAssembler extends cc.Assembler {
 
         buffer.vertexStart++;
         meshbuffer._dirty = true;
+    }
+
+    strokeV2(graphics) {
+        // this._curColor = graphics._strokeColor._val;
+
+        this._flattenPathsV2(graphics._impl);
+        this._expandStrokeV2(graphics);
+
+        // 永远不更新PathOffset
+        // graphics._impl._updatePathOffset = true;
     }
 }
 

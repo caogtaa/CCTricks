@@ -72,6 +72,8 @@ declare namespace cc {
 		_vertsDirty: boolean;
 
 		_assembler: cc.Assembler;
+
+		_resetAssembler(): void;
 	}	
 
 	declare interface RenderData {
