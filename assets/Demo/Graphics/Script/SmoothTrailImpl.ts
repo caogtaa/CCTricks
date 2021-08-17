@@ -168,6 +168,7 @@ export class SmoothTrailImpl {
             pt = new cc.Graphics.Point(x, y);
             points.push(pt);
         } else {
+            // 复用之前的点
             pt.x = x;
             pt.y = y;
         }

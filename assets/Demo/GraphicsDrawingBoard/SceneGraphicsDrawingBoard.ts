@@ -75,11 +75,11 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
         // ctx.bezierCurveTo(CP1.x, CP1.y, CP2.x, CP2.y, D.x, D.y);
         // ctx.stroke();
 
-        let ctx = this.ctx;
-        ctx.StartPath(cc.v2(0, 0));
-        ctx.AddPathPoint(cc.v2(0, 100));
-        ctx.AddPathPoint(cc.v2(100, 0));
-        ctx.EndPath();
+        // let ctx = this.ctx;
+        // ctx.StartPath(cc.v2(0, 0));
+        // ctx.AddPathPoint(cc.v2(0, 100));
+        // ctx.AddPathPoint(cc.v2(100, 0));
+        // ctx.EndPath();
     }
 
     // protected SetBlendEqToMax(mat: cc.Material) {

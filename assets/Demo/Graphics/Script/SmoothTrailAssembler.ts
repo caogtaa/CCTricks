@@ -873,12 +873,11 @@ export class SmoothTrailAssembler extends cc.Assembler {
     }
 
     protected FlushIndices(graphics) {
-        let cverts = 2048;
-
         let buffer = this._trailBuff;
-        if (!buffer) {
-            buffer = this._trailBuff = this.genBuffer(graphics, cverts);
-        }
+        // if (!buffer) {
+        //     let cverts = 2048;
+        //     buffer = this._trailBuff = this.genBuffer(graphics, cverts);
+        // }
         let // buffer = this.genBuffer(graphics, cverts),
             meshbuffer = buffer.meshbuffer,
             vData = meshbuffer._vData,
@@ -992,9 +991,9 @@ export class SmoothTrailAssembler extends cc.Assembler {
     protected _vertexHead: number = 0;
     public CapStart(graphics, sp: number) {
         let cverts = 2048;
-        let buffer = this._trailBuff;
-        if (!buffer)
-            buffer = this._trailBuff = this.genBuffer(graphics, cverts);
+        //let buffer = this._trailBuff;
+        //if (!buffer)
+        let buffer = this._trailBuff = this.genBuffer(graphics, cverts);
 
         // 记录整条path的开始vertex
         // 主要用于在strok时顺便初始化startCap的索引
@@ -1066,6 +1065,7 @@ export class SmoothTrailAssembler extends cc.Assembler {
             this._roundCapEnd(p1, dx, dy, w, ncap);
 
         this.FlushIndices(graphics);
+        console.log(`Mesh Size: ${this._vertexHead - this._pathVertexStart}`);
     }
 }
 

@@ -36,6 +36,7 @@ export class SmoothTrail extends cc.Graphics {
         this.clear();       // TODO: for debug
         this.pnts.length = 0;
         this.pnts.push(p);
+        this._renderHead = 0;
         if (this._debug) {
             this.moveTo(p.x, p.y);
         } else {
