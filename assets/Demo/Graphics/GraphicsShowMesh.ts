@@ -1,18 +1,12 @@
 
 
 import { SmoothTrail } from "./Script/SmoothTrail";
-
-/*
- * Date: 2021-08-12 21:28:37
- * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-08-12 21:31:14
-*/ 
-
 const {ccclass, property} = cc._decorator;
 
 @ccclass
 export default class GraphicsShowMesh extends SmoothTrail {
     onLoad () {
+        super.onLoad();
         this.InjectAssembler();
     }
 

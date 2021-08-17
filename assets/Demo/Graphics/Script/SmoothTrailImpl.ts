@@ -31,10 +31,10 @@ function Impl (graphics) {
     
     this._paths = null;
     this._pathLength = 0;
-    this._pathOffset = 0;
+    this._pathOffset = 0;           // pathOffset之后的路径没有更新过Mesh。调用stroke()/fill()更新Mesh
     
     this._points = null;
-    this._pointsOffset = 0;
+    this._pointsOffset = 0;         // points长度
     
     this._commandx = 0;
     this._commandy = 0;
