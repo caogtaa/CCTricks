@@ -388,6 +388,7 @@ export default class SmoothTrailAssembler extends cc.Assembler {
 
     _calculateJoins(impl, w, lineJoin, miterLimit) {
         let iw = 0.0;
+        let w2 = w * w;
 
         if (w > 0.0) {
             iw = 1 / w;
@@ -446,7 +447,6 @@ export default class SmoothTrailAssembler extends cc.Assembler {
                 // Check whether dm length is too long
                 let dmwx = p1.dmx * w;
                 let dmwy = p1.dmy * w;
-                let w2 = w * w;
                 let dmlen2 = dmwx * dmwx + dmwy * dmwy;
                 // 设交点P到dm点的连线为S，和len、w围成三角形。S对应的角是O
                 // 只要O不是钝角，则dm点一定在线段内部。极限情况下O是直角，此时根据勾股定理求S的最大容忍值
@@ -471,6 +471,8 @@ export default class SmoothTrailAssembler extends cc.Assembler {
         }
     }
 
+    // 通过判断收尾点是否相同，判定闭环，如果是，则弹出最后一个点
+    // 求每个点到下个点的距离、单位方向向量
     _flattenPaths(impl) {
         let paths = impl._paths;
         for (let i = impl._pathOffset, l = impl._pathLength; i < l; i++) {

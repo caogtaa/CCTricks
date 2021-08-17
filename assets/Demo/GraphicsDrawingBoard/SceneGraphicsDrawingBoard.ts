@@ -5,6 +5,8 @@
  * LastEditTime: 2021-05-30 11:27:41
 */
 
+import { SmoothTrail } from "../Graphics/Script/SmoothTrail";
+
 
 const {ccclass, property} = cc._decorator;
 
@@ -22,8 +24,8 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
     @property(cc.Node)
     board: cc.Node = null;
 
-    @property(cc.Graphics)
-    ctx: cc.Graphics = null;
+    @property(SmoothTrail)
+    ctx: SmoothTrail = null;
 
     @property(cc.EditBox)
     edtK: cc.EditBox = null;
@@ -61,15 +63,23 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
     }
 
     start () {
-        let A = cc.v2(-174.606196, 148.231612);
-        let CP1 = cc.v2(-168.5968, 135.378);
-        let CP2 = cc.v2(-153.57333, 107.50);
-        let D = cc.v2(-156.578, 114.1784);
+        // 2.4.6中导致尖角的case
+        // 用于验证是否已经fix
+        // let A = cc.v2(-174.606196, 148.231612);
+        // let CP1 = cc.v2(-168.5968, 135.378);
+        // let CP2 = cc.v2(-153.57333, 107.50);
+        // let D = cc.v2(-156.578, 114.1784);
         
+        // let ctx = this.ctx;
+        // ctx.moveTo(A.x, A.y);
+        // ctx.bezierCurveTo(CP1.x, CP1.y, CP2.x, CP2.y, D.x, D.y);
+        // ctx.stroke();
+
         let ctx = this.ctx;
-        ctx.moveTo(A.x, A.y);
-        ctx.bezierCurveTo(CP1.x, CP1.y, CP2.x, CP2.y, D.x, D.y);
-        ctx.stroke();
+        ctx.StartPath(cc.v2(0, 0));
+        ctx.AddPathPoint(cc.v2(0, 100));
+        ctx.AddPathPoint(cc.v2(100, 0));
+        ctx.EndPath();
     }
 
     // protected SetBlendEqToMax(mat: cc.Material) {
@@ -95,6 +105,8 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
 
     protected _tmpV2 = cc.v2(0, 0);
     update() {
+        // move everything to SmoothTrail
+        return;
         let points = this._points;
         if (points.length < 3)
             return;
@@ -324,9 +336,11 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
     }
 
     protected OnBoardTouchStart(e: cc.Event.EventTouch) {
+        let pos = this.TouchPosToGraphicsPos(e.getLocation());
         this._isDragging = true;
         this._points.length = 0;
-        this._points.push(this.TouchPosToGraphicsPos(e.getLocation()));
+        this._points.push(pos);
+        this.ctx.StartPath(pos);
 
         // if (this.ctx.node.active) {
         //     let localPos = this.node.convertToNodeSpaceAR(e.getLocation());
@@ -344,6 +358,7 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
         let cur = this.TouchPosToGraphicsPos(e.getLocation());
         // console.log(`${cur.x}, ${cur.y}`);
         this._points.push(cur);
+        this.ctx.AddPathPoint(cur);
 
         // if (this.ctx.node.active) {
         //     let localPos = this.node.convertToNodeSpaceAR(e.getLocation());
@@ -358,6 +373,7 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
         // simply clear points
         // todo: draw last segment
         this._points.length = 0;
+        this.ctx.EndPath();
 
         if (this._debug)
             console.log(`---------------------------- end ------------------------`)
