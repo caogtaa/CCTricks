@@ -4,11 +4,16 @@ const Helper = cc.Graphics.Helper;
 //@ts-ignore
 const PointFlags = cc.Graphics.Types.PointFlags;
 
-function Path () {
-    this.reset();
-}
+class Path {
+    closed: boolean;
+    nbevel: number;
+    complex: boolean;
+    points: cc.Graphics.Point[] = [];
 
-cc.js.mixin(Path.prototype, {
+    constructor() {
+        this.reset();
+    }
+
     reset () {
         this.closed = false;
         this.nbevel = 0;
@@ -21,29 +26,29 @@ cc.js.mixin(Path.prototype, {
             this.points = [];
         }
     }
-});
-
-function Impl (graphics) {
-    // inner properties
-    this._tessTol = 0.25;
-    this._distTol = 0.01;
-    this._updatePathOffset = false;
-    
-    this._paths = null;
-    this._pathLength = 0;
-    this._pathOffset = 0;           // pathOffset之后的路径没有更新过Mesh。调用stroke()/fill()更新Mesh
-    
-    this._points = null;
-    this._pointsOffset = 0;         // points长度
-    
-    this._commandx = 0;
-    this._commandy = 0;
-
-    this._paths = [];
-    this._points = [];
 }
 
-cc.js.mixin(Impl.prototype, {
+export class SmoothTrailImpl {
+    // inner properties
+    _tessTol: number = 0.25;
+    _distTol: number = 0.01;
+    _updatePathOffset: boolean = false;
+    
+    // _paths = null;
+    _pathLength: number = 0;           // path数量
+    _pathOffset: number = 0;           // pathOffset之后的路径没有更新过Mesh。调用stroke()/fill()更新Mesh
+    
+    // _points = null;
+    _pointsOffset: number = 0;         // points数量
+    
+    _commandx: number = 0;
+    _commandy: number = 0;
+
+    _paths: Path[] = [];
+    _points: cc.Graphics.Point[] = [];
+
+    _curPath: Path = null;
+
     moveTo (x, y) {
         if (this._updatePathOffset) {
             this._pathOffset = this._pathLength;
@@ -55,14 +60,14 @@ cc.js.mixin(Impl.prototype, {
     
         this._commandx = x;
         this._commandy = y;
-    },
+    }
 
     lineTo (x, y) {
         this._addPoint(x, y, PointFlags.PT_CORNER);
         
         this._commandx = x;
         this._commandy = y;
-    },
+    }
 
     bezierCurveTo (c1x, c1y, c2x, c2y, x, y) {
         var path = this._curPath;
@@ -77,27 +82,27 @@ cc.js.mixin(Impl.prototype, {
     
         this._commandx = x;
         this._commandy = y;
-    },
+    }
 
     quadraticCurveTo (cx, cy, x, y) {
         var x0 = this._commandx;
         var y0 = this._commandy;
         this.bezierCurveTo(x0 + 2.0 / 3.0 * (cx - x0), y0 + 2.0 / 3.0 * (cy - y0), x + 2.0 / 3.0 * (cx - x), y + 2.0 / 3.0 * (cy - y), x, y);
-    },
+    }
 
     arc (cx, cy, r, startAngle, endAngle, counterclockwise) {
         Helper.arc(this, cx, cy, r, startAngle, endAngle, counterclockwise);
-    },
+    }
 
     ellipse (cx, cy, rx, ry) {
         Helper.ellipse(this, cx, cy, rx, ry);
         this._curPath.complex = false;
-    },
+    }
 
     circle (cx, cy, r) {
         Helper.ellipse(this, cx, cy, r, r);
         this._curPath.complex = false;
-    },
+    }
 
     rect (x, y, w, h) {
         this.moveTo(x, y);
@@ -106,12 +111,12 @@ cc.js.mixin(Impl.prototype, {
         this.lineTo(x + w, y);
         this.close();
         this._curPath.complex = false;
-    },
+    }
 
     roundRect (x, y, w, h, r) {
         Helper.roundRect(this, x, y, w, h, r);
         this._curPath.complex = false;
-    },
+    }
 
     clear (clean) {
         this._pathLength = 0;
@@ -124,11 +129,11 @@ cc.js.mixin(Impl.prototype, {
             this._paths.length = 0;
             this._points.length = 0;
         }
-    },
+    }
 
     close () {
         this._curPath.closed = true;
-    },
+    }
 
     _addPath () {
         var offset = this._pathLength;
@@ -146,18 +151,17 @@ cc.js.mixin(Impl.prototype, {
         this._curPath = path;
     
         return path;
-    },
+    }
     
     _addPoint (x, y, flags) {
-        var path = this._curPath;
+        let path = this._curPath;
         if (!path) return;
     
-        var pt;
-        var points = this._points;
-        var pathPoints = path.points;
+        let points = this._points;
+        let pathPoints = path.points;
     
-        var offset = this._pointsOffset++;
-        pt = points[offset];
+        let offset = this._pointsOffset++;
+        let pt = points[offset];
     
         if (!pt) {
             //@ts-ignore
@@ -170,8 +174,6 @@ cc.js.mixin(Impl.prototype, {
     
         pt.flags = flags;
         pathPoints.push(pt);
-    },
+    }
 
-});
-
-export const SmoothTrailImpl = Impl;
+}

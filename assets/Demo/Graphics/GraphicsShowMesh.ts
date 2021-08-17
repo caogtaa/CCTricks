@@ -7,7 +7,9 @@ const {ccclass, property} = cc._decorator;
 export default class GraphicsShowMesh extends SmoothTrail {
     onLoad () {
         super.onLoad();
-        this.InjectAssembler();
+        let mat = this.getMaterial(0);
+        if (mat.name.startsWith("GraphicsShowMesh"))
+            this.InjectAssembler();
     }
 
     start () {

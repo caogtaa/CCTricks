@@ -89,4 +89,17 @@ declare namespace cc {
 	declare interface PhysicsManager {
 		_world: b2.World;
 	}
+
+	export namespace Graphics {
+		export class Point {
+			x: number;
+			y: number;
+			dx: number;
+			dy: number;
+			dmx: number;
+			dmy: number;
+			flags: number;
+			len: number;
+		}
+	}
 }
