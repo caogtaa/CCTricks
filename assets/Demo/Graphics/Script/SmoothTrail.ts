@@ -14,6 +14,9 @@ import { SmoothTrailImpl } from "./SmoothTrailImpl";
 @ccclass
 export class SmoothTrail extends cc.Graphics {
     public pnts: cc.Vec2[] = [];
+    
+    protected _renderHead: number = 0;
+    protected _tailImpl: SmoothTrailImpl;
 
     onLoad() {
         //@ts-ignore;
@@ -27,8 +30,10 @@ export class SmoothTrail extends cc.Graphics {
     public StartPath(p: cc.Vec2): void {
         this.clear();       // TODO: for debug
         this.pnts.length = 0;
-        this.moveTo(p.x, p.y);
+        // this.moveTo(p.x, p.y);
         this.pnts.push(p);
+
+        // todo: add cap begin
     }
 
     public AddPathPoint(p: cc.Vec2): void {
@@ -44,10 +49,23 @@ export class SmoothTrail extends cc.Graphics {
         }
 
         this.pnts.push(p);
-        this.lineTo(p.x, p.y);
+        this.RenderNext();
+        
+        // this.lineTo(p.x, p.y);
     }
 
     public EndPath(): void {
-        this.stroke();
+        // TODO: 绘制补齐最后一个线段（加cap end）
+        // this.stroke();
+    }
+
+    public RenderNext() {
+        // 有剩余2个未处理的点则继续绘制
+        while (this._renderHead < this.pnts.length-1) {
+            let index = this._renderHead;
+            // TODO: 绘制index到index+1的拐点
+
+            ++this._renderHead;
+        }
     }
 }
