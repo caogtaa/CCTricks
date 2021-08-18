@@ -55,6 +55,8 @@ export class SmoothTrailAssembler extends cc.Assembler {
 
     _trailBuff = null;
 
+    PATH_VERTEX: number = 2048;
+
     constructor(graphics) {
         // super(graphics);
         super();
@@ -677,6 +679,8 @@ export class SmoothTrailAssembler extends cc.Assembler {
         }
     }
 
+    // todo: loop reuse buff
+    // 目前在InjectAssembler后外部实现，需要拿进来
     _vset(x, y, distance = 0) {
         let buffer = this._buffer;
         let meshbuffer = buffer.meshbuffer;
@@ -697,7 +701,7 @@ export class SmoothTrailAssembler extends cc.Assembler {
     strokeV2(graphics, sp, ep) {
         // this._curColor = graphics._strokeColor._val;
 
-        this._flattenPathsV2(graphics._impl, sp, ep);
+        // this._flattenPathsV2(graphics._impl, sp, ep);   // move to outside
         this._expandStrokeV2(graphics, sp, ep);
 
         // 永远不更新PathOffset
@@ -739,6 +743,119 @@ export class SmoothTrailAssembler extends cc.Assembler {
         }
     }
 
+
+    // 回滚一个点对应的Mesh
+    public RollBack(graphics, index: number): void {
+        let impl = graphics._impl;
+
+        let paths = impl._paths;
+
+        // Calculate max vertex usage.
+        // let cverts = 0;
+        let i = impl._pathOffset;
+        let path = paths[i];
+
+        // let pts = path.points;
+        let vertCount = path.vertCount;
+
+        let buffer = this._trailBuff;
+        let count = vertCount[index];
+        buffer.vertexStart -= count;
+        if (index > 0)
+            buffer.indiceStart -= count * 3;
+
+        this._vertexHead -= count;
+        impl.erase(index);
+    }
+
+    // Bevel: true, InnerBevel: false
+    // 尽量不要用InnerBevel
+    public HasSmoothCorner(graphics, sp: number): boolean {
+        let w = graphics.lineWidth * 0.5,
+            lineCap = graphics.lineCap,
+            lineJoin = graphics.lineJoin,
+            miterLimit = graphics.miterLimit;
+
+        let impl = graphics._impl;
+
+
+        let iw = 0.0;
+        let w2 = w * w;
+
+        if (w > 0.0) {
+            iw = 1 / w;
+        }
+
+        // Calculate which joins needs extra vertices to append, and gather vertex count.
+        let paths = impl._paths;
+        let i = impl._pathOffset;
+        let path = paths[i];
+
+        let pts = path.points;
+        let p0 = pts[sp];
+        let p1 = pts[sp+1];
+        let dmr2, cross, limit;
+
+        // perp normals
+        let dlx0 = p0.dy;
+        let dly0 = -p0.dx;
+        let dlx1 = p1.dy;
+        let dly1 = -p1.dx;
+
+        // Calculate extrusions
+        p1.dmx = (dlx0 + dlx1) * 0.5;
+        p1.dmy = (dly0 + dly1) * 0.5;
+        dmr2 = p1.dmx * p1.dmx + p1.dmy * p1.dmy;
+        if (dmr2 > 0.000001) {
+            let scale = 1 / dmr2;
+            if (scale > 600) {
+                scale = 600;
+            }
+            p1.dmx *= scale;
+            p1.dmy *= scale;
+        }
+
+        // // Keep track of left turns.
+        // cross = p1.dx * p0.dy - p0.dx * p1.dy;
+        // if (cross > 0) {
+        //     nleft++;
+        //     p1.flags |= PointFlags.PT_LEFT;
+        // }
+
+        // Calculate if we should use bevel or miter for inner join.
+        limit = max(11, min(p0.len, p1.len) * iw);
+        if (dmr2 * limit * limit < 1) {
+            return false;
+            // p1.flags |= PointFlags.PT_INNERBEVEL;
+        }
+
+        // TODO: 2.4.4的commit，会导致INNERBEVEL渲染错误
+        // https://github.com/cocos-creator/engine/pull/7780/commits/06320339dae5419a6e96058344a35254429862f1
+        // Check whether dm length is too long
+        let dmwx = p1.dmx * w;
+        let dmwy = p1.dmy * w;
+        let dmlen2 = dmwx * dmwx + dmwy * dmwy;
+        // 设交点P到dm点的连线为S，和len、w围成三角形。S对应的角是O
+        // 只要O不是钝角，则dm点一定在线段内部。极限情况下O是直角，此时根据勾股定理求S的最大容忍值
+        if (dmlen2 > (p1.len * p1.len) + w2 && dmlen2 > (p0.len * p0.len) + w2) {
+            return false;
+            // p1.flags |= PointFlags.PT_INNERBEVEL;
+        }
+
+        return true;
+
+        // Check to see if the corner needs to be beveled.
+        // if (p1.flags & PointFlags.PT_CORNER) {
+        //     if (dmr2 * miterLimit * miterLimit < 1 || lineJoin === LineJoin.BEVEL || lineJoin === LineJoin.ROUND) {
+        //         p1.flags |= PointFlags.PT_BEVEL;
+        //     }
+        // }
+
+        // if ((p1.flags & (PointFlags.PT_BEVEL | PointFlags.PT_INNERBEVEL)) !== 0) {
+        //     path.nbevel++;
+        // }
+    }
+
     // stroke pntIndex -> pntIndex+1
     _expandStrokeV2(graphics, sp, ep) {
         let w = graphics.lineWidth * 0.5,
@@ -777,7 +894,7 @@ export class SmoothTrailAssembler extends cc.Assembler {
         // 1. 使用多个buff拼接实现更长的mesh
         // 2. 用循环数组形式移除最老的verts
         // 在cap start里应该完成这个事情
-        // let cverts = 2048;
+        // let cverts = this.PATH_VERTEX;
 
         // let buffer = this._trailBuff;
         // if (!buffer) {
@@ -829,7 +946,9 @@ export class SmoothTrailAssembler extends cc.Assembler {
         //         this._roundCapStart(p0, dx, dy, w, ncap);
         // }
 
+        let buffer = this._trailBuff;
         for (let j = sp; j < ep; ++j) {
+            let preCount = buffer.vertexStart;
             let p0 = pts[j];
             let p1 = pts[j+1];
             if (lineJoin === LineJoin.ROUND) {
@@ -845,6 +964,7 @@ export class SmoothTrailAssembler extends cc.Assembler {
 
             //p0 = p1;
             //p1 = pts[j + 1];
+            path.vertCount[j+1] = buffer.vertexStart - preCount;
         }
 
         // if (loop) {
@@ -875,7 +995,7 @@ export class SmoothTrailAssembler extends cc.Assembler {
     protected FlushIndices(graphics) {
         let buffer = this._trailBuff;
         // if (!buffer) {
-        //     let cverts = 2048;
+        //     let cverts = this.PATH_VERTEX;
         //     buffer = this._trailBuff = this.genBuffer(graphics, cverts);
         // }
         let // buffer = this.genBuffer(graphics, cverts),
@@ -987,10 +1107,10 @@ export class SmoothTrailAssembler extends cc.Assembler {
         }
     }
 
-    protected _pathVertexStart: number = 0;
-    protected _vertexHead: number = 0;
+    public _pathVertexStart: number = 0;
+    public _vertexHead: number = 0;
     public CapStart(graphics, sp: number) {
-        let cverts = 2048;
+        let cverts = this.PATH_VERTEX;
         //let buffer = this._trailBuff;
         //if (!buffer)
         let buffer = this._trailBuff = this.genBuffer(graphics, cverts);
@@ -1023,12 +1143,15 @@ export class SmoothTrailAssembler extends cc.Assembler {
         let dx = dPos.x;
         let dy = dPos.y;
 
+        let preCount = buffer.vertexStart;
         if (lineCap === LineCap.BUTT)
             this._buttCapStart(p0, dx, dy, w, 0);
         else if (lineCap === LineCap.SQUARE)
             this._buttCapStart(p0, dx, dy, w, w);
         else if (lineCap === LineCap.ROUND)
             this._roundCapStart(p0, dx, dy, w, ncap);
+
+        path.vertCount[sp] = buffer.vertexStart - preCount;
 
         // 没必要，但是是幂等的
         // this.FlushIndices(graphics);

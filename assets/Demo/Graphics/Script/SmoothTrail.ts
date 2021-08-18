@@ -20,7 +20,7 @@ export class SmoothTrail extends cc.Graphics {
     public pnts: cc.Vec2[] = [];
     
     protected _renderHead: number = 0;
-    protected _tailImpl: SmoothTrailImpl;
+    protected _trailImpl: SmoothTrailImpl;
     protected _debug: boolean = false;
 
     onLoad() {
@@ -29,7 +29,7 @@ export class SmoothTrail extends cc.Graphics {
 
         // replace impl with custom version
         //@ts-ignore
-        this._tailImpl = this._impl = new SmoothTrailImpl(this);
+        this._trailImpl = this._impl = new SmoothTrailImpl(this);
     }
 
     public StartPath(p: cc.Vec2): void {
@@ -41,7 +41,7 @@ export class SmoothTrail extends cc.Graphics {
             this.moveTo(p.x, p.y);
         } else {
             let x = p.x, y = p.y;
-            let impl = this._tailImpl;
+            let impl = this._trailImpl;
             impl._addPath();
             impl._addPoint(x, y, PointFlags.PT_CORNER);
         
@@ -68,7 +68,7 @@ export class SmoothTrail extends cc.Graphics {
             this.lineTo(p.x, p.y);
         else {
             let x = p.x, y = p.y;
-            let impl = this._tailImpl;
+            let impl = this._trailImpl;
             impl._addPoint(x, y, PointFlags.PT_CORNER);
             impl._commandx = x;
             impl._commandy = y;
@@ -97,22 +97,36 @@ export class SmoothTrail extends cc.Graphics {
             this._resetAssembler();
         }
 
-        if (this._renderHead >= this.pnts.length-2)
+        if (this._renderHead >= this.pnts.length-2) {
             return;
-
-        let as = this._assembler as SmoothTrailAssembler;
-        if (this._renderHead === 0) {
-            as.CapStart(this, 0);
         }
 
-        // TODO: 曲线细分，目前是直线就不用细分了
-        as.strokeV2(this, this._renderHead, this.pnts.length-2);
-        this._renderHead = this.pnts.length-2;
-        // while (this._renderHead < this.pnts.length-1) {
-        //     let index = this._renderHead;
-        //     // TODO: 绘制index到index+1的拐点
+        let as = this._assembler as SmoothTrailAssembler;
+        while (this._renderHead < this.pnts.length-2) {
+            if (this._renderHead === 0) {
+                as.CapStart(this, 0);
+            }
 
-        //     as.strokeV2(this, this._renderHead++);
-        // }
+            as._flattenPathsV2(this._trailImpl, this._renderHead, this.pnts.length-2);
+            if (!as.HasSmoothCorner(this, this._renderHead)) {
+                // as.RollBack(this, this._renderHead + 1);
+                // TODO: 如果移除this._renderHead+1，则前面的Mesh需要重新计算，因为右侧向量发生变化
+                // 移除renderHead + 2就是移除最后一个点
+                let removeIndex = this._renderHead + 2;
+                this._trailImpl.erase(removeIndex);
+                this.pnts.splice(removeIndex, 1);
+                continue;
+            }
+
+            // TODO: 曲线细分，目前是直线就不用细分了
+            as.strokeV2(this, this._renderHead, this.pnts.length-2);
+            this._renderHead = this.pnts.length-2;
+            // while (this._renderHead < this.pnts.length-1) {
+            //     let index = this._renderHead;
+            //     // TODO: 绘制index到index+1的拐点
+
+            //     as.strokeV2(this, this._renderHead++);
+            // }
+        }
     }
 }
