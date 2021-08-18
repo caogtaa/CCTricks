@@ -9,6 +9,7 @@ class Path {
     nbevel: number;
     complex: boolean;
     points: cc.Graphics.Point[] = [];
+    vertCount: number[] = [];           // 每个point对应的顶点数量，最少2个。bevel 4个，round若干个。cap start/end各+2 （暂时不算进来）
 
     constructor() {
         this.reset();
@@ -21,9 +22,11 @@ class Path {
 
         if (this.points) {
             this.points.length = 0;
+            this.vertCount.length = 0;
         }
         else {
             this.points = [];
+            this.vertCount = [];
         }
     }
 }
@@ -48,6 +51,14 @@ export class SmoothTrailImpl {
     _points: cc.Graphics.Point[] = [];
 
     _curPath: Path = null;
+
+    // 移除第index个点，通常由于index-1 -> index形成了INNERBEVEL
+    erase (index) {
+        let path = this._curPath;
+        path.points.splice(index, 1);
+        path.vertCount.splice(index, 1);
+        this._points.splice(index, 1);
+    }
 
     moveTo (x, y) {
         if (this._updatePathOffset) {
@@ -171,6 +182,10 @@ export class SmoothTrailImpl {
             // 复用之前的点
             pt.x = x;
             pt.y = y;
+        }
+
+        if (path.vertCount.length <= offset) {
+            path.vertCount.push(0);
         }
     
         pt.flags = flags;
