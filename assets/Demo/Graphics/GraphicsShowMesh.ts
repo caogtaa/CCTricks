@@ -1,15 +1,3 @@
-// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
-// https://caogtaa.github.io
-// This file is licensed under the MIT License.
-// License text available at https://opensource.org/licenses/MIT
-
-/*
- * Date: 2021-08-13 01:30:09
- * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-08-18 02:40:55
-*/ 
-
-
 import { SmoothTrail } from "./Script/SmoothTrail";
 import { SmoothTrailAssembler } from "./Script/SmoothTrailAssembler";
 const {ccclass, property} = cc._decorator;
@@ -19,8 +7,8 @@ export default class GraphicsShowMesh extends SmoothTrail {
     onLoad () {
         super.onLoad();
         let mat = this.getMaterial(0);
-        if (mat.name.startsWith("GraphicsShowMesh"))
-            this.InjectAssembler();
+        // if (mat.name.startsWith("GraphicsShowMesh"))
+        this.InjectAssembler();
     }
 
     start () {
@@ -49,9 +37,6 @@ export default class GraphicsShowMesh extends SmoothTrail {
 
         //@ts-ignore
         assembler._vset = (x, y, distance = 0) => {
-            let cverts = assembler.PATH_VERTEX;
-            let pathVertexStart = assembler._pathVertexStart;
-
             //@ts-ignore
             let buffer = assembler._buffer;
             let meshbuffer = buffer.meshbuffer;

@@ -6,7 +6,7 @@
 */
 
 import { SmoothTrail } from "../Graphics/Script/SmoothTrail";
-import { SplineTrailRenderer } from "../Graphics/Script/SplineTrailRenderer";
+import { SplineTrailRenderer } from "./Script/SplineTrailRenderer";
 
 
 const {ccclass, property} = cc._decorator;

@@ -83,15 +83,14 @@ export default class SceneGraphics extends cc.Component {
         ctx.strokeColor = cc.Color.WHITE;
         ctx.fillColor = cc.Color.WHITE;
         ctx.lineWidth = 40;
-        if (index === 0) {
-            
-            ctx.moveTo(0, 0);
-            ctx.lineTo(0, 100);
-            ctx.lineTo(100, 0);
-            ctx.stroke();
-            // ctx.moveTo(-212, -139);
-            // ctx.bezierCurveTo(-213, 111, 38, 236, 246, 75);
+        if (index === 0) {           
+            // ctx.moveTo(0, 0);
+            // ctx.lineTo(0, 100);
+            // ctx.lineTo(100, 0);
             // ctx.stroke();
+            ctx.moveTo(-212, -139);
+            ctx.bezierCurveTo(-213, 111, 38, 236, 246, 75);
+            ctx.stroke();
         } else if (index === 1) {
             ctx.moveTo(-100, -100);
             ctx.lineTo(-100, 100);

@@ -91,12 +91,15 @@ export class SplineTrailRenderer extends cc.Component {
 
 		//@ts-ignore
 		let gfx = cc.gfx;
-		let vfmtPos = new gfx.VertexFormat([
-			{ name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 }
+		let vfmtPosColorDist = new gfx.VertexFormat([
+			{ name: 'a_position', type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
+			{ name: 'a_color', type: gfx.ATTR_TYPE_UINT8, num: 4, normalize: true },
+			{ name: 'a_dist', type: gfx.ATTR_TYPE_FLOAT32, num: 1 },
 		]);
+		vfmtPosColorDist.name = 'vfmtPosColorDist';
 
 		this._mesh = new cc.Mesh;
-		this._mesh.init(vfmtPos, 2000, true);
+		this._mesh.init(vfmtPosColorDist, 2000, true);
 		this.renderer.mesh = this._mesh;
 	}
 
