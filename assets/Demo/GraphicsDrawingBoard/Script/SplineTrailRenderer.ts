@@ -73,11 +73,13 @@ export class SplineTrailRenderer extends cc.Component {
 
 	// Mesh数据，CC里需要设置进MeshData
 	_vertices: cc.Vec2[];
+	_sideDist: number[] = [];		// a_side_dist attribute
 	_dist: number[] = [];			// a_dist attribute
+	
 	triangles: number[];
 	uv: cc.Vec2[];
     colors: cc.Color[];
-	normals: cc.Vec2[];
+	// normals: cc.Vec2[];
 
 	protected _origin = cc.Vec2.ZERO;		// 始终是0，考虑移除
 	protected _maxInstanciedTriCount: number = 0;
@@ -94,8 +96,8 @@ export class SplineTrailRenderer extends cc.Component {
 		let gfx = cc.gfx;
 		let vfmtPosColorDist = new gfx.VertexFormat([
 			{ name: 'a_position', type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
-			{ name: 'a_color', type: gfx.ATTR_TYPE_UINT8, num: 4, normalize: true },
-			{ name: 'a_dist', type: gfx.ATTR_TYPE_FLOAT32, num: 1 },
+			{ name: 'a_side_dist', type: gfx.ATTR_TYPE_FLOAT32, num: 1 },		// 旁侧相对于中心线的距离，归一化为(-1, 1)
+			{ name: 'a_dist', type: gfx.ATTR_TYPE_FLOAT32, num: 1 },		// 距离线段起始点的距离（累积线段长度）
 		]);
 		vfmtPosColorDist.name = 'vfmtPosColorDist';
 
@@ -120,7 +122,7 @@ export class SplineTrailRenderer extends cc.Component {
 		this.triangles = new Array<number>(baseNbQuad * NbTriIndexPerQuad);
 		this.uv = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
 		this.colors = new Array<cc.Color>(baseNbQuad * NbVertexPerQuad);
-		this.normals = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
+		// this.normals = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
 
 		this.spline.Clear();
 
@@ -231,6 +233,7 @@ export class SplineTrailRenderer extends cc.Component {
 		// int drawingEnd = meshDisposition == MeshDisposition.Fragmented ? nbQuad-1 : nbQuad-1;
 
 		this._vertices.length = drawingEnd * NbVertexPerQuad;
+		this._sideDist.length = this._vertices.length;
 		this._dist.length = this._vertices.length;
 
 		this.triangles.length = drawingEnd * NbTriIndexPerQuad;
@@ -283,10 +286,15 @@ export class SplineTrailRenderer extends cc.Component {
         		this._vertices[firstVertexIndex + 2] = position.add(binormal.mul(rh2 * 0.5));
 				this._vertices[firstVertexIndex + 3] = position.add(binormal.mul(-rh2 * 0.5));
 
-				this._dist[firstVertexIndex] = 1;
-				this._dist[firstVertexIndex + 1] = -1;
-				this._dist[firstVertexIndex + 2] = 1;
-				this._dist[firstVertexIndex + 3] = -1;
+				this._sideDist[firstVertexIndex] = 1;
+				this._sideDist[firstVertexIndex + 1] = -1;
+				this._sideDist[firstVertexIndex + 2] = 1;
+				this._sideDist[firstVertexIndex + 3] = -1;
+
+				this._dist[firstVertexIndex] = lastDistance;
+				this._dist[firstVertexIndex + 1] = lastDistance;
+				this._dist[firstVertexIndex + 2] = distance;
+				this._dist[firstVertexIndex + 3] = distance;
 
 				// this._vertices[firstVertexIndex] = transform.InverseTransformPoint(lastPosition - _origin + (lastBinormal * (rh * 0.5f)));
 				// this._vertices[firstVertexIndex + 1] = transform.InverseTransformPoint(lastPosition - _origin + (-lastBinormal * (rh * 0.5f)));
@@ -310,20 +318,25 @@ export class SplineTrailRenderer extends cc.Component {
         	    this._vertices[firstVertexIndex + 2] = pos.add(lastTangent.mul(width)).add(lastBinormal.mul(rh * 0.5));
 			    this._vertices[firstVertexIndex + 3] = pos.add(lastTangent.mul(width)).add(lastBinormal.mul(-rh * 0.5));
 
-				this._dist[firstVertexIndex] = 1;
-				this._dist[firstVertexIndex + 1] = -1;
-				this._dist[firstVertexIndex + 2] = 1;
-				this._dist[firstVertexIndex + 3] = -1;
+				this._sideDist[firstVertexIndex] = 1;
+				this._sideDist[firstVertexIndex + 1] = -1;
+				this._sideDist[firstVertexIndex + 2] = 1;
+				this._sideDist[firstVertexIndex + 3] = -1;
+
+				this._dist[firstVertexIndex] = lastDistance;
+				this._dist[firstVertexIndex + 1] = lastDistance;
+				this._dist[firstVertexIndex + 2] = distance;
+				this._dist[firstVertexIndex + 3] = distance;
 
 				// this._vertices[firstVertexIndex] = transform.InverseTransformPoint(pos + (lastBinormal * (rh * 0.5f)));
 			    // this._vertices[firstVertexIndex + 1] = transform.InverseTransformPoint(pos + (-lastBinormal * (rh * 0.5f)));
         	    // this._vertices[firstVertexIndex + 2] = transform.InverseTransformPoint(pos + (lastTangent * width) + (lastBinormal * (rh * 0.5f)));
 			    // this._vertices[firstVertexIndex + 3] = transform.InverseTransformPoint(pos + (lastTangent * width) + (-lastBinormal * (rh * 0.5f)));
 				
-				this.uv[firstVertexIndex] =  cc.v2(0, 1);  
-			    this.uv[firstVertexIndex + 1] = cc.v2(0, 0);
-        	    this.uv[firstVertexIndex + 2] = cc.v2(1, 1); 
-			    this.uv[firstVertexIndex + 3] = cc.v2(1, 0);
+				// this.uv[firstVertexIndex] =  cc.v2(0, 1);  
+			    // this.uv[firstVertexIndex + 1] = cc.v2(0, 0);
+        	    // this.uv[firstVertexIndex + 2] = cc.v2(1, 1); 
+			    // this.uv[firstVertexIndex + 3] = cc.v2(1, 0);
 			}
 
 			this.triangles[firstTriIndex] = firstVertexIndex;
@@ -360,6 +373,7 @@ export class SplineTrailRenderer extends cc.Component {
 			Math.max(0, nbQuad - (Math.floor(lengthToRedraw / width) + 5));
 
 		this._mesh.setVertices("a_position", this._vertices)
+		this._mesh.setVertices("a_side_dist", this._sideDist);
 		this._mesh.setVertices("a_dist", this._dist);
 		this._mesh.setIndices(this.triangles, 0, true);
 
@@ -398,7 +412,7 @@ export class SplineTrailRenderer extends cc.Component {
 		this.triangles = new Array<number>(baseNbQuad * NbTriIndexPerQuad);
 		this.uv = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
 		this.colors = new Array<cc.Color>(baseNbQuad * NbVertexPerQuad);
-		this.normals = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
+		// this.normals = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
 
 		// if (normal == Vector3.zero)
 		// {
