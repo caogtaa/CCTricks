@@ -1,3 +1,13 @@
+// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2021-08-20 23:48:00
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2021-08-21 00:31:01
+*/ 
 
 CCEffect %{
   techniques:
@@ -7,10 +17,6 @@ CCEffect %{
       blendState:
         targets:
         - blend: true
-          blendSrc: one
-          blendDst: one_minus_src_alpha
-          blendSrcAlpha: one
-          blendDstAlpha: one_minus_src_alpha
       rasterizerState:
         cullMode: none
       properties:
@@ -78,6 +84,7 @@ CCProgram fs %{
 
   void main () {
     float alpha = abs(v_side_dist);
+    float dist = fract(v_dist / 60.);
 
     // 轮廓宽度(0.0, 1.0), 对应alpha区域
     float outlineWidth = 1.0;
@@ -95,7 +102,7 @@ CCProgram fs %{
     // col.rgb = vec3(0.);
     col.rgb += Pulse(alphaDist) * brightness;
 
-    col.rgb *= col.a;
+    col.a *= dist;
     gl_FragColor = col;
   }
 }%
