@@ -26,6 +26,8 @@ const NbTriIndexPerQuad = 6;
 
 @ccclass
 export class SplineTrailRenderer extends cc.Component {
+	@property(cc.MeshRenderer)
+	renderer: cc.MeshRenderer = null;
 	// public enum MeshDisposition { Continuous, Fragmented };         
 	// public enum FadeType { None, MeshShrinking, Alpha, Both }       // 不渐变、尾巴变细、尾巴变透明、变细+变透明
 
@@ -49,9 +51,9 @@ export class SplineTrailRenderer extends cc.Component {
     public nbSegmentToParametrize = 3; //0 means all segments
 	
 	public emit = true;
-	public emissionDistance = 1.;
-	public height = 1.;               // 线条的宽度
-	public width = 0.2;              // 一个quad占用的曲线距离
+	public emissionDistance = 8.;
+	public height = 5;               // 线条的宽度
+	public width = 40;              // 一个quad占用的曲线距离
 	public vertexColor = cc.Color.WHITE;
 	// public Vector3 normal = new Vector3(0, 0, 1);
 	public meshDisposition: MeshDisposition = MeshDisposition.Continuous;
@@ -59,7 +61,7 @@ export class SplineTrailRenderer extends cc.Component {
 	public fadeLengthBegin: number = 5;
 	public fadeLengthEnd = 5;
 
-	public maxLength = 50;           // 显示给用户的长度。超出部分的线段不生成Mesh
+	public maxLength = 500;           // 显示给用户的长度。超出部分的线段不生成Mesh
 	public debugDrawSpline = false;
 
 	// private AdvancedParameters advancedParameters = new AdvancedParameters(); 
@@ -74,12 +76,56 @@ export class SplineTrailRenderer extends cc.Component {
     colors: cc.Color[];
 	normals: cc.Vec2[];
 
-	private _origin = cc.Vec2.ZERO;		// 始终是0，考虑移除
-	private _maxInstanciedTriCount: number = 0;
+	protected _origin = cc.Vec2.ZERO;		// 始终是0，考虑移除
+	protected _maxInstanciedTriCount: number = 0;
 	// private Mesh mesh;
-	private _allocatedNbQuad: number;		// 已经分配的Quad buff
-	private _lastStartingQuad: number;      // 小于这个值的Quad不计算Mesh，配合maxLength使用
-	private _quadOffset: number;            // _quadOffset只在重分配buff的时候有用
+	protected _allocatedNbQuad: number;		// 已经分配的Quad buff
+	protected _lastStartingQuad: number;      // 小于这个值的Quad不计算Mesh，配合maxLength使用
+	protected _quadOffset: number;            // _quadOffset只在重分配buff的时候有用
+	protected _mesh: cc.Mesh = null;
+
+	onLoad() {
+		this.spline = new CatmullRomSpline;
+
+		//@ts-ignore
+		let gfx = cc.gfx;
+		let vfmtPos = new gfx.VertexFormat([
+			{ name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 }
+		]);
+
+		this._mesh = new cc.Mesh;
+		this._mesh.init(vfmtPos, 2000, true);
+		this.renderer.mesh = this._mesh;
+	}
+
+	start() {
+		this.Init();
+	}
+
+	public StartPath(point: cc.Vec2): void {
+		this._origin = cc.Vec2.ZERO;
+
+		this._allocatedNbQuad = baseNbQuad;
+		this._maxInstanciedTriCount = 0;
+		this._lastStartingQuad = 0;
+		this._quadOffset = 0;
+
+		this._vertices = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
+		this.triangles = new Array<number>(baseNbQuad * NbTriIndexPerQuad);
+		this.uv = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
+		this.colors = new Array<cc.Color>(baseNbQuad * NbVertexPerQuad);
+		this.normals = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
+
+		this.spline.Clear();
+
+		let knots = this.spline.knots;
+
+		knots.push(new Knot(point));
+		knots.push(new Knot(point));
+		knots.push(new Knot(point));
+		knots.push(new Knot(point));
+		knots.push(new Knot(point));
+	}
 
 	public Clear(): void {
 		this.Init();
@@ -103,29 +149,19 @@ export class SplineTrailRenderer extends cc.Component {
 		// this.GetComponent<Renderer>().material = trail.GetComponent<Renderer>().material;
 	}
 
-	onLoad() {
-		this.spline = new CatmullRomSpline;
-	}
-
-
-	start() {
-		this.Init();
-	}
-
 	// TODO: maybe lateUpdate
-	update(dt: number) {
+	public AddPoint(point: cc.Vec2) {
 		if (this.emit) {
 			let knots = this.spline.knots;
-			let point = this.node.position;
-			
-            // 初始5个点，最后2个点总是变化，但是有可能点又被抛弃？
-            // 如果最后2个点参与渲染，那么头部就会发生偏移
-			knots[knots.length-1].position = point;
-			knots[knots.length-2].position = point;
+			// let point = this.node.position;
 
 			if (cc.Vec2.distance(knots[knots.length-3].position, point) > this.emissionDistance &&
 				cc.Vec2.distance(knots[knots.length-4].position, point) > this.emissionDistance)
 			{
+				// 初始5个点，最后2个点总是变化，但是有可能点又被抛弃？
+				// 如果最后2个点参与渲染，那么头部就会发生偏移
+				knots[knots.length-1].position = point;
+				knots[knots.length-2].position = point;
 				knots.push(new Knot(point));
 			}
 		}
@@ -188,6 +224,8 @@ export class SplineTrailRenderer extends cc.Component {
 		let drawingEnd = nbQuad-1;
 		// int drawingEnd = meshDisposition == MeshDisposition.Fragmented ? nbQuad-1 : nbQuad-1;
 
+		this._vertices.length = drawingEnd * NbVertexPerQuad;
+		this.triangles.length = drawingEnd * NbTriIndexPerQuad;
 		for (let i=startingQuad; i<drawingEnd; i++) {
 			let distance = lastDistance + width;
 			let firstVertexIndex = i * NbVertexPerQuad;
@@ -302,6 +340,9 @@ export class SplineTrailRenderer extends cc.Component {
 		this._lastStartingQuad = lengthToRedraw == 0 ? 
 			Math.max(0, nbQuad - (Math.floor(this.maxLength / width) + 5)) :
 			Math.max(0, nbQuad - (Math.floor(lengthToRedraw / width) + 5));
+
+		this._mesh.setVertices("a_position", this._vertices)
+		this._mesh.setIndices(this.triangles, 0, true);
 
         // mesh.Clear();
 		// mesh.vertices = _vertices;

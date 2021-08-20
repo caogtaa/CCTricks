@@ -157,11 +157,11 @@ export class CatmullRomSpline {
             return pos;
 
         let subKnots = this.GetSegmentSubKnots(marker.segmentIndex);
-        pos.x = cc.lerp(
+        pos.x = cc.misc.lerp(
             subKnots[marker.subKnotAIndex].position.x,
             subKnots[marker.subKnotBIndex].position.x,
             marker.lerpRatio);
-        pos.y = cc.lerp(
+        pos.y = cc.misc.lerp(
             subKnots[marker.subKnotAIndex].position.y,
             subKnots[marker.subKnotBIndex].position.y,
             marker.lerpRatio);
@@ -189,11 +189,11 @@ export class CatmullRomSpline {
             return tangent;
         
         let subKnots = this.GetSegmentSubKnots(marker.segmentIndex);
-        tangent.x = cc.lerp(
+        tangent.x = cc.misc.lerp(
             subKnots[marker.subKnotAIndex].tangent.x,
             subKnots[marker.subKnotBIndex].tangent.x,
             marker.lerpRatio);
-        tangent.y = cc.lerp(
+        tangent.y = cc.misc.lerp(
             subKnots[marker.subKnotAIndex].tangent.y,
             subKnots[marker.subKnotBIndex].tangent.y,
             marker.lerpRatio);
@@ -474,8 +474,8 @@ export class CatmullRomSpline {
     // 这里看似在分段累加，实际上有时候from和to刚好相差一个Epsilon。这里叫Epsilon也不合适，应该叫Delta
     protected ComputeLengthOfSegment(segmentIndex: number, from: number, to: number): number {
 		let length: number = 0;
-		from = cc.clamp01(from);
-		to = cc.clamp01(to);
+		from = cc.misc.clamp01(from);
+		to = cc.misc.clamp01(to);
 
         let lastPoint = this.GetPositionOnSegment(segmentIndex, from);
 

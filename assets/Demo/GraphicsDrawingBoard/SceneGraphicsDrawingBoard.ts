@@ -6,6 +6,7 @@
 */
 
 import { SmoothTrail } from "../Graphics/Script/SmoothTrail";
+import { SplineTrailRenderer } from "../Graphics/Script/SplineTrailRenderer";
 
 
 const {ccclass, property} = cc._decorator;
@@ -26,6 +27,9 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
 
     @property(SmoothTrail)
     ctx: SmoothTrail = null;
+
+    @property(SplineTrailRenderer)
+    trailRenderer: SplineTrailRenderer = null;
 
     @property(cc.EditBox)
     edtK: cc.EditBox = null;
@@ -76,11 +80,13 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
         // ctx.stroke();
 
         let ctx = this.ctx;
-        ctx.StartPath(cc.v2(0, 0));
-        ctx.AddPathPoint(cc.v2(0, 100));
-        ctx.AddPathPoint(cc.v2(1, 0));
-        ctx.AddPathPoint(cc.v2(100, 0));
-        ctx.EndPath();
+        if (ctx.node.active) {
+            ctx.StartPath(cc.v2(0, 0));
+            ctx.AddPathPoint(cc.v2(0, 100));
+            ctx.AddPathPoint(cc.v2(1, 0));
+            ctx.AddPathPoint(cc.v2(100, 0));
+            ctx.EndPath();
+        }
     }
 
     // protected SetBlendEqToMax(mat: cc.Material) {
@@ -255,7 +261,9 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
     }
 
     public Clear() {
-        this.ctx.clear();
+        if (this.ctx.node.active)
+            this.ctx.clear();
+
         this._bezierParams.length = 0;
     }
 
@@ -341,7 +349,13 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
         this._isDragging = true;
         this._points.length = 0;
         this._points.push(pos);
-        this.ctx.StartPath(pos);
+        if (this.ctx.node.active)
+            this.ctx.StartPath(pos);
+
+        if (this.trailRenderer.node.active) {
+            this.trailRenderer.StartPath(pos);
+            this.trailRenderer.AddPoint(pos);
+        }
 
         // if (this.ctx.node.active) {
         //     let localPos = this.node.convertToNodeSpaceAR(e.getLocation());
@@ -359,7 +373,12 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
         let cur = this.TouchPosToGraphicsPos(e.getLocation());
         // console.log(`${cur.x}, ${cur.y}`);
         this._points.push(cur);
-        this.ctx.AddPathPoint(cur);
+        if (this.ctx.node.active)
+            this.ctx.AddPathPoint(cur);
+
+        if (this.trailRenderer.node.active) {
+            this.trailRenderer.AddPoint(cur);
+        }
 
         // if (this.ctx.node.active) {
         //     let localPos = this.node.convertToNodeSpaceAR(e.getLocation());
@@ -374,7 +393,8 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
         // simply clear points
         // todo: draw last segment
         this._points.length = 0;
-        this.ctx.EndPath();
+        if (this.ctx.node.active)
+            this.ctx.EndPath();
 
         if (this._debug)
             console.log(`---------------------------- end ------------------------`)
