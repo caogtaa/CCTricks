@@ -73,6 +73,7 @@ export class SplineTrailRenderer extends cc.Component {
 
 	// Mesh数据，CC里需要设置进MeshData
 	_vertices: cc.Vec2[];
+	_dist: number[] = [];			// a_dist attribute
 	triangles: number[];
 	uv: cc.Vec2[];
     colors: cc.Color[];
@@ -230,6 +231,8 @@ export class SplineTrailRenderer extends cc.Component {
 		// int drawingEnd = meshDisposition == MeshDisposition.Fragmented ? nbQuad-1 : nbQuad-1;
 
 		this._vertices.length = drawingEnd * NbVertexPerQuad;
+		this._dist.length = this._vertices.length;
+
 		this.triangles.length = drawingEnd * NbTriIndexPerQuad;
 		for (let i=startingQuad; i<drawingEnd; i++) {
 			let distance = lastDistance + width;
@@ -280,6 +283,11 @@ export class SplineTrailRenderer extends cc.Component {
         		this._vertices[firstVertexIndex + 2] = position.add(binormal.mul(rh2 * 0.5));
 				this._vertices[firstVertexIndex + 3] = position.add(binormal.mul(-rh2 * 0.5));
 
+				this._dist[firstVertexIndex] = 1;
+				this._dist[firstVertexIndex + 1] = -1;
+				this._dist[firstVertexIndex + 2] = 1;
+				this._dist[firstVertexIndex + 3] = -1;
+
 				// this._vertices[firstVertexIndex] = transform.InverseTransformPoint(lastPosition - _origin + (lastBinormal * (rh * 0.5f)));
 				// this._vertices[firstVertexIndex + 1] = transform.InverseTransformPoint(lastPosition - _origin + (-lastBinormal * (rh * 0.5f)));
         		// this._vertices[firstVertexIndex + 2] = transform.InverseTransformPoint(position - _origin + (binormal * (rh2 * 0.5f)));
@@ -301,6 +309,11 @@ export class SplineTrailRenderer extends cc.Component {
 			    this._vertices[firstVertexIndex + 1] = pos.add(lastBinormal.mul(-rh * 0.5));
         	    this._vertices[firstVertexIndex + 2] = pos.add(lastTangent.mul(width)).add(lastBinormal.mul(rh * 0.5));
 			    this._vertices[firstVertexIndex + 3] = pos.add(lastTangent.mul(width)).add(lastBinormal.mul(-rh * 0.5));
+
+				this._dist[firstVertexIndex] = 1;
+				this._dist[firstVertexIndex + 1] = -1;
+				this._dist[firstVertexIndex + 2] = 1;
+				this._dist[firstVertexIndex + 3] = -1;
 
 				// this._vertices[firstVertexIndex] = transform.InverseTransformPoint(pos + (lastBinormal * (rh * 0.5f)));
 			    // this._vertices[firstVertexIndex + 1] = transform.InverseTransformPoint(pos + (-lastBinormal * (rh * 0.5f)));
@@ -347,6 +360,7 @@ export class SplineTrailRenderer extends cc.Component {
 			Math.max(0, nbQuad - (Math.floor(lengthToRedraw / width) + 5));
 
 		this._mesh.setVertices("a_position", this._vertices)
+		this._mesh.setVertices("a_dist", this._dist);
 		this._mesh.setIndices(this.triangles, 0, true);
 
         // mesh.Clear();
