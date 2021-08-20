@@ -8,14 +8,13 @@ const MinimumKnotNb: number = 4;
 // 假如存在subsegment(拐点信息)，应该存入这个线段的末尾
 const FirstSegmentKnotIndex: number = 2;
 
-class SubKnot {
+export class SubKnot {
     distanceFromStart: number;      // 距离路径开始的距离
     position: cc.Vec2;              // ？？
     tangent: cc.Vec2;               // 切线单位向量
 }
 
-class Knot
-{
+export class Knot {
 	public distanceFromStart: number = -1.0;
     public subKnots: SubKnot[] = null;
     public position: cc.Vec2 = cc.Vec2.ZERO;
@@ -30,7 +29,7 @@ class Knot
     }
 }
 
-class Marker {
+export class Marker {
     segmentIndex: number;
     subKnotAIndex: number;
     subKnotBIndex: number;
