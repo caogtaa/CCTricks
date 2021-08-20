@@ -87,6 +87,13 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
             ctx.AddPathPoint(cc.v2(100, 0));
             ctx.EndPath();
         }
+
+        let trailRenderer = this.trailRenderer;
+        if (trailRenderer.node.active) {
+            trailRenderer.StartPath(cc.v2(0, 0));
+            trailRenderer.AddPoint(cc.v2(0, 100));
+            trailRenderer.AddPoint(cc.v2(100, 0));
+        }
     }
 
     // protected SetBlendEqToMax(mat: cc.Material) {
@@ -395,6 +402,10 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
         this._points.length = 0;
         if (this.ctx.node.active)
             this.ctx.EndPath();
+
+        if (this.trailRenderer.node.active) {
+            console.log(`----- vcount: ${this.trailRenderer._vertices.length}`);
+        }
 
         if (this._debug)
             console.log(`---------------------------- end ------------------------`)

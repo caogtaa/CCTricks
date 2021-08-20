@@ -51,9 +51,11 @@ export class SplineTrailRenderer extends cc.Component {
     public nbSegmentToParametrize = 3; //0 means all segments
 	
 	public emit = true;
-	public emissionDistance = 8.;
-	public height = 5;               // 线条的宽度
-	public width = 40;              // 一个quad占用的曲线距离
+	// 非常关键的属性，决定了头部的平滑程度
+	// 取值越高头部越平滑，但是越有可能出现偏移（重算Mesh导致）
+	public emissionDistance = 90;
+	public height = 40;               // 线条的宽度
+	public width = 30;              // 一个quad占用的曲线距离
 	public vertexColor = cc.Color.WHITE;
 	// public Vector3 normal = new Vector3(0, 0, 1);
 	public meshDisposition: MeshDisposition = MeshDisposition.Continuous;
@@ -154,14 +156,14 @@ export class SplineTrailRenderer extends cc.Component {
 		if (this.emit) {
 			let knots = this.spline.knots;
 			// let point = this.node.position;
+			// 初始5个点，最后2个点总是变化，但是有可能点又被抛弃？
+			// 如果最后2个点参与渲染，那么头部就会发生偏移
+			knots[knots.length-1].position = point;
+			knots[knots.length-2].position = point;
 
 			if (cc.Vec2.distance(knots[knots.length-3].position, point) > this.emissionDistance &&
 				cc.Vec2.distance(knots[knots.length-4].position, point) > this.emissionDistance)
 			{
-				// 初始5个点，最后2个点总是变化，但是有可能点又被抛弃？
-				// 如果最后2个点参与渲染，那么头部就会发生偏移
-				knots[knots.length-1].position = point;
-				knots[knots.length-2].position = point;
 				knots.push(new Knot(point));
 			}
 		}
