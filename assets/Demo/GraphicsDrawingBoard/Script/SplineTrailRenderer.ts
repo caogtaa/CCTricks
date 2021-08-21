@@ -114,7 +114,7 @@ export class SplineTrailRenderer extends cc.Component {
 
 	// Mesh数据，CC里需要设置进MeshData
 	_vertices: cc.Vec2[];
-	_sideDist: number[] = [];		// a_side_dist attribute
+	_sideDist: number[] = [];		// a_width attribute
 	_dist: number[] = [];			// a_dist attribute
 	
 	triangles: number[];
@@ -137,7 +137,7 @@ export class SplineTrailRenderer extends cc.Component {
 		let gfx = cc.gfx;
 		let vfmtPosColorDist = new gfx.VertexFormat([
 			{ name: 'a_position', type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
-			{ name: 'a_side_dist', type: gfx.ATTR_TYPE_FLOAT32, num: 1 },		// 旁侧相对于中心线的距离，归一化为(-1, 1)
+			{ name: 'a_width', type: gfx.ATTR_TYPE_FLOAT32, num: 1 },		// 旁侧相对于中心线的距离，范围（0, segmentWidth）
 			{ name: 'a_dist', type: gfx.ATTR_TYPE_FLOAT32, num: 1 },		// 距离线段起始点的距离（累积线段长度）
 		]);
 		vfmtPosColorDist.name = 'vfmtPosColorDist';
@@ -338,10 +338,10 @@ export class SplineTrailRenderer extends cc.Component {
         		this._vertices[firstVertexIndex + 2] = position.add(binormal.mul(rh2 * 0.5));
 				this._vertices[firstVertexIndex + 3] = position.add(binormal.mul(-rh2 * 0.5));
 
-				this._sideDist[firstVertexIndex] = 1;
-				this._sideDist[firstVertexIndex + 1] = -1;
-				this._sideDist[firstVertexIndex + 2] = 1;
-				this._sideDist[firstVertexIndex + 3] = -1;
+				this._sideDist[firstVertexIndex] = 0;
+				this._sideDist[firstVertexIndex + 1] = segmentWidth;
+				this._sideDist[firstVertexIndex + 2] = 0;
+				this._sideDist[firstVertexIndex + 3] = segmentWidth;
 
 				this._dist[firstVertexIndex] = lastDistance;
 				this._dist[firstVertexIndex + 1] = lastDistance;
@@ -370,10 +370,10 @@ export class SplineTrailRenderer extends cc.Component {
         	    this._vertices[firstVertexIndex + 2] = pos.add(lastTangent.mul(segmentLength)).add(lastBinormal.mul(rh * 0.5));
 			    this._vertices[firstVertexIndex + 3] = pos.add(lastTangent.mul(segmentLength)).add(lastBinormal.mul(-rh * 0.5));
 
-				this._sideDist[firstVertexIndex] = 1;
-				this._sideDist[firstVertexIndex + 1] = -1;
-				this._sideDist[firstVertexIndex + 2] = 1;
-				this._sideDist[firstVertexIndex + 3] = -1;
+				this._sideDist[firstVertexIndex] = 0;
+				this._sideDist[firstVertexIndex + 1] = segmentWidth;
+				this._sideDist[firstVertexIndex + 2] = 0;
+				this._sideDist[firstVertexIndex + 3] = segmentWidth;
 
 				this._dist[firstVertexIndex] = lastDistance;
 				this._dist[firstVertexIndex + 1] = lastDistance;
@@ -426,14 +426,14 @@ export class SplineTrailRenderer extends cc.Component {
 			Math.max(0, nbQuad - (Math.floor(lengthToRedraw / segmentLength) + 5));
 
 		this._mesh.setVertices("a_position", this._vertices)
-		this._mesh.setVertices("a_side_dist", this._sideDist);
+		this._mesh.setVertices("a_width", this._sideDist);
 		this._mesh.setVertices("a_dist", this._dist);
 		this._mesh.setIndices(this.triangles, 0, true);
 
 		// update mesh parameter
 		let mat = this.renderer.getMaterial(0);
 		if (mat.getProperty("size", 0) !== undefined) {
-			mat.setProperty("size", [segmentLength, segmentWidth, segmentLength / segmentWidth, segmentWidth / segmentLength]);
+			mat.setProperty("size", [segmentLength, segmentWidth, 1/segmentLength, 1/segmentWidth]);
 		}
 	}
 
