@@ -38,19 +38,19 @@ export class SplineTrailRenderer extends cc.Component {
 	@property(cc.Texture2D)
 	_texture: cc.Texture2D = null;
 
-	@property({
-		type: cc.Texture2D,
-		displayName: '贴图'
-	})
-	set texture(value: cc.Texture2D) {
-		this._texture = value;
-		if (!CC_EDITOR) {
-			this.UpdateMaterialTexture();
-		}
-	}
-	get texture(): cc.Texture2D {
-		return this._texture;
-	}
+	// @property({
+	// 	type: cc.Texture2D,
+	// 	displayName: '贴图'
+	// })
+	// set texture(value: cc.Texture2D) {
+	// 	this._texture = value;
+	// 	if (!CC_EDITOR) {
+	// 		this.UpdateMaterialTexture();
+	// 	}
+	// }
+	// get texture(): cc.Texture2D {
+	// 	return this._texture;
+	// }
 
 	@property({
 		type: cc.Float,
@@ -156,6 +156,7 @@ export class SplineTrailRenderer extends cc.Component {
 	}
 
 	protected UpdateMaterialTexture(): void {
+		return;
 		let mat = this.renderer?.getMaterial(0);
 		if (mat?.getProperty('texture', 0) !== undefined) {
 			mat.setProperty('texture', this._texture);
@@ -361,7 +362,8 @@ export class SplineTrailRenderer extends cc.Component {
 			else
 			{
                 // quad是一个长方形，保持上一个点的切向伸展
-				let pos = lastPosition.add(lastTangent.mul(segmentLength * -0.5)).sub(this._origin);
+				// todo: 这里有点小问题，应该取新、旧两点的中点，并且取两者切线的平均值，法线也相应种蒜
+				let pos = lastPosition.add(lastTangent.mul(segmentLength * -0.5));
 				// Vector3 pos = lastPosition + (lastTangent * segmentLength * -0.5f) - _origin;
 
 				// todo: optimize code

@@ -19,9 +19,7 @@
         }
       },
       "defines": {
-        "BLOOM": false,
-        "USE_TEXTURE": true,
-        "NORMALIZE_SIZE": true
+        "USE_TEXTURE": true
       }
     }
   }

@@ -1,6 +1,6 @@
 {
   "__type__": "cc.Material",
-  "_name": "SplineDotPath",
+  "_name": "SplineDashPath",
   "_objFlags": 0,
   "_native": "",
   "_effectAsset": {
@@ -13,16 +13,23 @@
         "size": {
           "__type__": "cc.Vec4",
           "x": 15,
-          "y": 15,
-          "z": 1,
-          "w": 1
+          "y": 20,
+          "z": 0.75,
+          "w": 1.33333
+        },
+        "uv_shift": {
+          "__type__": "cc.Vec2",
+          "x": 0.5,
+          "y": 0
         },
         "texture": {
-          "__uuid__": "4f696d26-d384-4b76-8fec-f1ebd73e075d"
+          "__uuid__": "1aab523e-2497-474e-a160-57a44b663d3a"
         }
       },
       "defines": {
-        "USE_TEXTURE": true
+        "USE_TEXTURE": true,
+        "UV_CROSS_SEGMENT": true,
+        "UV_SHIFT_BY_TIME": true
       }
     }
   }

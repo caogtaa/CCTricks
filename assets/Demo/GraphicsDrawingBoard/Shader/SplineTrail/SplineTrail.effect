@@ -22,6 +22,7 @@ CCEffect %{
       properties:
         texture: { value: white, inspector: { displayName: '贴图' } }
         size: { value: [15.0, 20.0, 0.666667, 0.05], inspector: { displayName: '片段大小', tooltip: '(单位px)长、宽、1/长、1/宽'} } 
+        uv_shift: { value: [0., 0.], inspector: { displayName: 'UV时间偏移', tooltip: '每秒偏移量'} } 
 }%
 
 CCProgram vs %{
@@ -65,63 +66,42 @@ CCProgram fs %{
   uniform sampler2D texture;
   uniform UARGS {
     vec4 size;
+    vec2 uv_shift;
   };
-
-  float Remap01(float a, float b, float t) {
-    return (t-a) / (b-a);
-  }
-
-  float Remap(float a, float b, float c, float d, float t) {
-    return Remap01(a, b, t) * (d-c) + c;
-  }
-
-  // 脉冲函数
-  // X,Y区间都是[0,1]，X=0.5位置Y=1
-  // https://www.iquilezles.org/www/articles/functions/functions.htm
-  float Pulse(float x) {
-    x *= 0.4;
-    x = x + 0.5;
-    
-    float k = 16.;
-    return pow(4.0 * x * (1.0 - x), k);
-  }
 
   void main () {
 #if USE_TEXTURE
-    vec2 uv = fract(vec2(v_width, v_dist) * size.wz);
-    // vec2 uv = vec2(v_width * size.w, fract(v_dist * size.z));
+    vec2 uv = fract(vec2(v_dist, v_width) * size.zw);
 
-  #if NORMALIZE_SIZE
-    // 长宽归一化。todo: 偏移到中心位置
-    uv *= max(vec2(1.0), size.yx * size.zw);
+  #if UV_CROSS_SEGMENT
+    // UV跨分段
+    uv.x = fract(v_dist / size.y);
   #endif
+
+  #if UV_SHIFT_BY_TIME
+    uv = fract(uv_shift * -cc_time.x + uv);
+  #endif
+
+  // #if NORMALIZE_UV
+  //   // 长宽归一化。todo: 偏移到中心位置
+  //   uv *= max(vec2(1.0), size.xy * size.wz);
+  // #endif
+
+    // TODO: handle fadeout
+    float fadeDist = 200.;
+    float alpha = clamp(v_dist / fadeDist, 0.01, 1.);
+
+    // scale uv.y
+    float scale_inv = 1./alpha;
+    uv.y = uv.y * scale_inv + (1.0 - scale_inv) * 0.5;
+
     vec4 color = texture2D(texture, uv);
-    gl_FragColor = color;
-#elif BLOOM
-    float alpha = abs(v_side_dist);
-    float dist = fract(v_dist / 60.);
-
-    // 轮廓宽度(0.0, 1.0), 对应alpha区域
-    float outlineWidth = 1.0;
-
-    // 选择一个alpha值做为轮廓的中线
-    float centerAlpha = 0.;
-
-    float alphaDist = abs(alpha - centerAlpha);
-    float mask = smoothstep(outlineWidth, 0., alphaDist);
-    vec4 col = vec4(vec3(1.,0.,1.), mask);
-    
-    // 底色基础上叠加一个亮度，叠加后中心位置变白
-    // 对亮度做一个动画
-    float brightness = Remap(0., 1., 0.6, 1.0, abs(sin(cc_time.x * 2.5)));
-    // col.rgb = vec3(0.);
-    col.rgb += Pulse(alphaDist) * brightness;
-
-    col.a *= dist;
-    gl_FragColor = col;
+    color.a *= alpha;
 #else
 
-    gl_FragColor = vec4(1., 0., 1., 1.);
+    vec4 color = vec4(1., 0., 1., 1.);
 #endif
+
+    gl_FragColor = color;
   }
 }%
