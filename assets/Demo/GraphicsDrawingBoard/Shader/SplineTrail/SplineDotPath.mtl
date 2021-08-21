@@ -1,6 +1,6 @@
 {
   "__type__": "cc.Material",
-  "_name": "SplineTrail",
+  "_name": "SplineDotPath",
   "_objFlags": 0,
   "_native": "",
   "_effectAsset": {
@@ -17,7 +17,10 @@
           "z": 0.75,
           "w": 1.33333
         },
-        "ttt": 0.1
+        "ttt": 0.1,
+        "texture": {
+          "__uuid__": "4f696d26-d384-4b76-8fec-f1ebd73e075d"
+        }
       },
       "defines": {
         "BLOOM": false,

@@ -195,7 +195,7 @@
       "array": [
         0,
         0,
-        604.0018457425283,
+        603.6197064377537,
         0,
         0,
         0,
@@ -579,7 +579,7 @@
     "_enabled": true,
     "_materials": [
       {
-        "__uuid__": "521fb071-5ace-462b-acc8-a420349a04b3"
+        "__uuid__": "eb0264af-19d6-4265-b797-43ab99b3788b"
       }
     ],
     "_mesh": null,
@@ -600,6 +600,13 @@
     "renderer": {
       "__id__": 11
     },
+    "cornerType": 1,
+    "_texture": {
+      "__uuid__": "4f696d26-d384-4b76-8fec-f1ebd73e075d"
+    },
+    "segmentLength": 30,
+    "segmentWidth": 40,
+    "smoothDistance": 90,
     "_id": "36fuyvKXZNGK10fetkgGzO"
   },
   {
