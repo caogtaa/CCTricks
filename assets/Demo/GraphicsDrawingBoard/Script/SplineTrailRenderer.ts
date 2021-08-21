@@ -153,7 +153,16 @@ export class SplineTrailRenderer extends cc.Component {
 
 	start() {
 		this.Init();
+		// this.renderer._assembler.updateWorldVerts = () => {
+		// 	let i = 0;
+		// }		// do not convert position to world
+		// this.StartPath(this.node.convertToWorldSpaceAR(cc.Vec2.ZERO));
 	}
+
+	// update() {
+	// 	let pos = this.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
+	// 	this.AddPoint(pos);
+	// }
 
 	protected UpdateMaterialTexture(): void {
 		return;
