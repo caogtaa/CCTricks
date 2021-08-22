@@ -54,14 +54,14 @@ export class SplineTrailRenderer extends cc.Component {
 
 	@property({
 		type: cc.Float,
-		displayName: '片段长度',
+		displayName: '精度(px)',
 		tooltip: '每个Quad表示的线段长度，值越小曲线越平滑'
 	})
 	segmentLength = 30;
 
 	@property({
 		type: cc.Float,
-		displayName: '曲线宽度',
+		displayName: '曲线宽度(px)',
 		tooltip: '折角处的宽度会略窄，夹角越小宽度越窄'
 	})
 	segmentWidth = 40;
@@ -70,10 +70,16 @@ export class SplineTrailRenderer extends cc.Component {
 	// 取值越高头部越平滑，但是越有可能出现偏移（重算Mesh导致）
 	@property({
 		type: cc.Float,
-		displayName: '头部平滑距离',
+		displayName: '头部平滑距离(px)',
 		tooltip: '取值越高头部越平滑，但是头部可能出现位移'
 	})
 	smoothDistance = 60;
+
+	@property({
+		displayName: '自动生成轨迹',
+		tooltip: '物体移动时自动调用AddPoint()生成轨迹'
+	})
+	selfEmit = false;
 
 	// public enum MeshDisposition { Continuous, Fragmented };         
 	// public enum FadeType { None, MeshShrinking, Alpha, Both }       // 不渐变、尾巴变细、尾巴变透明、变细+变透明
@@ -106,10 +112,6 @@ export class SplineTrailRenderer extends cc.Component {
 
 	public maxLength = 500;           // 显示给用户的长度。超出部分的线段不生成Mesh
 	public debugDrawSpline = false;
-
-	// private AdvancedParameters advancedParameters = new AdvancedParameters(); 
-
-	// [HideInInspector]
 	public spline: CatmullRomSpline;
 
 	// Mesh数据，CC里需要设置进MeshData
@@ -120,11 +122,9 @@ export class SplineTrailRenderer extends cc.Component {
 	triangles: number[];
 	uv: cc.Vec2[];
     colors: cc.Color[];
-	// normals: cc.Vec2[];
 
 	protected _origin = cc.Vec2.ZERO;		// 始终是0，考虑移除
 	protected _maxInstanciedTriCount: number = 0;
-	// private Mesh mesh;
 	protected _allocatedNbQuad: number;		// 已经分配的Quad buff
 	protected _lastStartingQuad: number;      // 小于这个值的Quad不计算Mesh，配合maxLength使用
 	protected _quadOffset: number;            // _quadOffset只在重分配buff的时候有用
@@ -152,16 +152,15 @@ export class SplineTrailRenderer extends cc.Component {
 	}
 
 	start() {
-		// this.Init();
-		// this.renderer._assembler.updateWorldVerts = () => {
-		// 	let i = 0;
-		// }		// do not convert position to world
-		this.StartPath(this.node.convertToWorldSpaceAR(cc.Vec2.ZERO));
+		if (this.selfEmit)
+			this.StartPath(this.node.convertToWorldSpaceAR(cc.Vec2.ZERO));
 	}
 
 	update() {
-		let pos = this.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
-		this.AddPoint(pos);
+		if (this.selfEmit) {
+			let pos = this.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
+			this.AddPoint(pos);
+		}
 	}
 
 	protected UpdateMaterialTexture(): void {
@@ -258,7 +257,7 @@ export class SplineTrailRenderer extends cc.Component {
 		// int nbQuad = ((int)(1f/segmentLength * length)) + 1 - _quadOffset;
 
 		if (this._allocatedNbQuad < nbQuad) {
-			console.error("handle overflow");
+			// console.error("handle overflow");
 		}
 		
 		// if(_allocatedNbQuad < nbQuad) //allocate more memory for the mesh

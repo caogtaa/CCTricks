@@ -90,9 +90,9 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
 
         let trailRenderer = this.trailRenderer;
         if (trailRenderer.node.active) {
-            trailRenderer.StartPath(cc.v2(0, 0));
-            trailRenderer.AddPoint(cc.v2(0, 100));
-            trailRenderer.AddPoint(cc.v2(100, 0));
+            trailRenderer.StartPath(this.node.convertToWorldSpaceAR(cc.v2(0, 0)));
+            trailRenderer.AddPoint(this.node.convertToWorldSpaceAR(cc.v2(0, 100)));
+            trailRenderer.AddPoint(this.node.convertToWorldSpaceAR(cc.v2(100, 0)));
         }
     }
 
@@ -360,8 +360,9 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
             this.ctx.StartPath(pos);
 
         if (this.trailRenderer.node.active) {
-            this.trailRenderer.StartPath(pos);
-            this.trailRenderer.AddPoint(pos);
+            let worldPos = e.getLocation();
+            this.trailRenderer.StartPath(worldPos);
+            this.trailRenderer.AddPoint(worldPos);
         }
 
         // if (this.ctx.node.active) {
@@ -384,7 +385,8 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
             this.ctx.AddPathPoint(cur);
 
         if (this.trailRenderer.node.active) {
-            this.trailRenderer.AddPoint(cur);
+            let worldPos = e.getLocation();
+            this.trailRenderer.AddPoint(worldPos);
         }
 
         // if (this.ctx.node.active) {

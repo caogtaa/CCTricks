@@ -195,7 +195,7 @@
       "array": [
         0,
         0,
-        604.1339090212508,
+        607.0385303225773,
         0,
         0,
         0,
@@ -507,7 +507,7 @@
     "_is3DNode": false,
     "_groupIndex": 0,
     "groupIndex": 0,
-    "_id": "d46goswmpBU4sVq2usABq5"
+    "_id": "7eqyvQ7EBMBYcoEH7cdpGJ"
   },
   {
     "__type__": "cc.Node",
@@ -571,10 +571,10 @@
     "_is3DNode": false,
     "_groupIndex": 0,
     "groupIndex": 0,
-    "_id": "2a3EPwPRVASK7iD9WF8Zxd"
+    "_id": "06S73zZtdPx7ty0QAftXDE"
   },
   {
-    "__type__": "cc.MeshRenderer",
+    "__type__": "6e1853ubFNGeKga+oYODSwy",
     "_name": "",
     "_objFlags": 0,
     "node": {
@@ -591,7 +591,7 @@
     "_shadowCastingMode": 0,
     "_enableAutoBatch": false,
     "textures": [],
-    "_id": "86T4TzQOJHZL85K3o6OQ29"
+    "_id": "1aZLOQhzxFX4lzOU0VZUW5"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -622,7 +622,7 @@
     "segmentLength": 20,
     "segmentWidth": 40,
     "smoothDistance": 60,
-    "_id": "36fuyvKXZNGK10fetkgGzO"
+    "_id": "b4fGbmtdVIQ70aYRPMdbjI"
   },
   {
     "__type__": "cc.PrefabInfo",

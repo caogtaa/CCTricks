@@ -831,6 +831,7 @@
     "segmentLength": 20,
     "segmentWidth": 40,
     "smoothDistance": 60,
+    "selfEmit": true,
     "_id": "e89ZNl6VJDsLskDVz7G6nD"
   },
   {
