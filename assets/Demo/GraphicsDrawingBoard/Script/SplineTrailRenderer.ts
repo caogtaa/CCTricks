@@ -198,7 +198,7 @@ export class SplineTrailRenderer extends cc.Component {
 	}
 
 	public Clear(): void {
-		this.Init();
+		this.StartPath(this.node.convertToWorldSpaceAR(cc.Vec2.ZERO));
 	}
 
 	// 更换材质和属性
@@ -458,46 +458,46 @@ export class SplineTrailRenderer extends cc.Component {
 	// 	//DebugDrawSubKnots();
     // }
 
-	protected Init(): void {
-		this._origin = cc.Vec2.ZERO;//Vector3.zero;//transform.position;
+	// protected Init(): void {
+	// 	this._origin = cc.Vec2.ZERO;//Vector3.zero;//transform.position;
 
-		// mesh = GetComponent<MeshFilter>().mesh;
-		// mesh.MarkDynamic();
+	// 	// mesh = GetComponent<MeshFilter>().mesh;
+	// 	// mesh.MarkDynamic();
 
-		this._allocatedNbQuad = baseNbQuad;
-		this._maxInstanciedTriCount = 0;
-		this._lastStartingQuad = 0;
-		this._quadOffset = 0;
+	// 	this._allocatedNbQuad = baseNbQuad;
+	// 	this._maxInstanciedTriCount = 0;
+	// 	this._lastStartingQuad = 0;
+	// 	this._quadOffset = 0;
 
-		this._vertices = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
-		this.triangles = new Array<number>(baseNbQuad * NbTriIndexPerQuad);
-		this.uv = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
-		this.colors = new Array<cc.Color>(baseNbQuad * NbVertexPerQuad);
-		// this.normals = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
+	// 	this._vertices = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
+	// 	this.triangles = new Array<number>(baseNbQuad * NbTriIndexPerQuad);
+	// 	this.uv = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
+	// 	this.colors = new Array<cc.Color>(baseNbQuad * NbVertexPerQuad);
+	// 	// this.normals = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
 
-		// if (normal == Vector3.zero)
-		// {
-		// 	normal = (transform.position - Camera.main.transform.position).normalized;
-		// }
+	// 	// if (normal == Vector3.zero)
+	// 	// {
+	// 	// 	normal = (transform.position - Camera.main.transform.position).normalized;
+	// 	// }
 
-		// for(int i=0; i<normals.Length; i++)
-		// {
-		// 	normals[i] = normal;
-		// }
+	// 	// for(int i=0; i<normals.Length; i++)
+	// 	// {
+	// 	// 	normals[i] = normal;
+	// 	// }
 
-		//spline.knots.Clear();
-		this.spline.Clear();
+	// 	//spline.knots.Clear();
+	// 	this.spline.Clear();
 
-		let knots = this.spline.knots;
-		let point = this.node.position;
-		// Vector3 point = transform.position;
+	// 	let knots = this.spline.knots;
+	// 	let point = this.node.position;
+	// 	// Vector3 point = transform.position;
 
-		knots.push(new Knot(point));
-		knots.push(new Knot(point));
-		knots.push(new Knot(point));
-		knots.push(new Knot(point));
-		knots.push(new Knot(point));
-	}
+	// 	knots.push(new Knot(point));
+	// 	knots.push(new Knot(point));
+	// 	knots.push(new Knot(point));
+	// 	knots.push(new Knot(point));
+	// 	knots.push(new Knot(point));
+	// }
 
 	// private void Reallocate(int nbQuad)
 	// {

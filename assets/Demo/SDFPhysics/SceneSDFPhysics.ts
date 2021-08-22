@@ -1,15 +1,11 @@
-// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
-// https://caogtaa.github.io
-// This file is licensed under the MIT License.
-// License text available at https://opensource.org/licenses/MIT
-
-import SimpleDraggable from "../../Scripts/Misc/SimpleDraggable";
-
 /*
  * Date: 2021-08-21 23:02:49
  * LastEditors: GT<caogtaa@gmail.com>
  * LastEditTime: 2021-08-21 23:03:26
-*/ 
+*/
+import { SplineTrailRenderer } from "../GraphicsDrawingBoard/Script/SplineTrailRenderer";
+
+ 
 
 const {ccclass, property} = cc._decorator;
 
@@ -44,6 +40,10 @@ export default class SceneSDFPhysics extends cc.Component {
 
         let collider = ball.getComponent(cc.PhysicsCollider);
         collider.enabled = false;
+
+        // clear old data
+        let trail = this.node.getComponentInChildren(SplineTrailRenderer);
+        trail?.Clear();
     }
 
     protected OnTouchBallMove(e: cc.Event.EventTouch) {
