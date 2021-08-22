@@ -1,10 +1,15 @@
 
 
-import { SplineTrailRenderer } from './SplineTrailRenderer';
+import { GlobalMeshRenderer } from './GlobalMeshRenderer';
 
-let _tmp_vec3 = new Vec3();
+let _tmp_vec3 = new cc.Vec3();
+//@ts-ignore
+let gfx = cc.gfx;
 
 export default class SplineTrailRendererAssembler extends cc.Assembler {
+    protected _worldDatas: any = {};
+    protected _renderNode: cc.Node = null;
+
     init(renderComp) {
         super.init(renderComp);
 
@@ -61,6 +66,7 @@ export default class SplineTrailRendererAssembler extends cc.Assembler {
 
         if (CC_DEBUG &&
             (cc.macro.SHOW_MESH_WIREFRAME || cc.macro.SHOW_MESH_NORMAL) &&
+            //@ts-ignore
             !(comp.node._cullingMask & (1 << cc.Node.BuiltinGroupIndex.DEBUG))) {
             renderer._flush();
             renderer.node = this._renderNode;
@@ -120,7 +126,7 @@ export default class SplineTrailRendererAssembler extends cc.Assembler {
             let attrOffset = element.offset / 4;
 
             if (element.name === gfx.ATTR_POSITION || element.name === gfx.ATTR_NORMAL) {
-                let transformMat4 = element.name === gfx.ATTR_NORMAL ? Vec3.transformMat4Normal : Vec3.transformMat4;
+                let transformMat4 = element.name === gfx.ATTR_NORMAL ? cc.Vec3.transformMat4Normal : cc.Vec3.transformMat4;
                 for (let j = 0; j < vertexCount; j++) {
                     let offset = j * floatCount + attrOffset;
 
@@ -151,4 +157,4 @@ export default class SplineTrailRendererAssembler extends cc.Assembler {
     }
 }
 
-Assembler.register(SplineTrailRenderer, SplineTrailRendererAssembler);
+cc.Assembler.register(GlobalMeshRenderer, SplineTrailRendererAssembler);

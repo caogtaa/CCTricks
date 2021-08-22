@@ -180,7 +180,7 @@
       "array": [
         0,
         0,
-        604.1339090212508,
+        607.0385303225773,
         0,
         0,
         0,
@@ -783,7 +783,7 @@
     "_id": "feRtcCA4xFzbjRjVTJ+Wef"
   },
   {
-    "__type__": "cc.MeshRenderer",
+    "__type__": "6e1853ubFNGeKga+oYODSwy",
     "_name": "",
     "_objFlags": 0,
     "node": {
@@ -800,7 +800,7 @@
     "_shadowCastingMode": 0,
     "_enableAutoBatch": false,
     "textures": [],
-    "_id": "17tKZXJCVElJBt126pfmpp"
+    "_id": "bfDpbP9JVEEZTT9QPzN2/O"
   },
   {
     "__type__": "cc.PrefabInfo",
