@@ -100,11 +100,13 @@ export default class SplineTrailRendererAssembler extends cc.Assembler {
             vbuf = buffer._vData,
             ibuf = buffer._iData;
 
-        if (renderer.worldMatDirty || !this._worldDatas[dataIndex]) {
-            this._updateWorldVertices(dataIndex, vertexCount, vData, vtxFormat, comp.node._worldMatrix);
-        }
+        // do not convert to world coord
+        // if (renderer.worldMatDirty || !this._worldDatas[dataIndex]) {
+        //     this._updateWorldVertices(dataIndex, vertexCount, vData, vtxFormat, comp.node._worldMatrix);
+        // }
+        // vbuf.set(this._worldDatas[dataIndex], vertexOffset);
 
-        vbuf.set(this._worldDatas[dataIndex], vertexOffset);
+        vbuf.set(vData, vertexOffset);
 
         for (let i = 0; i < indicesCount; i++) {
             ibuf[indiceOffset + i] = vertexId + indices[i];
