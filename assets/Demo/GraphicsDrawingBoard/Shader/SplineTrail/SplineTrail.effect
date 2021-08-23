@@ -41,8 +41,13 @@ CCProgram vs %{
 
   void main () {
     vec4 pos = vec4(a_position, 1);
-    // pos = cc_matViewProj * cc_matWorld * pos;
-    pos = cc_matViewProj * pos;
+#if USE_WORLD_POS
+    // 已经是世界坐标了，不用在转换
+    pos = cc_matViewProj * pos;  
+#else
+    // pos = cc_matViewProj * pos;  
+    pos = cc_matViewProj * cc_matWorld * pos;
+#endif
 
     v_width = a_width;
     v_dist = a_dist;

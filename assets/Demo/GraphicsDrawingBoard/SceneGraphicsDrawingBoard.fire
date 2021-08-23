@@ -195,7 +195,7 @@
       "array": [
         0,
         0,
-        607.0385303225773,
+        607.0838080528915,
         0,
         0,
         0,
@@ -615,13 +615,12 @@
     "renderer": {
       "__id__": 11
     },
+    "_positionType": 1,
     "cornerType": 0,
-    "_texture": {
-      "__uuid__": "4f696d26-d384-4b76-8fec-f1ebd73e075d"
-    },
     "segmentLength": 20,
     "segmentWidth": 40,
     "smoothDistance": 60,
+    "selfEmit": false,
     "_id": "b4fGbmtdVIQ70aYRPMdbjI"
   },
   {

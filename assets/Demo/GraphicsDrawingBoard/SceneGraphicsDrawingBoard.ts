@@ -90,9 +90,9 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
 
         let trailRenderer = this.trailRenderer;
         if (trailRenderer.node.active) {
-            trailRenderer.StartPath(this.node.convertToWorldSpaceAR(cc.v2(0, 0)));
-            trailRenderer.AddPoint(this.node.convertToWorldSpaceAR(cc.v2(0, 100)));
-            trailRenderer.AddPoint(this.node.convertToWorldSpaceAR(cc.v2(100, 0)));
+            trailRenderer.StartPath(trailRenderer.FromLocalPos(cc.v2(0, 0)));
+            trailRenderer.AddPoint(trailRenderer.FromLocalPos(cc.v2(0, 100)));
+            trailRenderer.AddPoint(trailRenderer.FromLocalPos(cc.v2(100, 0)));
         }
     }
 
@@ -359,10 +359,10 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
         if (this.ctx.node.active)
             this.ctx.StartPath(pos);
 
-        if (this.trailRenderer.node.active) {
-            let worldPos = e.getLocation();
-            this.trailRenderer.StartPath(worldPos);
-            this.trailRenderer.AddPoint(worldPos);
+        let trailRenderer = this.trailRenderer;
+        if (trailRenderer.node.active) {
+            trailRenderer.StartPath(trailRenderer.FromLocalPos(pos));
+            trailRenderer.AddPoint(trailRenderer.FromLocalPos(pos));
         }
 
         // if (this.ctx.node.active) {
@@ -384,9 +384,9 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
         if (this.ctx.node.active)
             this.ctx.AddPathPoint(cur);
 
-        if (this.trailRenderer.node.active) {
-            let worldPos = e.getLocation();
-            this.trailRenderer.AddPoint(worldPos);
+        let trailRenderer = this.trailRenderer;
+        if (trailRenderer.node.active) {
+            trailRenderer.AddPoint(trailRenderer.FromLocalPos(cur));
         }
 
         // if (this.ctx.node.active) {

@@ -1,5 +1,6 @@
 const { ccclass, property } = cc._decorator;
 import { CatmullRomSpline, Knot, Marker } from "./CatmullRomSpline"
+import { SplineTrailRendererAssembler } from "./SplineTrailAssembler";
 
 export enum CornerType {
 	// Mesh在拐角处连续 / 断开。目前只有原点效果是用后者，原点效果用连续的话，原点会被拉伸
@@ -12,6 +13,11 @@ export enum FadeType {
 	MeshShrinking,		// 尾巴变细
 	Alpha,				// 尾巴变透明
 	Both,				// 变细+变透明
+}
+
+export enum PositionType {
+	World = 0,			// 使用世界坐标
+	Local = 1,			// 使用本地坐标，跟随cc.Node移动
 }
 
 // Advanced Parameters
@@ -29,14 +35,30 @@ export class SplineTrailRenderer extends cc.Component {
 	@property(cc.MeshRenderer)
 	renderer: cc.MeshRenderer = null;
 
+	@property({ type: cc.Enum(PositionType) })
+	_positionType: PositionType = PositionType.World;
+
+	@property({
+		type: cc.Enum(PositionType),
+		displayName: '坐标类型',
+		tooltip: 'World: 世界坐标，如果需要整体移动轨迹则需要移动摄像机; Local: 本地坐标，轨迹整体跟随节点移动'
+	})
+	set positionType(value: PositionType) {
+		this._positionType = value;
+		this.FlushMatProperties();
+	}
+	get positionType(): PositionType {
+		return this._positionType;
+	}
+
 	@property({
 		type: cc.Enum(CornerType),
 		displayName: '折角类型'
 	})
 	cornerType: CornerType = CornerType.Continuous;
 
-	@property(cc.Texture2D)
-	_texture: cc.Texture2D = null;
+	// @property(cc.Texture2D)
+	// _texture: cc.Texture2D = null;
 
 	// @property({
 	// 	type: cc.Texture2D,
@@ -146,28 +168,55 @@ export class SplineTrailRenderer extends cc.Component {
 		this._mesh.init(vfmtPosColorDist, 2000, true);
 		this.renderer.mesh = this._mesh;
 
-		if (this._texture) {
-			this.UpdateMaterialTexture();
-		}
+		this.FlushMatProperties();
+		// if (this._texture) {
+		// 	this.UpdateMaterialTexture();
+		// }
 	}
 
 	start() {
 		if (this.selfEmit)
-			this.StartPath(this.node.convertToWorldSpaceAR(cc.Vec2.ZERO));
+			this.StartPath(this.FromLocalPos(cc.Vec2.ZERO));
 	}
 
 	update() {
 		if (this.selfEmit) {
-			let pos = this.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
+			let pos = this.FromLocalPos(cc.Vec2.ZERO);
 			this.AddPoint(pos);
 		}
 	}
 
-	protected UpdateMaterialTexture(): void {
-		return;
-		let mat = this.renderer?.getMaterial(0);
-		if (mat?.getProperty('texture', 0) !== undefined) {
-			mat.setProperty('texture', this._texture);
+	public FromWorldPos(worldPos: cc.Vec2): cc.Vec2 {
+		if (this._positionType === PositionType.World) {
+			return worldPos;
+		}
+
+		return this.node.convertToNodeSpaceAR(worldPos);
+	}
+
+	public FromLocalPos(localPos: cc.Vec2): cc.Vec2 {
+		if (this._positionType === PositionType.World) {
+			return this.node.convertToWorldSpaceAR(localPos);
+		}
+
+		return localPos;
+	}
+
+	// protected UpdateMaterialTexture(): void {
+	// 	return;
+	// 	let mat = this.renderer?.getMaterial(0);
+	// 	if (mat?.getProperty('texture', 0) !== undefined) {
+	// 		mat.setProperty('texture', this._texture);
+	// 	}
+	// }
+
+	protected FlushMatProperties(): void {
+		let ass = this.renderer._assembler as SplineTrailRendererAssembler;
+		let useWolrdPos: boolean = (this._positionType === PositionType.World);
+		ass.useWorldPos = useWolrdPos;
+		let mat = this.renderer.getMaterial(0);
+		if (mat.getDefine("USE_WORLD_POS") !== undefined) {
+			mat.define("USE_WORLD_POS", useWolrdPos);
 		}
 	}
 

@@ -29,7 +29,8 @@
       "defines": {
         "USE_TEXTURE": true,
         "UV_CROSS_SEGMENT": true,
-        "UV_SHIFT_BY_TIME": true
+        "UV_SHIFT_BY_TIME": true,
+        "USE_WORLD_POS": true
       }
     }
   }

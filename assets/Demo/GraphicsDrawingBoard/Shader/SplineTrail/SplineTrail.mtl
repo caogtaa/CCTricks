@@ -19,7 +19,8 @@
         }
       },
       "defines": {
-        "USE_TEXTURE": true
+        "USE_TEXTURE": true,
+        "USE_WORLD_POS": true
       }
     }
   }

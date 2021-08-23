@@ -6,7 +6,8 @@ let _tmp_vec3 = new cc.Vec3();
 //@ts-ignore
 let gfx = cc.gfx;
 
-export default class SplineTrailRendererAssembler extends cc.Assembler {
+export class SplineTrailRendererAssembler extends cc.Assembler {
+    public useWorldPos: boolean = true;
     protected _worldDatas: any = {};
     protected _renderNode: cc.Node = null;
 
@@ -100,13 +101,16 @@ export default class SplineTrailRendererAssembler extends cc.Assembler {
             vbuf = buffer._vData,
             ibuf = buffer._iData;
 
-        // do not convert to world coord
-        // if (renderer.worldMatDirty || !this._worldDatas[dataIndex]) {
-        //     this._updateWorldVertices(dataIndex, vertexCount, vData, vtxFormat, comp.node._worldMatrix);
-        // }
-        // vbuf.set(this._worldDatas[dataIndex], vertexOffset);
-
-        vbuf.set(vData, vertexOffset);
+        if (this.useWorldPos) {
+            // 数据已经是worldPos了，无需转换
+            vbuf.set(vData, vertexOffset);
+        } else {
+            // convert to world coord
+            if (renderer.worldMatDirty || !this._worldDatas[dataIndex]) {
+                this._updateWorldVertices(dataIndex, vertexCount, vData, vtxFormat, comp.node._worldMatrix);
+            }
+            vbuf.set(this._worldDatas[dataIndex], vertexOffset);
+        }        
 
         for (let i = 0; i < indicesCount; i++) {
             ibuf[indiceOffset + i] = vertexId + indices[i];
