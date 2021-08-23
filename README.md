@@ -1,6 +1,7 @@
 ## 简介
 工程收录了个人使用Cocos Creator时积累的开发技巧</br>
-请使用Cocos Creator 2.4.0或以上版本打开
+请使用Cocos Creator 2.4.0或以上版本打开</br>
+**如果打开工程报错sdf.inc找不到，请打开文件`assets\Demo\SDF\Shader\sdf.inc`，按照文件头部的注释说明进行操作。</br>**
 
 ### 自定义渲染
 * [SDF](http://caogtaa.gitee.io/ccdemos/?scene=SceneSDF)
