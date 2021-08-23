@@ -18,10 +18,12 @@ export class Knot {
 	public distanceFromStart: number = -1.0;
     public subKnots: SubKnot[] = null;
     public position: cc.Vec2 = cc.Vec2.ZERO;
+	public emitTime: number = 0;					// 节点加入时间
 
-    constructor(position: cc.Vec2) {
+    constructor(position: cc.Vec2, emitTime: number = cc.director.getTotalTime()) {
         this.subKnots = new Array<SubKnot>(NbSubSegmentPerSegment+1);
         this.position.set(position);
+		this.emitTime = emitTime;
     }
 
     public Invalidate() {

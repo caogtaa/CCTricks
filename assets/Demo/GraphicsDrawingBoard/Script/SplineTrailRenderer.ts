@@ -103,6 +103,13 @@ export class SplineTrailRenderer extends cc.Component {
 	})
 	selfEmit = false;
 
+	@property({
+		type: cc.Float,
+		displayName: '显示时间(s)',
+		tooltip: '展示X秒后自动消失。<=0表示不消失'
+	})
+	showDuration: number = -1;
+
 	// public enum MeshDisposition { Continuous, Fragmented };         
 	// public enum FadeType { None, MeshShrinking, Alpha, Both }       // 不渐变、尾巴变细、尾巴变透明、变细+变透明
 
@@ -236,13 +243,15 @@ export class SplineTrailRenderer extends cc.Component {
 
 		this.spline.Clear();
 
-		let knots = this.spline.knots;
+		let emitTime = cc.director.getTotalTime();
 
-		knots.push(new Knot(point));
-		knots.push(new Knot(point));
-		knots.push(new Knot(point));
-		knots.push(new Knot(point));
-		knots.push(new Knot(point));
+		// TODO: 第一个控制点向反方向延伸
+		let knots = this.spline.knots;
+		knots.push(new Knot(point, emitTime));
+		knots.push(new Knot(point, emitTime));
+		knots.push(new Knot(point, emitTime));
+		knots.push(new Knot(point, emitTime));
+		knots.push(new Knot(point, emitTime));
 	}
 
 	public Clear(): void {
@@ -484,10 +493,19 @@ export class SplineTrailRenderer extends cc.Component {
 			Math.max(0, nbQuad - (Math.floor(this.maxLength / segmentLength) + 5)) :
 			Math.max(0, nbQuad - (Math.floor(lengthToRedraw / segmentLength) + 5));
 
-		this._mesh.setVertices("a_position", this._vertices)
+		let startVertexIndex = startingQuad * NbVertexPerQuad;
+		let endVertexIndex = drawingEnd * NbVertexPerQuad;
+		let startTriIndex = startingQuad * NbTriIndexPerQuad;
+		let endTriIndex = drawingEnd * NbTriIndexPerQuad;
+
+		// todo: 优化后直接设置给vdata，不要经过Mesh，不要slice操作
+		// this._mesh.setVertices("a_position", this._vertices.slice(startVertexIndex, endVertexIndex));
+		// this._mesh.setVertices("a_width", this._sideDist.slice(startVertexIndex, endVertexIndex));
+		// this._mesh.setVertices("a_dist", this._dist.slice(startVertexIndex, endVertexIndex));
+		this._mesh.setVertices("a_position", this._vertices);
 		this._mesh.setVertices("a_width", this._sideDist);
 		this._mesh.setVertices("a_dist", this._dist);
-		this._mesh.setIndices(this.triangles, 0, true);
+		this._mesh.setIndices(this.triangles.slice(startTriIndex, endTriIndex), 0, true);
 
 		// update mesh parameter
 		let mat = this.renderer.getMaterial(0);

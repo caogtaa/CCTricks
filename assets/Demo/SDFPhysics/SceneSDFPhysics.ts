@@ -42,7 +42,7 @@ export default class SceneSDFPhysics extends cc.Component {
         collider.enabled = false;
 
         // clear old data
-        let trail = this.node.getComponentInChildren(SplineTrailRenderer);
+        let trail = ball.getComponentInChildren(SplineTrailRenderer);
         trail?.Clear();
     }
 
@@ -67,5 +67,8 @@ export default class SceneSDFPhysics extends cc.Component {
 
         let collider = ball.getComponent(cc.PhysicsCollider);
         collider.enabled = true;
+
+        let trail = ball.getComponentInChildren(SplineTrailRenderer);
+        console.log(`----- vcount: ${trail._vertices.length}`);
     }
 }
