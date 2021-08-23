@@ -1,7 +1,12 @@
 ## 简介
 工程收录了个人使用Cocos Creator时积累的开发技巧</br>
 请使用Cocos Creator 2.4.0或以上版本打开</br>
-**如果打开工程报错sdf.inc找不到，请打开文件`assets\Demo\SDF\Shader\sdf.inc`，按照文件头部的注释说明进行操作。</br>**
+
+### 前排提示
+**如果打开工程报错`sdf.inc`找不到，需要拷贝文件`assets\Demo\SDF\Shader\sdf.inc`到引擎安装目录
+`C:\CocosDashboard_1.0.12\resources\.editors\Creator\2.4.0\resources\engine\cocos2d\renderer\build\chunks`</br>
+具体路径根据本地环境CocosDashboard安装路径和引擎版本会稍有不同</br>
+如果了自定义引擎的环境，需要将`sdf.inc`拷贝到对应的`engine\cocos2d\renderer\build\chunks`路径下**
 
 ### 自定义渲染
 * [SDF](http://caogtaa.gitee.io/ccdemos/?scene=SceneSDF)
