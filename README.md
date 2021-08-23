@@ -6,7 +6,7 @@
 **如果打开工程报错`sdf.inc`找不到，需要拷贝文件`assets\Demo\SDF\Shader\sdf.inc`到引擎安装目录
 `C:\CocosDashboard_1.0.12\resources\.editors\Creator\2.4.0\resources\engine\cocos2d\renderer\build\chunks`</br>
 具体路径根据本地环境CocosDashboard安装路径和引擎版本会稍有不同</br>
-如果了自定义引擎的环境，需要将`sdf.inc`拷贝到对应的`engine\cocos2d\renderer\build\chunks`路径下**
+如果使用了自定义引擎，需要将`sdf.inc`拷贝到对应的`engine\cocos2d\renderer\build\chunks`路径下**
 
 ### 自定义渲染
 * [SDF](http://caogtaa.gitee.io/ccdemos/?scene=SceneSDF)
