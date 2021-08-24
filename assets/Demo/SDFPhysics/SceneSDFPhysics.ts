@@ -71,4 +71,26 @@ export default class SceneSDFPhysics extends cc.Component {
         let trail = ball.getComponentInChildren(SplineTrailRenderer);
         console.log(`----- vcount: ${trail._vertices.length}`);
     }
+
+    _colorIndex: number = 0;
+    public OnChangeColor() {
+        const colors: cc.Color[] = [
+            cc.Color.RED,
+            cc.Color.YELLOW,
+            cc.Color.CYAN
+        ];
+
+        for (let ball of this.balls) {
+            let trail = ball.getComponentInChildren(SplineTrailRenderer);
+            let mat = trail.renderer.getMaterial(0);
+            let c = colors[this._colorIndex++];
+            this._colorIndex %= colors.length;
+
+            // change uniform color
+            mat.setProperty("runtime_color", c);
+
+            // change attribute color
+            trail.node.color = c;
+        }
+    }
 }

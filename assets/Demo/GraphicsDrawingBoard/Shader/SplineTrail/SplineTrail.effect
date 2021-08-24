@@ -32,6 +32,8 @@ CCProgram vs %{
   #include <cc-local>
 
   in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
   
   in float a_width;
   out float v_width;
@@ -51,6 +53,7 @@ CCProgram vs %{
 
     v_width = a_width;
     v_dist = a_dist;
+    v_color = a_color;
 
     gl_Position = pos;
   }
@@ -66,12 +69,14 @@ CCProgram fs %{
   
   #include <cc-global>
 
+  in vec4 v_color;
   in float v_width;
   in float v_dist;
 
   uniform sampler2D texture;
   uniform UARGS {
     vec4 size;
+    vec4 runtime_color;
     vec2 uv_shift;
   };
 
@@ -102,6 +107,8 @@ CCProgram fs %{
     uv.y = uv.y * scale_inv + (1.0 - scale_inv) * 0.5;
 
     vec4 color = texture2D(texture, uv);
+    // color.rgb = runtime_color.rgb;
+    color.rgb = v_color.rgb;
     color.a *= alpha;
 #else
 

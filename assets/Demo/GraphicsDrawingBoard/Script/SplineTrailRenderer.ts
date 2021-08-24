@@ -150,7 +150,7 @@ export class SplineTrailRenderer extends cc.Component {
 	
 	triangles: number[];
 	uv: cc.Vec2[];
-    colors: cc.Color[];
+    _colors: cc.Color[];
 
 	protected _origin = cc.Vec2.ZERO;		// 始终是0，考虑移除
 	protected _maxInstanciedTriCount: number = 0;
@@ -164,15 +164,16 @@ export class SplineTrailRenderer extends cc.Component {
 
 		//@ts-ignore
 		let gfx = cc.gfx;
-		let vfmtPosColorDist = new gfx.VertexFormat([
+		let vfmtSplineTrail = new gfx.VertexFormat([
 			{ name: 'a_position', type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
 			{ name: 'a_width', type: gfx.ATTR_TYPE_FLOAT32, num: 1 },		// 旁侧相对于中心线的距离，范围（0, segmentWidth）
 			{ name: 'a_dist', type: gfx.ATTR_TYPE_FLOAT32, num: 1 },		// 距离线段起始点的距离（累积线段长度）
+			{ name: gfx.ATTR_COLOR, type: gfx.ATTR_TYPE_UINT8, num: 4, normalize: true },       // 4个uint8
 		]);
-		vfmtPosColorDist.name = 'vfmtPosColorDist';
+		vfmtSplineTrail.name = 'vfmtSplineTrail';
 
 		this._mesh = new cc.Mesh;
-		this._mesh.init(vfmtPosColorDist, 2000, true);
+		this._mesh.init(vfmtSplineTrail, 2000, true);
 		this.renderer.mesh = this._mesh;
 
 		this.FlushMatProperties();
@@ -238,7 +239,7 @@ export class SplineTrailRenderer extends cc.Component {
 		this._vertices = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
 		this.triangles = new Array<number>(baseNbQuad * NbTriIndexPerQuad);
 		this.uv = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
-		this.colors = new Array<cc.Color>(baseNbQuad * NbVertexPerQuad);
+		this._colors = new Array<cc.Color>(baseNbQuad * NbVertexPerQuad);
 		// this.normals = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
 
 		this.spline.Clear();
@@ -351,15 +352,16 @@ export class SplineTrailRenderer extends cc.Component {
 		let drawingEnd = nbQuad-1;
 		// int drawingEnd = meshDisposition == MeshDisposition.Fragmented ? nbQuad-1 : nbQuad-1;
 
-		this._vertices.length = drawingEnd * NbVertexPerQuad;
+		this._vertices.length = (drawingEnd - startingQuad) * NbVertexPerQuad;
 		this._sideDist.length = this._vertices.length;
 		this._dist.length = this._vertices.length;
+		this._colors.length = this._vertices.length;
 
-		this.triangles.length = drawingEnd * NbTriIndexPerQuad;
+		this.triangles.length = (drawingEnd - startingQuad) * NbTriIndexPerQuad;
 		for (let i=startingQuad; i<drawingEnd; i++) {
 			let distance = lastDistance + segmentLength;
-			let firstVertexIndex = i * NbVertexPerQuad;
-			let firstTriIndex = i * NbTriIndexPerQuad;
+			let firstVertexIndex = (i-startingQuad) * NbVertexPerQuad;
+			let firstTriIndex = (i-startingQuad) * NbTriIndexPerQuad;
 			spline.MoveMarker(marker, distance);
 
 			let position = spline.GetPosition(marker);
@@ -466,17 +468,18 @@ export class SplineTrailRenderer extends cc.Component {
 			this.triangles[firstTriIndex + 4] = firstVertexIndex + 1;
 			this.triangles[firstTriIndex + 5] = firstVertexIndex + 3; 
 
-			// this.colors[firstVertexIndex] = vertexColor;
-			// this.colors[firstVertexIndex + 1] = vertexColor;
-        	// this.colors[firstVertexIndex + 2] = vertexColor;
-			// this.colors[firstVertexIndex + 3] = vertexColor;
+			let color = this.node.color;
+			this._colors[firstVertexIndex] = color;
+			this._colors[firstVertexIndex + 1] = color;
+        	this._colors[firstVertexIndex + 2] = color;
+			this._colors[firstVertexIndex + 3] = color;
 
-			if (this.fadeType == FadeType.Alpha || this.fadeType == FadeType.Both) {
-				this.colors[firstVertexIndex].a *= h;
-				this.colors[firstVertexIndex + 1].a *= h;
-        		this.colors[firstVertexIndex + 2].a *= h2;
-				this.colors[firstVertexIndex + 3].a *= h2;
-			}
+			// if (this.fadeType == FadeType.Alpha || this.fadeType == FadeType.Both) {
+			// 	this._colors[firstVertexIndex].a *= h;
+			// 	this._colors[firstVertexIndex + 1].a *= h;
+        	// 	this._colors[firstVertexIndex + 2].a *= h2;
+			// 	this._colors[firstVertexIndex + 3].a *= h2;
+			// }
 
 			lastPosition = position;
 			lastTangent = tangent;
@@ -502,10 +505,20 @@ export class SplineTrailRenderer extends cc.Component {
 		// this._mesh.setVertices("a_position", this._vertices.slice(startVertexIndex, endVertexIndex));
 		// this._mesh.setVertices("a_width", this._sideDist.slice(startVertexIndex, endVertexIndex));
 		// this._mesh.setVertices("a_dist", this._dist.slice(startVertexIndex, endVertexIndex));
+		// this._mesh.setVertices("a_color", this._colors.slice(startVertexIndex, endVertexIndex));
 		this._mesh.setVertices("a_position", this._vertices);
 		this._mesh.setVertices("a_width", this._sideDist);
 		this._mesh.setVertices("a_dist", this._dist);
-		this._mesh.setIndices(this.triangles.slice(startTriIndex, endTriIndex), 0, true);
+		this._mesh.setVertices("a_color", this._colors);
+		// this._mesh.setIndices(this.triangles.slice(startTriIndex, endTriIndex), 0, true);
+		this._mesh.setIndices(this.triangles, 0, true);
+
+		// update inner state of mesh
+		// https://forum.cocos.org/t/topic/119964
+		//@ts-ignore
+		this._mesh.subDatas[0].vb._numVertices = this._vertices.length;
+		//@ts-ignore
+		this._mesh.subDatas[0].ib._numIndices = this.triangles.length;
 
 		// update mesh parameter
 		let mat = this.renderer.getMaterial(0);

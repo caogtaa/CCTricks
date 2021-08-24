@@ -34,8 +34,8 @@
   "simulator-orientation": false,
   "use-customize-simulator": true,
   "simulator-resolution": {
-    "height": 640,
-    "width": 960
+    "width": 960,
+    "height": 640
   },
   "preview-port": 7456,
   "facebook": {
@@ -51,5 +51,6 @@
   "last-module-event-record-time": 1628789498130,
   "migrate-history": [
     "cloud-function"
-  ]
+  ],
+  "clear-simulator-cache": true
 }
