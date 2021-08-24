@@ -108,7 +108,7 @@ CCProgram fs %{
 
     vec4 color = texture2D(texture, uv);
     // color.rgb = runtime_color.rgb;
-    color.rgb = v_color.rgb;
+    // color.rgb = v_color.rgb;
     color.a *= alpha;
 #else
 

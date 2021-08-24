@@ -31,9 +31,9 @@ const NbVertexPerQuad = 4;
 const NbTriIndexPerQuad = 6;
 
 @ccclass
-export class SplineTrailRenderer extends cc.Component {
-	@property(cc.MeshRenderer)
-	renderer: cc.MeshRenderer = null;
+export class SplineTrailRenderer extends cc.RenderComponent {
+	// @property(cc.MeshRenderer)
+	// renderer: cc.MeshRenderer = null;
 
 	@property({ type: cc.Enum(PositionType) })
 	_positionType: PositionType = PositionType.World;
@@ -144,20 +144,19 @@ export class SplineTrailRenderer extends cc.Component {
 	public spline: CatmullRomSpline;
 
 	// Mesh数据，CC里需要设置进MeshData
-	_vertices: cc.Vec2[];
+	_vertices: cc.Vec2[] = [];
 	_sideDist: number[] = [];		// a_width attribute
 	_dist: number[] = [];			// a_dist attribute
 	
-	triangles: number[];
-	uv: cc.Vec2[];
-    _colors: cc.Color[];
+	triangles: number[] = [];
+	uv: cc.Vec2[] = [];
+    _colors: cc.Color[] = [];
 
 	protected _origin = cc.Vec2.ZERO;		// 始终是0，考虑移除
 	protected _maxInstanciedTriCount: number = 0;
 	protected _allocatedNbQuad: number;		// 已经分配的Quad buff
 	protected _lastStartingQuad: number;      // 小于这个值的Quad不计算Mesh，配合maxLength使用
 	protected _quadOffset: number;            // _quadOffset只在重分配buff的时候有用
-	protected _mesh: cc.Mesh = null;
 
 	onLoad() {
 		this.spline = new CatmullRomSpline;
@@ -171,11 +170,6 @@ export class SplineTrailRenderer extends cc.Component {
 			{ name: gfx.ATTR_COLOR, type: gfx.ATTR_TYPE_UINT8, num: 4, normalize: true },       // 4个uint8
 		]);
 		vfmtSplineTrail.name = 'vfmtSplineTrail';
-
-		this._mesh = new cc.Mesh;
-		this._mesh.init(vfmtSplineTrail, 2000, true);
-		this.renderer.mesh = this._mesh;
-
 		this.FlushMatProperties();
 		// if (this._texture) {
 		// 	this.UpdateMaterialTexture();
@@ -188,7 +182,7 @@ export class SplineTrailRenderer extends cc.Component {
 	}
 
 	update() {
-		if (this.selfEmit) {
+		if (this.selfEmit && !CC_EDITOR) {
 			let pos = this.FromLocalPos(cc.Vec2.ZERO);
 			this.AddPoint(pos);
 		}
@@ -219,10 +213,11 @@ export class SplineTrailRenderer extends cc.Component {
 	// }
 
 	protected FlushMatProperties(): void {
-		let ass = this.renderer._assembler as SplineTrailRendererAssembler;
+		let renderer = this;
+		let ass = renderer._assembler as SplineTrailRendererAssembler;
 		let useWolrdPos: boolean = (this._positionType === PositionType.World);
 		ass.useWorldPos = useWolrdPos;
-		let mat = this.renderer.getMaterial(0);
+		let mat = renderer.getMaterial(0);
 		if (mat.getDefine("USE_WORLD_POS") !== undefined) {
 			mat.define("USE_WORLD_POS", useWolrdPos);
 		}
@@ -236,10 +231,10 @@ export class SplineTrailRenderer extends cc.Component {
 		this._lastStartingQuad = 0;
 		this._quadOffset = 0;
 
-		this._vertices = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
-		this.triangles = new Array<number>(baseNbQuad * NbTriIndexPerQuad);
-		this.uv = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
-		this._colors = new Array<cc.Color>(baseNbQuad * NbVertexPerQuad);
+		this._vertices.length = 0;
+		this.triangles.length = 0;
+		this.uv.length = 0;
+		this._colors.length = 0;
 		// this.normals = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
 
 		this.spline.Clear();
@@ -318,27 +313,13 @@ export class SplineTrailRenderer extends cc.Component {
 		if (this._allocatedNbQuad < nbQuad) {
 			// console.error("handle overflow");
 		}
-		
-		// if(_allocatedNbQuad < nbQuad) //allocate more memory for the mesh
-		// {
-		// 	Reallocate(nbQuad);
-		// 	length = Mathf.Max(spline.Length() - 0.1f, 0);
-		// 	nbQuad = ((int)(1f/segmentLength * length)) + 1 - _quadOffset;
-		// }
 
 		let startingQuad = this._lastStartingQuad;
 		let lastDistance = startingQuad * segmentLength + this._quadOffset * segmentLength;			// 不需要绘制的线段已经经过的距离。每个quad表示的距离大小固定，都是segmentLength=0.2
 		this._maxInstanciedTriCount = Math.max(this._maxInstanciedTriCount, (nbQuad-1) * NbTriIndexPerQuad);
 
-		// int startingQuad = _lastStartingQuad;
-		// float lastDistance = startingQuad * segmentLength + _quadOffset * segmentLength;            // 不需要绘制的线段已经经过的距离。每个quad表示的距离大小固定，都是segmentLength=0.2
-		// _maxInstanciedTriCount = System.Math.Max(_maxInstanciedTriCount, (nbQuad-1) * NbTriIndexPerQuad);
-
 		let marker: Marker = new Marker;		// marker是一个游标，从需要计算的quad + subsegment开始往后移动
 		spline.PlaceMarker(marker, lastDistance);
-
-		// CatmullRomSpline.Marker marker = new CatmullRomSpline.Marker();             // marker是一个游标，从需要计算的quad + subsegment开始往后移动
-		// spline.PlaceMarker(marker, lastDistance); 
 
 		let lastPosition = spline.GetPosition(marker);
 		let lastTangent = spline.GetTangent(marker);
@@ -496,138 +477,17 @@ export class SplineTrailRenderer extends cc.Component {
 			Math.max(0, nbQuad - (Math.floor(this.maxLength / segmentLength) + 5)) :
 			Math.max(0, nbQuad - (Math.floor(lengthToRedraw / segmentLength) + 5));
 
-		let startVertexIndex = startingQuad * NbVertexPerQuad;
-		let endVertexIndex = drawingEnd * NbVertexPerQuad;
-		let startTriIndex = startingQuad * NbTriIndexPerQuad;
-		let endTriIndex = drawingEnd * NbTriIndexPerQuad;
-
-		// todo: 优化后直接设置给vdata，不要经过Mesh，不要slice操作
-		// this._mesh.setVertices("a_position", this._vertices.slice(startVertexIndex, endVertexIndex));
-		// this._mesh.setVertices("a_width", this._sideDist.slice(startVertexIndex, endVertexIndex));
-		// this._mesh.setVertices("a_dist", this._dist.slice(startVertexIndex, endVertexIndex));
-		// this._mesh.setVertices("a_color", this._colors.slice(startVertexIndex, endVertexIndex));
-		this._mesh.setVertices("a_position", this._vertices);
-		this._mesh.setVertices("a_width", this._sideDist);
-		this._mesh.setVertices("a_dist", this._dist);
-		this._mesh.setVertices("a_color", this._colors);
-		// this._mesh.setIndices(this.triangles.slice(startTriIndex, endTriIndex), 0, true);
-		this._mesh.setIndices(this.triangles, 0, true);
-
-		// update inner state of mesh
-		// https://forum.cocos.org/t/topic/119964
-		//@ts-ignore
-		this._mesh.subDatas[0].vb._numVertices = this._vertices.length;
-		//@ts-ignore
-		this._mesh.subDatas[0].ib._numIndices = this.triangles.length;
-
 		// update mesh parameter
-		let mat = this.renderer.getMaterial(0);
+		let renderer = this;
+		let mat = renderer.getMaterial(0);
 		if (mat.getProperty("size", 0) !== undefined) {
 			mat.setProperty("size", [segmentLength, segmentWidth, 1/segmentLength, 1/segmentWidth]);
 		}
+
+		// mark for dirty
+		// force assembler to refresh
+		this.setVertsDirty();
 	}
-
-	// private void OnDrawGizmos()
-    // {
-	// 	//DebugDrawEquallySpacedDots();
-	// 	if(advancedParameters != null && spline != null && debugDrawSpline)
-	// 	{
-	// 		spline.DebugDrawSpline();
-	// 	}
-	// 	//DebugDrawSubKnots();
-    // }
-
-	// protected Init(): void {
-	// 	this._origin = cc.Vec2.ZERO;//Vector3.zero;//transform.position;
-
-	// 	// mesh = GetComponent<MeshFilter>().mesh;
-	// 	// mesh.MarkDynamic();
-
-	// 	this._allocatedNbQuad = baseNbQuad;
-	// 	this._maxInstanciedTriCount = 0;
-	// 	this._lastStartingQuad = 0;
-	// 	this._quadOffset = 0;
-
-	// 	this._vertices = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
-	// 	this.triangles = new Array<number>(baseNbQuad * NbTriIndexPerQuad);
-	// 	this.uv = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
-	// 	this.colors = new Array<cc.Color>(baseNbQuad * NbVertexPerQuad);
-	// 	// this.normals = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
-
-	// 	// if (normal == Vector3.zero)
-	// 	// {
-	// 	// 	normal = (transform.position - Camera.main.transform.position).normalized;
-	// 	// }
-
-	// 	// for(int i=0; i<normals.Length; i++)
-	// 	// {
-	// 	// 	normals[i] = normal;
-	// 	// }
-
-	// 	//spline.knots.Clear();
-	// 	this.spline.Clear();
-
-	// 	let knots = this.spline.knots;
-	// 	let point = this.node.position;
-	// 	// Vector3 point = transform.position;
-
-	// 	knots.push(new Knot(point));
-	// 	knots.push(new Knot(point));
-	// 	knots.push(new Knot(point));
-	// 	knots.push(new Knot(point));
-	// 	knots.push(new Knot(point));
-	// }
-
-	// private void Reallocate(int nbQuad)
-	// {
-	// 	if(advancedParameters.shiftMeshData && _lastStartingQuad > 0/*advancedParameters.nbQuadIncrement / 4*/) //slide
-	// 	{
-	// 		int newIndex = 0;
-	// 		for(int i=_lastStartingQuad; i<nbQuad; i++)
-	// 		{
-	// 			_vertices[newIndex] = _vertices[i];
-	// 			triangles[newIndex] = triangles[i];
-	// 			uv[newIndex] = uv[i];
-	// 			colors[newIndex] = colors[i];
-	// 			normals[newIndex] =  normals[i];
-
-	// 			newIndex++;
-	// 		}
-
-	// 		_quadOffset += _lastStartingQuad;
-	// 		_lastStartingQuad = 0;
-	// 	}
-		
-	// 	if(_allocatedNbQuad < nbQuad - _quadOffset)
-	// 	{
-	// 		if((_allocatedNbQuad + advancedParameters.nbQuadIncrement) * NbVertexPerQuad > 65000)
-	// 		{
-	// 			Clear();
-	// 			return;
-	// 		}
-
-	// 		_allocatedNbQuad += advancedParameters.nbQuadIncrement;
-
-	// 		Vector3[] vertices2 = new Vector3[_allocatedNbQuad * NbVertexPerQuad];
-	// 		int[] triangles2 = new int[_allocatedNbQuad * NbTriIndexPerQuad];
-	// 		Vector2[] uv2 = new Vector2[_allocatedNbQuad * NbVertexPerQuad];
-	// 		Color[] colors2 = new Color[_allocatedNbQuad * NbVertexPerQuad];
-	// 		Vector3[] normals2 = new Vector3[_allocatedNbQuad * NbVertexPerQuad];
-
-	// 		_vertices.CopyTo(vertices2, 0);
-	// 		triangles.CopyTo(triangles2, 0);
-	// 		uv.CopyTo(uv2, 0);
-	// 		colors.CopyTo(colors2, 0);
-	// 		normals.CopyTo(normals2, 0);
-
-	// 		_vertices = vertices2;
-	// 		triangles = triangles2;
-	// 		uv = uv2;
-	// 		colors = colors2;
-	// 		normals = normals2;
-			
-	// 	}
-	// }
 
 	protected FadeMultiplier(distance: number, length: number): number {
 		// todo: use multiplier in shader
