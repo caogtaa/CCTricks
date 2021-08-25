@@ -21,10 +21,10 @@ export enum PositionType {
 }
 
 // Advanced Parameters
-const baseNbQuad = 500;			// 初始buff大小
-const nbQuadIncrement = 200;	// buff不足时增加的容量
+// const baseNbQuad = 500;			// 初始buff大小
+// const nbQuadIncrement = 200;	// buff不足时增加的容量
 const lengthToRedraw = 0;
-const shiftMeshData: boolean = false;
+// const shiftMeshData: boolean = false;
 
 //
 const NbVertexPerQuad = 4;
@@ -76,6 +76,13 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 
 	@property({
 		type: cc.Float,
+		displayName: '最大长度(px)',
+		tooltip: '超出该长度后尾部会被自动裁剪'
+	})
+	maxLength: number = 500;
+
+	@property({
+		type: cc.Float,
 		displayName: '精度(px)',
 		tooltip: '每个Quad表示的线段长度，值越小曲线越平滑'
 	})
@@ -93,7 +100,7 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 	@property({
 		type: cc.Float,
 		displayName: '头部平滑距离(px)',
-		tooltip: '取值越高头部越平滑，但是头部可能出现位移'
+		tooltip: '取值越高头部越平滑，但是头部可能出现位移。默认取值: 精度*2'
 	})
 	smoothDistance = 60;
 
@@ -132,15 +139,14 @@ export class SplineTrailRenderer extends cc.RenderComponent {
     // 目测取值=3的情况下，折角Mesh效果较好，头部侧移可以通过宽度渐变来掩盖
     public nbSegmentToParametrize = 3; //0 means all segments
 	
-	public emit = true;
-	public vertexColor = cc.Color.WHITE;
+	// public emit = true;
+	// public vertexColor = cc.Color.WHITE;
 	// public Vector3 normal = new Vector3(0, 0, 1);
 	public fadeType: FadeType = FadeType.None;
 	public fadeLengthBegin: number = 5;
 	public fadeLengthEnd = 5;
 
-	public maxLength = 500;           // 显示给用户的长度。超出部分的线段不生成Mesh
-	public debugDrawSpline = false;
+	// public debugDrawSpline = false;
 	public spline: CatmullRomSpline;
 
 	// Mesh数据，CC里需要设置进MeshData
@@ -148,13 +154,13 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 	_sideDist: number[] = [];		// a_width attribute
 	_dist: number[] = [];			// a_dist attribute
 	
-	triangles: number[] = [];
-	uv: cc.Vec2[] = [];
-    _colors: cc.Color[] = [];
+	// triangles: number[] = [];
+	// uv: cc.Vec2[] = [];
+    // _colors: cc.Color[] = [];
 
-	protected _origin = cc.Vec2.ZERO;		// 始终是0，考虑移除
-	protected _maxInstanciedTriCount: number = 0;
-	protected _allocatedNbQuad: number;		// 已经分配的Quad buff
+	// protected _origin = cc.Vec2.ZERO;		// 始终是0，考虑移除
+	// protected _maxInstanciedTriCount: number = 0;
+	// protected _allocatedNbQuad: number;		// 已经分配的Quad buff
 	protected _lastStartingQuad: number;      // 小于这个值的Quad不计算Mesh，配合maxLength使用
 	protected _quadOffset: number;            // _quadOffset只在重分配buff的时候有用
 
@@ -224,17 +230,17 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 	}
 
 	public StartPath(point: cc.Vec2): void {
-		this._origin = cc.Vec2.ZERO;
+		// this._origin = cc.Vec2.ZERO;
 
-		this._allocatedNbQuad = baseNbQuad;
-		this._maxInstanciedTriCount = 0;
+		// this._allocatedNbQuad = baseNbQuad;
+		// this._maxInstanciedTriCount = 0;
 		this._lastStartingQuad = 0;
 		this._quadOffset = 0;
 
 		this._vertices.length = 0;
-		this.triangles.length = 0;
-		this.uv.length = 0;
-		this._colors.length = 0;
+		// this.triangles.length = 0;
+		// this.uv.length = 0;
+		// this._colors.length = 0;
 		// this.normals = new Array<cc.Vec2>(baseNbQuad * NbVertexPerQuad);
 
 		this.spline.Clear();
@@ -257,39 +263,38 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 	// 更换材质和属性
 	public ImitateTrail(trail: SplineTrailRenderer)
 	{
-		this.emit = trail.emit;
+		// this.emit = trail.emit;
 		this.smoothDistance = trail.smoothDistance;
 		this.segmentWidth = trail.segmentWidth;
 		this.segmentLength = trail.segmentLength;
-		this.vertexColor = trail.vertexColor;
+		// this.vertexColor = trail.vertexColor;
 		// this.normal = trail.normal;
 		this.cornerType = trail.cornerType;
 		this.fadeType = trail.fadeType;
 		this.fadeLengthBegin = trail.fadeLengthBegin;
 		this.fadeLengthEnd = trail.fadeLengthEnd;
 		this.maxLength = trail.maxLength;
-		this.debugDrawSpline = trail.debugDrawSpline;
+		// this.debugDrawSpline = trail.debugDrawSpline;
 		// this.GetComponent<Renderer>().material = trail.GetComponent<Renderer>().material;
 	}
 
 	// TODO: maybe lateUpdate
 	public AddPoint(point: cc.Vec2) {
 		// console.warn(`x: ${point.x}, y: ${point.y}`);
-		if (this.emit) {
-			let knots = this.spline.knots;
-			// let point = this.node.position;
-			// 初始5个点，最后2个点总是变化，但是有可能点又被抛弃？
-			// 如果最后2个点参与渲染，那么头部就会发生偏移
-			knots[knots.length-1].position = point;
-			knots[knots.length-2].position = point;
+		let knots = this.spline.knots;
+		// let point = this.node.position;
+		// 初始5个点，最后2个点总是变化，但是有可能点又被抛弃？
+		// 如果最后2个点参与渲染，那么头部就会发生偏移
+		knots[knots.length-1].position = point;
+		knots[knots.length-2].position = point;
 
-			if (cc.Vec2.distance(knots[knots.length-3].position, point) > this.smoothDistance &&
-				cc.Vec2.distance(knots[knots.length-4].position, point) > this.smoothDistance)
-			{
-				knots.push(new Knot(point));
-			}
+		if (cc.Vec2.distance(knots[knots.length-3].position, point) > this.smoothDistance &&
+			cc.Vec2.distance(knots[knots.length-4].position, point) > this.smoothDistance)
+		{
+			knots.push(new Knot(point));
 		}
 
+		// todo: 如果没有新增节点，考虑不要进行重算。时间相关的消失通过shader控制
 		this.RenderMesh();
 	}
 
@@ -311,13 +316,13 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 		let nbQuad = Math.floor(1./segmentLength * length) + 1 - this._quadOffset;
 		// int nbQuad = ((int)(1f/segmentLength * length)) + 1 - _quadOffset;
 
-		if (this._allocatedNbQuad < nbQuad) {
-			// console.error("handle overflow");
-		}
+		// if (this._allocatedNbQuad < nbQuad) {
+		// 	// console.error("handle overflow");
+		// }
 
 		let startingQuad = this._lastStartingQuad;
 		let lastDistance = startingQuad * segmentLength + this._quadOffset * segmentLength;			// 不需要绘制的线段已经经过的距离。每个quad表示的距离大小固定，都是segmentLength=0.2
-		this._maxInstanciedTriCount = Math.max(this._maxInstanciedTriCount, (nbQuad-1) * NbTriIndexPerQuad);
+		// this._maxInstanciedTriCount = Math.max(this._maxInstanciedTriCount, (nbQuad-1) * NbTriIndexPerQuad);
 
 		let marker: Marker = new Marker;		// marker是一个游标，从需要计算的quad + subsegment开始往后移动
 		spline.PlaceMarker(marker, lastDistance);
@@ -337,13 +342,13 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 		this._vertices.length = (drawingEnd - startingQuad) * NbVertexPerQuad;
 		this._sideDist.length = this._vertices.length;
 		this._dist.length = this._vertices.length;
-		this._colors.length = this._vertices.length;
+		// this._colors.length = this._vertices.length;
+		// this.triangles.length = (drawingEnd - startingQuad) * NbTriIndexPerQuad;
 
-		this.triangles.length = (drawingEnd - startingQuad) * NbTriIndexPerQuad;
 		for (let i=startingQuad; i<drawingEnd; i++) {
 			let distance = lastDistance + segmentLength;
 			let firstVertexIndex = (i-startingQuad) * NbVertexPerQuad;
-			let firstTriIndex = (i-startingQuad) * NbTriIndexPerQuad;
+			// let firstTriIndex = (i-startingQuad) * NbTriIndexPerQuad;
 			spline.MoveMarker(marker, distance);
 
 			let position = spline.GetPosition(marker);
@@ -398,11 +403,6 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 				this._dist[firstVertexIndex + 1] = lastDistance;
 				this._dist[firstVertexIndex + 2] = distance;
 				this._dist[firstVertexIndex + 3] = distance;
-
-				// this._vertices[firstVertexIndex] = transform.InverseTransformPoint(lastPosition - _origin + (lastBinormal * (rh * 0.5f)));
-				// this._vertices[firstVertexIndex + 1] = transform.InverseTransformPoint(lastPosition - _origin + (-lastBinormal * (rh * 0.5f)));
-        		// this._vertices[firstVertexIndex + 2] = transform.InverseTransformPoint(position - _origin + (binormal * (rh2 * 0.5f)));
-				// this._vertices[firstVertexIndex + 3] = transform.InverseTransformPoint(position - _origin + (-binormal * (rh2 * 0.5f)));
             
 				// this.uv[firstVertexIndex] =  new Vector2(lastDistance/segmentWidth, 1);  
 				// this.uv[firstVertexIndex + 1] = new Vector2(lastDistance/segmentWidth, 0);
@@ -412,9 +412,8 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 			else
 			{
                 // quad是一个长方形，保持上一个点的切向伸展
-				// todo: 这里有点小问题，应该取新、旧两点的中点，并且取两者切线的平均值，法线也相应种蒜
+				// 以起点为中心两头延伸，这样segment衔接的时候更加自然
 				let pos = lastPosition.add(lastTangent.mul(segmentLength * -0.5));
-				// Vector3 pos = lastPosition + (lastTangent * segmentLength * -0.5f) - _origin;
 
 				// todo: optimize code
 				this._vertices[firstVertexIndex] = pos.add(lastBinormal.mul(rh * 0.5));
@@ -431,11 +430,6 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 				this._dist[firstVertexIndex + 1] = lastDistance;
 				this._dist[firstVertexIndex + 2] = distance;
 				this._dist[firstVertexIndex + 3] = distance;
-
-				// this._vertices[firstVertexIndex] = transform.InverseTransformPoint(pos + (lastBinormal * (rh * 0.5f)));
-			    // this._vertices[firstVertexIndex + 1] = transform.InverseTransformPoint(pos + (-lastBinormal * (rh * 0.5f)));
-        	    // this._vertices[firstVertexIndex + 2] = transform.InverseTransformPoint(pos + (lastTangent * segmentLength) + (lastBinormal * (rh * 0.5f)));
-			    // this._vertices[firstVertexIndex + 3] = transform.InverseTransformPoint(pos + (lastTangent * segmentLength) + (-lastBinormal * (rh * 0.5f)));
 				
 				// this.uv[firstVertexIndex] =  cc.v2(0, 1);  
 			    // this.uv[firstVertexIndex + 1] = cc.v2(0, 0);
@@ -443,18 +437,18 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 			    // this.uv[firstVertexIndex + 3] = cc.v2(1, 0);
 			}
 
-			this.triangles[firstTriIndex] = firstVertexIndex;
-			this.triangles[firstTriIndex + 1] = firstVertexIndex + 1;
-			this.triangles[firstTriIndex + 2] = firstVertexIndex + 2;
-			this.triangles[firstTriIndex + 3] = firstVertexIndex + 2; 
-			this.triangles[firstTriIndex + 4] = firstVertexIndex + 1;
-			this.triangles[firstTriIndex + 5] = firstVertexIndex + 3; 
+			// this.triangles[firstTriIndex] = firstVertexIndex;
+			// this.triangles[firstTriIndex + 1] = firstVertexIndex + 1;
+			// this.triangles[firstTriIndex + 2] = firstVertexIndex + 2;
+			// this.triangles[firstTriIndex + 3] = firstVertexIndex + 2; 
+			// this.triangles[firstTriIndex + 4] = firstVertexIndex + 1;
+			// this.triangles[firstTriIndex + 5] = firstVertexIndex + 3; 
 
-			let color = this.node.color;
-			this._colors[firstVertexIndex] = color;
-			this._colors[firstVertexIndex + 1] = color;
-        	this._colors[firstVertexIndex + 2] = color;
-			this._colors[firstVertexIndex + 3] = color;
+			// let color = this.node.color;
+			// this._colors[firstVertexIndex] = color;
+			// this._colors[firstVertexIndex + 1] = color;
+        	// this._colors[firstVertexIndex + 2] = color;
+			// this._colors[firstVertexIndex + 3] = color;
 
 			// if (this.fadeType == FadeType.Alpha || this.fadeType == FadeType.Both) {
 			// 	this._colors[firstVertexIndex].a *= h;

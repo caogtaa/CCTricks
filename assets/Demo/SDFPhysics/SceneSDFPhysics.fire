@@ -183,7 +183,7 @@
       "array": [
         0,
         0,
-        607.2822898272574,
+        607.1740366517844,
         0,
         0,
         0,
@@ -2518,6 +2518,7 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
+    "_useOriginalSize": true,
     "_string": "color",
     "_N$string": "color",
     "_fontSize": 20,
