@@ -274,6 +274,7 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 
 	// TODO: maybe lateUpdate
 	public AddPoint(point: cc.Vec2) {
+		// console.warn(`x: ${point.x}, y: ${point.y}`);
 		if (this.emit) {
 			let knots = this.spline.knots;
 			// let point = this.node.position;

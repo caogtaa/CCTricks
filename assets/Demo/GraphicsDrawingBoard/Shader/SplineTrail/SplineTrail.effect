@@ -44,10 +44,9 @@ CCProgram vs %{
   void main () {
     vec4 pos = vec4(a_position, 1);
 #if USE_WORLD_POS
-    // 已经是世界坐标了，不用在转换
+    // 已经是世界坐标了，不用再转换
     pos = cc_matViewProj * pos;  
 #else
-    // pos = cc_matViewProj * pos;  
     pos = cc_matViewProj * cc_matWorld * pos;
 #endif
 

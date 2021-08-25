@@ -1,9 +1,7 @@
 
 
-import { GlobalMeshRenderer } from './GlobalMeshRenderer';
 import { SplineTrailRenderer } from './SplineTrailRenderer';
 
-let _tmp_vec3 = new cc.Vec3();
 //@ts-ignore
 let gfx = cc.gfx;
 let vfmtSplineTrail = new gfx.VertexFormat([
@@ -14,10 +12,11 @@ let vfmtSplineTrail = new gfx.VertexFormat([
 ]);
 
 export class SplineTrailRendererAssembler extends cc.Assembler {
-    public useWorldPos: boolean = true;
+    public useWorldPos: boolean = true;         // 表示从component里获取的坐标是世界坐标
     protected _worldDatas: any = {};
     protected _renderNode: cc.Node = null;
 
+    protected _floatsPerVert: number = 2;       // update by vfmt
     protected _renderData: cc.RenderData = null;
     protected _splineTrailComp: SplineTrailRenderer = null;
     protected _flexBuffer: cc.FlexBuffer = null;
@@ -28,6 +27,7 @@ export class SplineTrailRendererAssembler extends cc.Assembler {
         this._splineTrailComp = comp;
         this._worldDatas = {};
         this._renderNode = null;
+        this._floatsPerVert = this.getVfmt()._bytes >> 2;
 
         let data = this._renderData = new cc.RenderData();
         data.init(this);
@@ -81,7 +81,7 @@ export class SplineTrailRendererAssembler extends cc.Assembler {
     }
 
     updateVerts(comp: SplineTrailRenderer) {
-        let floatsPerVert = this.getVfmt()._bytes >> 2;
+        let floatsPerVert = this._floatsPerVert;
         let vertices = comp._vertices;
         let sideDist = comp._sideDist;
         let dist = comp._dist;
@@ -97,6 +97,109 @@ export class SplineTrailRendererAssembler extends cc.Assembler {
             vData[baseIndex++] = sideDist[i];
             vData[baseIndex++] = dist[i];
             // vData[baseIndex++] = color[i];
+        }
+
+        
+        this.updateWorldVerts(comp);
+    }
+
+    updateWorldVerts(comp) {
+        if (CC_NATIVERENDERER) {
+            // Native模式
+            if (this.useWorldPos) {
+                this.updateWorldVertsNative(comp);
+            }
+        } else {
+            // WegGL模式
+            // 如果vData表示的是世界坐标，需要转换成节点本地坐标
+            if (!this.useWorldPos) {
+                this.updateWorldVertsWebGL(comp);
+            }
+        }
+    }
+
+    updateWorldVertsWebGL(comp) {
+        let vData = this._flexBuffer.vData;
+        let vertexCount = this._flexBuffer.usedVertices;
+
+        let matrix = comp.node._worldMatrix;
+        let matrixm = matrix.m,
+            a = matrixm[0], b = matrixm[1], c = matrixm[4], d = matrixm[5],
+            tx = matrixm[12], ty = matrixm[13];
+
+        // let vl = local[0], vr = local[2],
+        //     vb = local[1], vt = local[3];
+        
+        /*
+        m00 = 1, m01 = 0, m02 = 0, m03 = 0,
+        m04 = 0, m05 = 1, m06 = 0, m07 = 0,
+        m08 = 0, m09 = 0, m10 = 1, m11 = 0,
+        m12 = 0, m13 = 0, m14 = 0, m15 = 1
+        */
+        // [a,b,c,d] = _worldMatrix[1,2,4,5] == [1,0,0,1]
+        // _worldMatrix[12,13]是xy的平移量
+        // 即世界矩阵的左上角2x2是单元矩阵，说明在2D场景内没有出现旋转或者缩放
+        let justTranslate = a === 1 && b === 0 && c === 0 && d === 1;
+        justTranslate = true;       // todo: 目前强行认为没有旋转缩放
+
+        let floatsPerVert = this._floatsPerVert;
+        if (justTranslate) {
+            let baseIndex: number = 0;
+            for (let i=0, n=vertexCount; i<n; ++i) {
+                baseIndex = i * floatsPerVert;
+                vData[baseIndex] += tx;
+                vData[baseIndex+1] += ty;
+                baseIndex += floatsPerVert;
+            }
+        } else {
+            // // 4对xy分别乘以 [2,2]仿射矩阵，然后+平移量
+            // let al = a * vl, ar = a * vr,
+            // bl = b * vl, br = b * vr,
+            // cb = c * vb, ct = c * vt,
+            // db = d * vb, dt = d * vt;
+
+            // // left bottom
+            // // newx = vl * a + vb * c + tx
+            // // newy = vl * b + vb * d + ty
+            // verts[index] = al + cb + tx;
+            // verts[index+1] = bl + db + ty;
+            // index += floatsPerVert;
+            // // right bottom
+            // verts[index] = ar + cb + tx;
+            // verts[index+1] = br + db + ty;
+            // index += floatsPerVert;
+            // // left top
+            // verts[index] = al + ct + tx;
+            // verts[index+1] = bl + dt + ty;
+            // index += floatsPerVert;
+            // // right top
+            // verts[index] = ar + ct + tx;
+            // verts[index+1] = br + dt + ty;
+        }
+    }
+
+    // native场景下使用的updateWorldVerts
+    // copy from \jsb-adapter-master\engine\assemblers\assembler-2d.js
+    protected _tmpVec2 = cc.v2(0, 0);
+    updateWorldVertsNative(comp: SplineTrailRenderer) {
+        // 将vdata做一个偏移，偏移量等于所在节点相对于世界坐标原点的偏移
+        // 因为Native里的vdata以节点anchor为原点
+        // TODO: 考虑旋转缩放
+        let baseIndex: number = 0;
+        let vData = this._flexBuffer.vData;
+        let vertexCount = this._flexBuffer.usedVertices;
+        let floatsPerVert = this._floatsPerVert;
+        let tmpVec2 = this._tmpVec2;
+        tmpVec2.x = tmpVec2.y = 0;
+
+        comp.node.convertToWorldSpaceAR(tmpVec2, tmpVec2);
+        let tx = -tmpVec2.x;
+        let ty = -tmpVec2.y;
+        for (let i=0, n=vertexCount; i<n; ++i) {
+            baseIndex = i * floatsPerVert;
+            vData[baseIndex] += tx;
+            vData[baseIndex+1] += ty;
+            baseIndex += floatsPerVert;
         }
     }
 
@@ -141,14 +244,14 @@ export class SplineTrailRendererAssembler extends cc.Assembler {
         let buffer = this.getBuffer(/*renderer*/);
         let offsetInfo = buffer.request(flexBuffer.usedVertices, flexBuffer.usedIndices);
 
-        if (!this.useWorldPos) {
-            // vData里不是世界坐标，需要做一次转换
-            if (renderer.worldMatDirty || !this._worldDatas[0]) {
-                // 从本地坐标更新成世界坐标
-                this._updateWorldVertices(0, flexBuffer.usedVertices, vData, this.getVfmt(), comp.node._worldMatrix);
-                vData = this._worldDatas[0];
-            }
-        }
+        // if (!this.useWorldPos) {
+        //     // vData里不是世界坐标，需要做一次转换
+        //     if (renderer.worldMatDirty || !this._worldDatas[0]) {
+        //         // 从本地坐标更新成世界坐标
+        //         this._updateWorldVertices(0, flexBuffer.usedVertices, vData, this.getVfmt(), comp.node._worldMatrix);
+        //         vData = this._worldDatas[0];
+        //     }
+        // }
 
         // fill vertices
         let vertexOffset = offsetInfo.byteOffset >> 2,
@@ -170,16 +273,18 @@ export class SplineTrailRendererAssembler extends cc.Assembler {
         }
     }
 
+    protected _tmpVec3 = new cc.Vec3();
     _updateWorldVertices(dataIndex, vertexCount, local, vtxFormat, wolrdMatrix) {
         let world = this._worldDatas[dataIndex];
         if (!world) {
             world = this._worldDatas[dataIndex] = new Float32Array(local.length);
-            world.set(local);
+            // world.set(local);    // not necessary
         }
 
         let floatCount = vtxFormat._bytes / 4;
 
         let elements = vtxFormat._elements;
+        let tmpVec3 = this._tmpVec3;
         for (let i = 0, n = elements.length; i < n; i++) {
             let element = elements[i];
             let attrOffset = element.offset / 4;
@@ -189,15 +294,15 @@ export class SplineTrailRendererAssembler extends cc.Assembler {
                 for (let j = 0; j < vertexCount; j++) {
                     let offset = j * floatCount + attrOffset;
 
-                    _tmp_vec3.x = local[offset];
-                    _tmp_vec3.y = local[offset + 1];
-                    _tmp_vec3.z = local[offset + 2];
+                    tmpVec3.x = local[offset];
+                    tmpVec3.y = local[offset + 1];
+                    tmpVec3.z = local[offset + 2];
 
-                    transformMat4(_tmp_vec3, _tmp_vec3, wolrdMatrix);
+                    transformMat4(tmpVec3, tmpVec3, wolrdMatrix);
 
-                    world[offset] = _tmp_vec3.x;
-                    world[offset + 1] = _tmp_vec3.y;
-                    world[offset + 2] = _tmp_vec3.z;
+                    world[offset] = tmpVec3.x;
+                    world[offset + 1] = tmpVec3.y;
+                    world[offset + 2] = tmpVec3.z;
                 }
             }
         }
