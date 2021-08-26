@@ -1,7 +1,7 @@
 /*
  * @Date: 2021-05-20 18:09:25
  * @LastEditors: GT<caogtaa@gmail.com>
- * @LastEditTime: 2021-07-01 12:15:49
+ * @LastEditTime: 2021-08-26 21:56:49
  */
 
 const Path = require("path")
@@ -104,6 +104,30 @@ function injectAssetsMenu() {
 
 module.exports = {
     load() {
+        let localSettingPath = Path.join(Editor.Project.path, 'local', 'settings.json');
+        let content = Fs.readFileSync(localSettingPath);
+        if (content) {
+            // 拷贝sdf.inc到引擎目录
+            // TODO: 需要测试Mac
+            let targetEngineDir = "";
+            let jsonContent = JSON.parse(content);
+            if (!jsonContent['use-global-engine-setting'] && !jsonContent['use-default-js-engine']) {
+                // 检测到自定义引擎
+                targetEngineDir = jsonContent['js-engine-path'];
+            } else {
+                targetEngineDir = Path.join(Path.dirname(Editor.appPath), 'engine');
+            }
+
+            let targetFilePath = Path.join(targetEngineDir, 'cocos2d', 'renderer', 'build', 'chunks', 'sdf.inc');
+            if (!Fs.existsSync(targetFilePath)) {
+                Editor.log(`[SDF-GEN] 正在拷贝sdf.inc到引擎目录 ${targetFilePath}`);
+                let srcFilePath = Path.join(Editor.Project.path, 'assets', 'Demo', 'SDF', 'Shader', 'sdf.inc');
+                Fs.copyFileSync(srcFilePath, targetFilePath);
+            } else {
+                Editor.log(`[SDF-GEN] sdf.inc已经存在: ${targetFilePath}`);
+            }
+        }
+
         injectAssetsMenu();
     },
 
