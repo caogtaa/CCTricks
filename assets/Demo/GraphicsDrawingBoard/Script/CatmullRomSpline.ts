@@ -14,6 +14,11 @@ export class SubKnot {
     tangent: cc.Vec2;               // 切线单位向量
 }
 
+export enum SplineParameterization {
+    Uniform = 0,
+    Centripetal = 1,        // https://en.wikipedia.org/wiki/Centripetal_Catmull%E2%80%93Rom_spline
+}
+
 export class Knot {
 	public distanceFromStart: number = -1.0;
     public subKnots: SubKnot[] = null;
@@ -39,6 +44,8 @@ export class Marker {
 }
 
 export class CatmullRomSpline {
+    public splineParam: SplineParameterization = SplineParameterization.Centripetal;
+    // public algo: SplineAlgorithm = SplineAlgorithm.UNIFORM;
     public knots: Knot[] = [];
 
     // Catmull-Rom算法的有效控制点数是总点数-2，有效线段数是有效控制点数-1。所以这里-3
@@ -253,7 +260,7 @@ export class CatmullRomSpline {
         // 真正代表segmentIndex线段的点是segmentIndex+2，所以要注意FirstSegmentKnotIndex = 2实际是hardcode的，不能修改
 		let knots = this.knots;
 		return CatmullRomSpline.FindSplinePoint(knots[segmentIndex].position, knots[segmentIndex+1].position, 
-            knots[segmentIndex+2].position, knots[segmentIndex+3].position, t);
+            knots[segmentIndex+2].position, knots[segmentIndex+3].position, t, this.splineParam);
 	}
 
 	protected GetTangentOnSegment(segmentIndex: number, t: number): cc.Vec2
@@ -261,46 +268,137 @@ export class CatmullRomSpline {
         // 真正代表segmentIndex线段的点是segmentIndex+2，所以要注意FirstSegmentKnotIndex = 2实际是hardcode的，不能修改
 		let knots = this.knots;
 		let result = CatmullRomSpline.FindSplineTangent(knots[segmentIndex].position, knots[segmentIndex+1].position, 
-            knots[segmentIndex+2].position, knots[segmentIndex+3].position, t);
+            knots[segmentIndex+2].position, knots[segmentIndex+3].position, t, this.splineParam);
 		result.normalizeSelf();
 		return result;
 	}
+
+    protected static _tmpVec2 = cc.v2(0, 0);
+    protected static GetT(t: number, alpha: number, p0: cc.Vec2, p1: cc.Vec2): number {
+        let tmpVec2 = CatmullRomSpline._tmpVec2;
+        let d = p1.sub(p0, tmpVec2);
+        let a = d.dot(d);
+        let b = Math.pow(a, alpha * .5);
+        return b + t;
+    }
 	
     // 曲线在t点采样
-	protected static FindSplinePoint(p0: cc.Vec2, p1: cc.Vec2, p2: cc.Vec2, p3: cc.Vec2, t: number): cc.Vec2 {
-		let ret = cc.Vec2.ZERO;
+	protected static FindSplinePoint(p0: cc.Vec2, p1: cc.Vec2, p2: cc.Vec2, p3: cc.Vec2, t: number, splineParam: SplineParameterization): cc.Vec2 {
+        if (splineParam === SplineParameterization.Uniform) {
+            let ret = cc.Vec2.ZERO;
 
-		let t2 = t * t;
-		let t3 = t2 * t;
+            let t2 = t * t;
+            let t3 = t2 * t;
 
-		ret.x = 0.5 * ((2.0 * p1.x) +
-			(-p0.x + p2.x) * t +
-			(2.0 * p0.x - 5.0 * p1.x + 4 * p2.x - p3.x) * t2 +
-			(-p0.x + 3.0 * p1.x - 3.0 * p2.x + p3.x) * t3);
+            ret.x = 0.5 * ((2.0 * p1.x) +
+                (-p0.x + p2.x) * t +
+                (2.0 * p0.x - 5.0 * p1.x + 4 * p2.x - p3.x) * t2 +
+                (-p0.x + 3.0 * p1.x - 3.0 * p2.x + p3.x) * t3);
 
-		ret.y = 0.5 * ((2.0 * p1.y) +
-			(-p0.y + p2.y) * t +
-			(2.0 * p0.y - 5.0 * p1.y + 4 * p2.y - p3.y) * t2 +
-			(-p0.y + 3.0 * p1.y - 3.0 * p2.y + p3.y) * t3);
+            ret.y = 0.5 * ((2.0 * p1.y) +
+                (-p0.y + p2.y) * t +
+                (2.0 * p0.y - 5.0 * p1.y + 4 * p2.y - p3.y) * t2 +
+                (-p0.y + 3.0 * p1.y - 3.0 * p2.y + p3.y) * t3);
 
-		return ret;
+            return ret;
+        } else {
+            // Centripetal模式插值
+            let ret = cc.Vec2.ZERO;
+            let alpha = 0.5;
+            let t0 = 0.0;
+            let t1 = CatmullRomSpline.GetT(t0, alpha, p0, p1);
+            let t2 = CatmullRomSpline.GetT(t1, alpha, p1, p2);
+            let t3 = CatmullRomSpline.GetT(t2, alpha, p2, p3);
+            t = cc.misc.lerp(t1, t2, t);
+
+            let t1_0 = 1./(t1-t0);
+            let t2_1 = 1./(t2-t1);
+            let t3_2 = 1./(t3-t2);
+            let t2_0 = 1./(t2-t0);
+            let t3_1 = 1./(t3-t1);
+
+            let A1 = (t1-t)*t1_0*p0.x + (t-t0)*t1_0*p1.x;
+            let A2 = (t2-t)*t2_1*p1.x + (t-t1)*t2_1*p2.x;
+            let A3 = (t3-t)*t3_2*p2.x + (t-t2)*t3_2*p3.x;
+            let B1 = (t2-t)*t2_0*A1   + (t-t0)*t2_0*A2;
+            let B2 = (t3-t)*t3_1*A2   + (t-t1)*t3_1*A3;
+            let C =  (t2-t)*t2_1*B1   + (t-t1)*t2_1*B2;
+            ret.x = C;
+
+            A1 = (t1-t)*t1_0*p0.y + (t-t0)*t1_0*p1.y;
+            A2 = (t2-t)*t2_1*p1.y + (t-t1)*t2_1*p2.y;
+            A3 = (t3-t)*t3_2*p2.y + (t-t2)*t3_2*p3.y;
+            B1 = (t2-t)*t2_0*A1   + (t-t0)*t2_0*A2;
+            B2 = (t3-t)*t3_1*A2   + (t-t1)*t3_1*A3;
+            C =  (t2-t)*t2_1*B1   + (t-t1)*t2_1*B2;
+            ret.y = C;
+            return ret;
+        }
 	}
+
+    // protected static GetT(t: number, alpha: number, p0: cc.Vec2, p1: cc.Vec2): number {
+    protected static GetDT(p0: cc.Vec2, p1: cc.Vec2, alpha: number): number {
+        let tmpVec2 = CatmullRomSpline._tmpVec2;
+        let d = p1.sub(p0, tmpVec2);
+        let a = d.dot(d);
+        let b = Math.pow(a, alpha * .5);
+        return b;
+    }
 
     // 获得曲线在t处的切线向量（非归一化）
     // 返回后再外部归一化
-	protected static FindSplineTangent(p0: cc.Vec2, p1: cc.Vec2, p2: cc.Vec2, p3: cc.Vec2, t: number): cc.Vec2 {
-		let ret = cc.Vec2.ZERO;
+    // 对Spline插值公式求导得到
+	protected static FindSplineTangent(p0: cc.Vec2, p1: cc.Vec2, p2: cc.Vec2, p3: cc.Vec2, t: number, splineParam: SplineParameterization): cc.Vec2 {
+        if (splineParam === SplineParameterization.Uniform) {
+            let ret = cc.Vec2.ZERO;
 
-		let t2 = t * t;
+            let t2 = t * t;
 
-		ret.x = 0.5 * (-p0.x + p2.x) + 
-			(2.0 * p0.x - 5.0 * p1.x + 4 * p2.x - p3.x) * t + 
-			(-p0.x + 3.0 * p1.x - 3.0 * p2.x + p3.x) * t2 * 1.5;
+            ret.x = 0.5 * (-p0.x + p2.x) + 
+                (2.0 * p0.x - 5.0 * p1.x + 4 * p2.x - p3.x) * t + 
+                (-p0.x + 3.0 * p1.x - 3.0 * p2.x + p3.x) * t2 * 1.5;
 
-		ret.y = 0.5 * (-p0.y + p2.y) + 
-			(2.0 * p0.y - 5.0 * p1.y + 4 * p2.y - p3.y) * t + 
-			(-p0.y + 3.0 * p1.y - 3.0 * p2.y + p3.y) * t2 * 1.5;
+            ret.y = 0.5 * (-p0.y + p2.y) + 
+                (2.0 * p0.y - 5.0 * p1.y + 4 * p2.y - p3.y) * t + 
+                (-p0.y + 3.0 * p1.y - 3.0 * p2.y + p3.y) * t2 * 1.5;
 
-		return ret;
+            return ret;
+        } else {
+            // Centripetal模式求切线
+            // quick answer:
+            // https://math.stackexchange.com/questions/843595/how-can-i-calculate-the-derivative-of-a-catmull-rom-spline-with-nonuniform-param
+            // https://stackoverflow.com/questions/9489736/catmull-rom-curve-with-no-cusps-and-no-self-intersections/23980479#23980479
+            // parper:
+            // http://www.cemyuksel.com/research/catmullrom_param/catmullrom.pdf
+            let alpha = 0.5;
+            let t0 = 0.0;
+            let t1 = CatmullRomSpline.GetT(t0, alpha, p0, p1);
+            let t2 = CatmullRomSpline.GetT(t1, alpha, p1, p2);
+            let t3 = CatmullRomSpline.GetT(t2, alpha, p2, p3);
+            t = cc.misc.lerp(t1, t2, t);
+
+            let t1_0 = 1./(t1-t0);
+            let t2_0 = 1./(t2-t0);
+            let t2_1 = 1./(t2-t1);
+            let t3_1 = 1./(t3-t1);
+            let t3_2 = 1./(t3-t2);
+
+            let tan1x = (p1.x-p0.x) * t1_0 - (p2.x-p0.x) * t2_0 + (p2.x-p1.x) * t2_1;
+            let tan1y = (p1.y-p0.y) * t1_0 - (p2.y-p0.y) * t2_0 + (p2.y-p1.y) * t2_1;
+            let tan2x = (p2.x-p1.x) * t2_1 - (p3.x-p1.x) * t3_1 + (p3.x-p2.x) * t3_2;
+            let tan2y = (p2.y-p1.y) * t2_1 - (p3.y-p1.y) * t3_1 + (p3.y-p2.y) * t3_2;
+
+            const inv3 = (t2-t1)/3;
+            let R1x = p1.x + inv3 * tan1x;
+            let R1y = p1.y + inv3 * tan1y;
+            let R2x = p2.x - inv3 * tan2x;
+            let R2y = p2.y - inv3 * tan2y;
+
+            let u = (t-t1)*t2_1;
+            let n = 1-u;
+            let dCdtx = 3*(n*n*(R1x-p1.x) + 2*u*n*(R2x-R1x) + u*u*(p2.x-R2x)) * t2_1;
+            let dCdty = 3*(n*n*(R1y-p1.y) + 2*u*n*(R2y-R1y) + u*u*(p2.y-R2y)) * t2_1;
+            return cc.v2(dCdtx, dCdty);
+        }
 	}
 }

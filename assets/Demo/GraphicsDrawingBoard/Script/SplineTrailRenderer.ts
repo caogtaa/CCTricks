@@ -1,5 +1,5 @@
 const { ccclass, property } = cc._decorator;
-import { CatmullRomSpline, Knot, Marker } from "./CatmullRomSpline"
+import { CatmullRomSpline, Knot, Marker, SplineParameterization } from "./CatmullRomSpline"
 import { SplineTrailRendererAssembler } from "./SplineTrailAssembler";
 
 export enum CornerType {
@@ -53,9 +53,28 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 
 	@property({
 		type: cc.Enum(CornerType),
-		displayName: '折角类型'
+		displayName: '折角类型',
+		tooltip: '连续模式下更平滑但是局部可能出现形变; 分段模式下各分段独立绘制，适用于非连续特效'
 	})
 	cornerType: CornerType = CornerType.Continuous;
+
+	@property({ type: cc.Enum(SplineParameterization) })
+	_splineParam: SplineParameterization = SplineParameterization.Centripetal;
+
+	@property({
+		type: cc.Enum(SplineParameterization),
+		displayName: '参数化方式',
+		tooltip: '主要区别是曲线折角处理，Centripetal相对来说更加自然，计算量大一点'
+	})
+	set splineParam(value: SplineParameterization) {
+		this._splineParam = value;
+		if (!CC_EDITOR) {
+			this.spline.splineParam = value;
+		}
+	}
+	get splineParam(): SplineParameterization {
+		return this._splineParam;
+	}
 
 	// @property(cc.Texture2D)
 	// _texture: cc.Texture2D = null;
@@ -177,6 +196,10 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 		]);
 		vfmtSplineTrail.name = 'vfmtSplineTrail';
 		this.FlushMatProperties();
+
+		// update spline properties
+		this.spline.splineParam = this._splineParam;
+
 		// if (this._texture) {
 		// 	this.UpdateMaterialTexture();
 		// }
@@ -248,12 +271,13 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 		let emitTime = cc.director.getTotalTime();
 
 		// TODO: 第一个控制点向反方向延伸
+		this._fixedPointIndex = 0;
 		let knots = this.spline.knots;
 		knots.push(new Knot(point, emitTime));
-		knots.push(new Knot(point, emitTime));
-		knots.push(new Knot(point, emitTime));
-		knots.push(new Knot(point, emitTime));
-		knots.push(new Knot(point, emitTime));
+		// knots.push(new Knot(point, emitTime));
+		// knots.push(new Knot(point, emitTime));
+		// knots.push(new Knot(point, emitTime));
+		// knots.push(new Knot(point, emitTime));
 	}
 
 	public Clear(): void {
@@ -274,28 +298,80 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 		this.fadeLengthBegin = trail.fadeLengthBegin;
 		this.fadeLengthEnd = trail.fadeLengthEnd;
 		this.maxLength = trail.maxLength;
+		this.splineParam = trail.splineParam;
 		// this.debugDrawSpline = trail.debugDrawSpline;
 		// this.GetComponent<Renderer>().material = trail.GetComponent<Renderer>().material;
 	}
+
+	// 最后一个定点的下标。新的点需要和该定点做距离比较来判断是否变为新的定点
+	protected _fixedPointIndex: number = 0;
+	protected _distTolerance: number = 4;
 
 	// TODO: maybe lateUpdate
 	public AddPoint(point: cc.Vec2) {
 		// console.warn(`x: ${point.x}, y: ${point.y}`);
 		let knots = this.spline.knots;
-		// let point = this.node.position;
-		// 初始5个点，最后2个点总是变化，但是有可能点又被抛弃？
-		// 如果最后2个点参与渲染，那么头部就会发生偏移
-		knots[knots.length-1].position = point;
-		knots[knots.length-2].position = point;
-
-		if (cc.Vec2.distance(knots[knots.length-3].position, point) > this.smoothDistance &&
-			cc.Vec2.distance(knots[knots.length-4].position, point) > this.smoothDistance)
-		{
+		if (knots.length === 0) {
 			knots.push(new Knot(point));
+			this._fixedPointIndex = 0;
+			return;
+		} else if (knots.length === 1) {
+			// check distance to 1st point
+			let dist = cc.Vec2.distance(knots[0].position, point);
+			if (dist <= this._distTolerance) {
+				// 前几个点可以密一点，不要求和smoothDistance比较
+				return;
+			}
+
+			// 反向计算P0，向后计算P3
+			let P0 = knots[0].position.mul(2).sub(point);
+			let P3 = point.mul(2).sub(knots[0].position);
+			knots.splice(0, 0, new Knot(P0));
+			knots.push(new Knot(point));
+			knots.push(new Knot(P3));
+			if (dist > this.smoothDistance) {
+				this._fixedPointIndex = 2;
+			} else {
+				this._fixedPointIndex = 1;
+			}
+			// should now render
+		} else {
+			// let point = this.node.position;
+			// 初始5个点，最后2个点总是变化，但是有可能点又被抛弃？
+			// 如果最后2个点参与渲染，那么头部就会发生偏移
+
+			// 尝试替换P2
+			// 如果和P1距离太近则直接抛弃
+			let fixedPointIndex = this._fixedPointIndex;
+			let P0 = knots[fixedPointIndex-1].position;
+			let P1 = knots[fixedPointIndex].position;
+			let dist = cc.Vec2.distance(P1, point);
+			if (dist <= this._distTolerance) {
+				return;
+			}
+
+			// 替换P2
+			let P2 = knots[fixedPointIndex+1].position;
+			P2.set(point);
+			
+			// P1->P2延伸重算P3
+			if (knots.length <= fixedPointIndex+2)
+				knots.push(new Knot(cc.v2(0, 0)));
+
+			let P3 = knots[fixedPointIndex+2].position;
+			P3.set(P2.mul(2).sub(P1));
+			if (cc.Vec2.distance(P1, P2) > this.smoothDistance &&
+				cc.Vec2.distance(P0, P2) > this.smoothDistance)
+			{
+				// 新的P2足够远，固化P2
+				++ this._fixedPointIndex;				
+			}
 		}
 
 		// todo: 如果没有新增节点，考虑不要进行重算。时间相关的消失通过shader控制
-		this.RenderMesh();
+		// 4个控制点，最后一个点是占位用的，和P3相等
+		if (knots.length >= 4)
+			this.RenderMesh();
 	}
 
 	protected RenderMesh() {
