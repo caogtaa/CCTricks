@@ -1,7 +1,7 @@
 /*
  * @Date: 2021-05-20 18:09:25
  * @LastEditors: GT<caogtaa@gmail.com>
- * @LastEditTime: 2021-08-26 21:56:49
+ * @LastEditTime: 2021-08-26 22:24:07
  */
 
 const Path = require("path")
@@ -107,24 +107,32 @@ module.exports = {
         let localSettingPath = Path.join(Editor.Project.path, 'local', 'settings.json');
         let content = Fs.readFileSync(localSettingPath);
         if (content) {
-            // 拷贝sdf.inc到引擎目录
-            // TODO: 需要测试Mac
-            let targetEngineDir = "";
-            let jsonContent = JSON.parse(content);
-            if (!jsonContent['use-global-engine-setting'] && !jsonContent['use-default-js-engine']) {
-                // 检测到自定义引擎
-                targetEngineDir = jsonContent['js-engine-path'];
-            } else {
-                targetEngineDir = Path.join(Path.dirname(Editor.appPath), 'engine');
-            }
+            let srcFilePath = Path.join(Editor.Project.path, 'assets', 'Demo', 'SDF', 'Shader', 'sdf.inc');
+            try {
+                // 拷贝sdf.inc到引擎目录
+                // TODO: 需要测试Mac
+                let targetEngineDir = "";
+                let jsonContent = JSON.parse(content);
+                if (!jsonContent['use-global-engine-setting'] && !jsonContent['use-default-js-engine']) {
+                    // 检测到自定义引擎
+                    targetEngineDir = jsonContent['js-engine-path'];
+                } else {
+                    // C:\CocosDashboard_1.0.12\resources\.editors\Creator\2.4.2\resources\app.asar
+                    let editorDir = Path.dirname(require('electron').app.getAppPath());
+                    targetEngineDir = Path.join(editorDir, 'engine');
 
-            let targetFilePath = Path.join(targetEngineDir, 'cocos2d', 'renderer', 'build', 'chunks', 'sdf.inc');
-            if (!Fs.existsSync(targetFilePath)) {
-                Editor.log(`[SDF-GEN] 正在拷贝sdf.inc到引擎目录 ${targetFilePath}`);
-                let srcFilePath = Path.join(Editor.Project.path, 'assets', 'Demo', 'SDF', 'Shader', 'sdf.inc');
-                Fs.copyFileSync(srcFilePath, targetFilePath);
-            } else {
-                Editor.log(`[SDF-GEN] sdf.inc已经存在: ${targetFilePath}`);
+                    // targetEngineDir = Path.join(Path.dirname(), 'engine');
+                }
+
+                let targetFilePath = Path.join(targetEngineDir, 'cocos2d', 'renderer', 'build', 'chunks', 'sdf.inc');
+                if (!Fs.existsSync(targetFilePath)) {
+                    Editor.log(`[SDF-GEN] 正在拷贝sdf.inc到引擎目录 ${targetFilePath}`);
+                    Fs.copyFileSync(srcFilePath, targetFilePath);
+                } else {
+                    Editor.log(`[SDF-GEN] sdf.inc已经存在: ${targetFilePath}`);
+                }
+            } catch (e) {
+                Editor.err(`[SDF-GEN] 拷贝sdf.inc失败，请按照文件头部注释操作 ${srcFilePath}`);
             }
         }
 
