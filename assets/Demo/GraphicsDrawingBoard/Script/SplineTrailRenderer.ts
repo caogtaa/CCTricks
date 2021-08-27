@@ -302,13 +302,14 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 		this.RenderMesh();
 	}
 
-	protected _tmpVec2 = new cc.Vec2();
-	protected _prePosition = new cc.Vec2();
-	protected _preTangent = new cc.Vec2();
-	protected _preBinormal = new cc.Vec2();
-	protected _curPosition = new cc.Vec2();
-	protected _curTangent = new cc.Vec2();
-	protected _curBinormal = new cc.Vec2();
+	protected _tmpVec2 = new cc.Vec2;
+	protected _halfWidthVec2 = new cc.Vec2;
+	protected _prePosition = new cc.Vec2;
+	protected _preTangent = new cc.Vec2;
+	protected _preBinormal = new cc.Vec2;
+	protected _curPosition = new cc.Vec2;
+	protected _curTangent = new cc.Vec2;
+	protected _curBinormal = new cc.Vec2;
 	public RenderMesh() {
 		let spline = this.spline;
 		if (spline.knots.length < 4)
@@ -336,8 +337,8 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 		spline.PlaceMarker(marker, lastDistance);
 
 		let prePosition = spline.GetPosition(marker, this._prePosition);
-		let lastTangent = spline.GetTangent(marker);
-		let lastBinormal = CatmullRomSpline.ComputeBinormal(lastTangent, null/*dummy*/);
+		let preTangent = spline.GetTangent(marker, this._preTangent);
+		let preBinormal = CatmullRomSpline.ComputeBinormal(preTangent, null/*dummy*/, this._preBinormal);
 
 		// Vector3 lastPosition = spline.GetPosition(marker);
 		// Vector3 lastTangent = spline.GetTangent(marker);
@@ -358,12 +359,12 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 			let firstVertexIndex = (i-startingQuad) * vertexPerQuad;
 			spline.MoveMarker(marker, distance);
 
-			let position = spline.GetPosition(marker);
-			let tangent = spline.GetTangent(marker);
+			let position = spline.GetPosition(marker, this._curPosition);
+			let tangent = spline.GetTangent(marker, this._curTangent);
 
             // Mesh在xz平面，此时normal = (0, -1, 0)
             // 此时binormal在xz平面上，往Quad的侧面走
-			let binormal = CatmullRomSpline.ComputeBinormal(tangent, null/*dummy*/);
+			let binormal = CatmullRomSpline.ComputeBinormal(tangent, null/*dummy*/, this._curBinormal);
 
 			// Vector3 binormal = CatmullRomSpline.ComputeBinormal(tangent, normal);
 			let h = this.FadeMultiplier(lastDistance, length);	// be 1.0 for simple
@@ -390,10 +391,13 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 				let tmpVec2 = this._tmpVec2;
 
                 // quad是一个四边形，每个途经点沿自己的两侧延伸
-				this._vertices.Get(firstVertexIndex).set(lastBinormal.mul(rh * 0.5, tmpVec2).add(prePosition, tmpVec2));
-				this._vertices.Get(firstVertexIndex + 1).set(lastBinormal.mul(-rh * 0.5, tmpVec2).add(prePosition, tmpVec2));
-        		this._vertices.Get(firstVertexIndex + 2).set(binormal.mul(rh2 * 0.5, tmpVec2).add(position, tmpVec2));
-				this._vertices.Get(firstVertexIndex + 3).set(binormal.mul(-rh2 * 0.5, tmpVec2).add(position, tmpVec2));
+				let halfWidth = preBinormal.mul(rh * 0.5, this._halfWidthVec2);
+				this._vertices.Get(firstVertexIndex).set(prePosition.add(halfWidth, tmpVec2));
+				this._vertices.Get(firstVertexIndex + 1).set(prePosition.add(halfWidth.neg(tmpVec2), tmpVec2));
+
+				halfWidth = binormal.mul(rh2 * 0.5, halfWidth);
+        		this._vertices.Get(firstVertexIndex + 2).set(position.add(halfWidth, tmpVec2));
+				this._vertices.Get(firstVertexIndex + 3).set(position.add(halfWidth.neg(tmpVec2), tmpVec2));
 
 				// 注释部分是以上代码的易读版本
 				// this._vertices[firstVertexIndex] = lastPosition.add(lastBinormal.mul(rh * 0.5));
@@ -421,22 +425,24 @@ export class SplineTrailRenderer extends cc.RenderComponent {
                 // quad是一个长方形，保持上一个点的切向伸展
 				// 以起点为中心两头延伸，这样segment衔接的时候更加自然
 				// todo: use preposition instead
-				let pos = prePosition.add(lastTangent.mul(segmentLength * -0.5));
 				let tmpVec2 = this._tmpVec2;
+				prePosition.addSelf(preTangent.mul(segmentLength * -0.5, tmpVec2));
 
-				// todo: optimize code
-				this._vertices.Get(firstVertexIndex).set(lastBinormal.mul(rh * 0.5, tmpVec2).add(pos, tmpVec2));
-			    this._vertices.Get(firstVertexIndex + 1).set(lastBinormal.mul(-rh * 0.5, tmpVec2).add(pos, tmpVec2));
+				// 注意此处值已经覆盖，后面不要用
+				let halfWidth = preBinormal.mul(rh * 0.5, this._halfWidthVec2);
+				this._vertices.Get(firstVertexIndex).set(prePosition.add(halfWidth, tmpVec2));
+				this._vertices.Get(firstVertexIndex + 1).set(prePosition.add(halfWidth.neg(tmpVec2), tmpVec2));
 
-				pos.addSelf(lastTangent.mul(segmentLength));
-        	    this._vertices.Get(firstVertexIndex + 2).set(lastBinormal.mul(rh * 0.5, tmpVec2).add(pos, tmpVec2));
-			    this._vertices.Get(firstVertexIndex + 3).set(lastBinormal.mul(-rh * 0.5, tmpVec2).add(pos, tmpVec2));
+				// prePosition向后移动一个segment
+				prePosition.addSelf(preTangent.mul(segmentLength, tmpVec2));
+				this._vertices.Get(firstVertexIndex + 2).set(prePosition.add(halfWidth, tmpVec2));
+				this._vertices.Get(firstVertexIndex + 3).set(prePosition.add(halfWidth.neg(tmpVec2), tmpVec2));
 
 				// 注释部分是以上代码的易读版本
 				// this._vertices[firstVertexIndex] = pos.add(lastBinormal.mul(rh * 0.5));
 			    // this._vertices[firstVertexIndex + 1] = pos.add(lastBinormal.mul(-rh * 0.5));
-        	    // this._vertices[firstVertexIndex + 2] = pos.add(lastTangent.mul(segmentLength)).add(lastBinormal.mul(rh * 0.5));
-			    // this._vertices[firstVertexIndex + 3] = pos.add(lastTangent.mul(segmentLength)).add(lastBinormal.mul(-rh * 0.5));
+        	    // this._vertices[firstVertexIndex + 2] = pos.add(preTangent.mul(segmentLength)).add(lastBinormal.mul(rh * 0.5));
+			    // this._vertices[firstVertexIndex + 3] = pos.add(preTangent.mul(segmentLength)).add(lastBinormal.mul(-rh * 0.5));
 
 				this._sideDist[firstVertexIndex] = 0;
 				this._sideDist[firstVertexIndex + 1] = segmentWidth;
@@ -468,8 +474,8 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 			// }
 
 			prePosition.set(position);
-			lastTangent.set(tangent);
-			lastBinormal.set(binormal);
+			preTangent.set(tangent);
+			preBinormal.set(binormal);
 			lastDistance = distance;
 		}
 

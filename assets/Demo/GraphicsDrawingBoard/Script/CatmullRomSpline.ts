@@ -76,8 +76,12 @@ export class CatmullRomSpline {
     }
 
 
-    public static ComputeBinormal(tangent: cc.Vec2, dummy: cc.Vec2): cc.Vec2 {
-        return cc.v2(tangent.y, -tangent.x);
+    public static ComputeBinormal(tangent: cc.Vec2, dummy: cc.Vec2, out?: cc.Vec2): cc.Vec2 {
+        out = out || new cc.Vec2;
+        out.x = tangent.y;
+        out.y = -tangent.x;
+        return out;
+        // return cc.v2(tangent.y, -tangent.x);
     }
 
     public Length(): number {
