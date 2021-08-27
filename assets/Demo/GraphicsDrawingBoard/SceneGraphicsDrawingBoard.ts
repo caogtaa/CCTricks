@@ -6,7 +6,8 @@
 */
 
 import { SmoothTrail } from "../Graphics/Script/SmoothTrail";
-import { SplineTrailRenderer } from "./Script/SplineTrailRenderer";
+import { SplineParameterization } from "./Script/CatmullRomSpline";
+import { CornerType, SplineTrailRenderer } from "./Script/SplineTrailRenderer";
 
 
 const {ccclass, property} = cc._decorator;
@@ -33,6 +34,9 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
 
     @property(cc.EditBox)
     edtK: cc.EditBox = null;
+
+    @property([cc.Material])
+    materials: cc.Material[] = [];
 
     protected _autoRender: boolean = true;
     protected _isDragging: boolean = false;
@@ -411,5 +415,22 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
 
         if (this._debug)
             console.log(`---------------------------- end ------------------------`)
+    }
+
+    protected OnSwitchParam() {
+        if (this.trailRenderer.cornerType === CornerType.Continuous) {
+            this.trailRenderer.cornerType = CornerType.Fragmented;
+        } else {
+            this.trailRenderer.cornerType = CornerType.Continuous;
+        }
+
+        this.trailRenderer.RenderMesh();
+    }
+
+    protected _materialIndex = 0;
+    protected OnSwitchMaterial() {
+        this._materialIndex = (this._materialIndex + 1) % this.materials.length;
+        this.trailRenderer.setMaterial(0, this.materials[this._materialIndex]);
+        this.trailRenderer.RenderMesh();
     }
 }

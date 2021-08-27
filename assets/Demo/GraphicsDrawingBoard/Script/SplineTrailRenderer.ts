@@ -370,12 +370,14 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 
 		// todo: 如果没有新增节点，考虑不要进行重算。时间相关的消失通过shader控制
 		// 4个控制点，最后一个点是占位用的，和P3相等
-		if (knots.length >= 4)
-			this.RenderMesh();
+		this.RenderMesh();
 	}
 
-	protected RenderMesh() {
+	public RenderMesh() {
 		let spline = this.spline;
+		if (spline.knots.length < 4)
+			return;
+
 		let segmentLength = this.segmentLength;
 		let segmentWidth = this.segmentWidth;
 		if (this.nbSegmentToParametrize === 0) {
