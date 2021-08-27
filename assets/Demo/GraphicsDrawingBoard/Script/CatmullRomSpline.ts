@@ -53,23 +53,23 @@ export class CatmullRomSpline {
         return Math.max(0, this.knots.length - 3);
     }
 
-    public FindPositionFromDistance(distance: number): cc.Vec2 {
-        let tangent = cc.Vec2.ZERO;
+    public FindPositionFromDistance(distance: number, out?: cc.Vec2): cc.Vec2 {
+        let tangent = out || cc.Vec2.ZERO;
         let result = new Marker;
         let foundSegment: boolean = this.PlaceMarker(result, distance);
         if (foundSegment) {
-            tangent = this.GetPosition(result);
+            tangent = this.GetPosition(result, tangent);
         }
 
         return tangent;
     }
 
-    public FindTangentFromDistance(distance: number): cc.Vec2 {
-        let tangent = cc.Vec2.ZERO;
+    public FindTangentFromDistance(distance: number, out?: cc.Vec2): cc.Vec2 {
+        let tangent = out || cc.Vec2.ZERO;
         let result = new Marker;
         let foundSegment = this.PlaceMarker(result, distance);
         if (foundSegment) {
-            tangent = this.GetTangent(result);
+            tangent = this.GetTangent(result, tangent);
         }
 
         return tangent;
@@ -165,8 +165,8 @@ export class CatmullRomSpline {
             for (let j=0; j<subKnots.length; j++) {
                 let sk = new SubKnot;
                 sk.distanceFromStart = totalDistance += this.ComputeLengthOfSegment(i, (j-1)*Epsilon, j*Epsilon);
-                sk.position = this.GetPositionOnSegment(i, j*Epsilon);
-                sk.tangent = this.GetTangentOnSegment(i, j*Epsilon);
+                sk.position = this.GetPositionOnSegment(i, j*Epsilon);      // new cc.Vec
+                sk.tangent = this.GetTangentOnSegment(i, j*Epsilon);        // new cc.Vec
 
                 subKnots[j] = sk;
             }
@@ -244,35 +244,37 @@ export class CatmullRomSpline {
 
 	// 计算线段[from, to]区间的长度
     // 这里看似在分段累加，实际上有时候from和to刚好相差一个Epsilon。这里叫Epsilon也不合适，应该叫Delta
+    protected _prePoint = new cc.Vec2;
+    protected _curPoint = new cc.Vec2;
     protected ComputeLengthOfSegment(segmentIndex: number, from: number, to: number): number {
 		let length: number = 0;
 		from = cc.misc.clamp01(from);
 		to = cc.misc.clamp01(to);
 
-        let lastPoint = this.GetPositionOnSegment(segmentIndex, from);
+        let lastPoint = this.GetPositionOnSegment(segmentIndex, from, this._prePoint);
+        let point = this._curPoint;
 
-        for (let j=from+Epsilon; j<to+Epsilon/2; j+=Epsilon) {
-            let point = this.GetPositionOnSegment(segmentIndex, j);
+        for (let j=from+Epsilon, n=to+Epsilon/2; j<n; j+=Epsilon) {
+            this.GetPositionOnSegment(segmentIndex, j, this._curPoint);
             length += cc.Vec2.distance(point, lastPoint);
-			lastPoint = point;
+			lastPoint.set(point);
         }
 
         return length;
     }
 	
-	protected GetPositionOnSegment(segmentIndex: number, t: number): cc.Vec2 {
+	protected GetPositionOnSegment(segmentIndex: number, t: number, out?: cc.Vec2): cc.Vec2 {
         // 真正代表segmentIndex线段的点是segmentIndex+2，所以要注意FirstSegmentKnotIndex = 2实际是hardcode的，不能修改
 		let knots = this.knots;
 		return CatmullRomSpline.FindSplinePoint(knots[segmentIndex].position, knots[segmentIndex+1].position, 
-            knots[segmentIndex+2].position, knots[segmentIndex+3].position, t, this.splineParam);
+            knots[segmentIndex+2].position, knots[segmentIndex+3].position, t, this.splineParam, out || new cc.Vec2);
 	}
 
-	protected GetTangentOnSegment(segmentIndex: number, t: number): cc.Vec2
-	{
+	protected GetTangentOnSegment(segmentIndex: number, t: number, out?: cc.Vec2): cc.Vec2 {
         // 真正代表segmentIndex线段的点是segmentIndex+2，所以要注意FirstSegmentKnotIndex = 2实际是hardcode的，不能修改
 		let knots = this.knots;
 		let result = CatmullRomSpline.FindSplineTangent(knots[segmentIndex].position, knots[segmentIndex+1].position, 
-            knots[segmentIndex+2].position, knots[segmentIndex+3].position, t, this.splineParam);
+            knots[segmentIndex+2].position, knots[segmentIndex+3].position, t, this.splineParam, out || new cc.Vec2);
 		result.normalizeSelf();
 		return result;
 	}
@@ -287,10 +289,9 @@ export class CatmullRomSpline {
     }
 	
     // 曲线在t点采样
-	protected static FindSplinePoint(p0: cc.Vec2, p1: cc.Vec2, p2: cc.Vec2, p3: cc.Vec2, t: number, splineParam: SplineParameterization): cc.Vec2 {
+	protected static FindSplinePoint(p0: cc.Vec2, p1: cc.Vec2, p2: cc.Vec2, p3: cc.Vec2, t: number, splineParam: SplineParameterization, out?: cc.Vec2): cc.Vec2 {
+        let ret = out || new cc.Vec2;
         if (splineParam === SplineParameterization.Uniform) {
-            let ret = cc.Vec2.ZERO;
-
             let t2 = t * t;
             let t3 = t2 * t;
 
@@ -307,7 +308,6 @@ export class CatmullRomSpline {
             return ret;
         } else {
             // Centripetal模式插值
-            let ret = cc.Vec2.ZERO;
             let alpha = 0.5;
             let t0 = 0.0;
             let t1 = CatmullRomSpline.GetT(t0, alpha, p0, p1);
@@ -352,10 +352,9 @@ export class CatmullRomSpline {
     // 获得曲线在t处的切线向量（非归一化）
     // 返回后再外部归一化
     // 对Spline插值公式求导得到
-	protected static FindSplineTangent(p0: cc.Vec2, p1: cc.Vec2, p2: cc.Vec2, p3: cc.Vec2, t: number, splineParam: SplineParameterization): cc.Vec2 {
+	protected static FindSplineTangent(p0: cc.Vec2, p1: cc.Vec2, p2: cc.Vec2, p3: cc.Vec2, t: number, splineParam: SplineParameterization, out?: cc.Vec2): cc.Vec2 {
+        let ret = out || new cc.Vec2;
         if (splineParam === SplineParameterization.Uniform) {
-            let ret = cc.Vec2.ZERO;
-
             let t2 = t * t;
 
             ret.x = 0.5 * (-p0.x + p2.x) + 
@@ -402,7 +401,9 @@ export class CatmullRomSpline {
             let n = 1-u;
             let dCdtx = 3*(n*n*(R1x-p1.x) + 2*u*n*(R2x-R1x) + u*u*(p2.x-R2x)) * t2_1;
             let dCdty = 3*(n*n*(R1y-p1.y) + 2*u*n*(R2y-R1y) + u*u*(p2.y-R2y)) * t2_1;
-            return cc.v2(dCdtx, dCdty);
+            ret.x = dCdtx;
+            ret.y = dCdty;
+            return ret;
         }
 	}
 }
