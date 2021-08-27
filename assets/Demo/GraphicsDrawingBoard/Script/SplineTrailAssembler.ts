@@ -92,8 +92,8 @@ export class SplineTrailRendererAssembler extends cc.Assembler {
         let baseIndex: number = 0;
         for (let i=0, n=vertexCount; i<n; ++i) {
             baseIndex = i * floatsPerVert;
-            vData[baseIndex++] = vertices[i].x;
-            vData[baseIndex++] = vertices[i].y;
+            vData[baseIndex++] = vertices.Get(i).x;
+            vData[baseIndex++] = vertices.Get(i).y;
             vData[baseIndex++] = sideDist[i];
             vData[baseIndex++] = dist[i];
             // vData[baseIndex++] = color[i];

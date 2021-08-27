@@ -94,8 +94,8 @@ export class CatmullRomSpline {
         this.PlaceMarker(marker, distance, marker);
     }
 
-    public GetPosition(marker: Marker): cc.Vec2 {
-        let pos = cc.Vec2.ZERO;
+    public GetPosition(marker: Marker, out?: cc.Vec2): cc.Vec2 {
+        let pos = out || cc.Vec2.ZERO;
         if (this.NbSegments === 0)
             return pos;
 
@@ -112,8 +112,8 @@ export class CatmullRomSpline {
         return pos;
     }
 
-    public GetTangent(marker: Marker) {
-        let tangent = cc.Vec2.ZERO;
+    public GetTangent(marker: Marker, out?: cc.Vec2): cc.Vec2 {
+        let tangent = out || cc.Vec2.ZERO;
         if (this.NbSegments === 0)
             return tangent;
         
