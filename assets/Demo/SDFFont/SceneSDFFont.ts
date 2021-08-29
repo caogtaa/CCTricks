@@ -21,6 +21,9 @@ export default class SceneSDFFont extends cc.Component {
     @property(cc.Node)
     displayArea: cc.Node = null;
 
+    @property(cc.EditBox)
+    edtWidth: cc.EditBox = null;
+
     // LIFE-CYCLE CALLBACKS:
 
     protected _viewCenter: cc.Vec2 = cc.v2(0, 0);   // 视图中心相对与纹理的位置，单位: 设计分辨率像素
@@ -34,6 +37,8 @@ export default class SceneSDFFont extends cc.Component {
         dragArea.on(cc.Node.EventType.TOUCH_CANCEL, this.OnDisplayTouchEnd, this);
 
         dragArea.on(cc.Node.EventType.MOUSE_WHEEL, this.OnDisplayMouseWheel, this);
+
+        this.edtWidth.string = this.displayArea.width.toString();
     }
 
     start () {
@@ -118,6 +123,33 @@ export default class SceneSDFFont extends cc.Component {
         this._viewCenter.mulSelf(scale);
 
         this.UpdateDisplayMatProperties();
+    }
+
+    protected OnEditWidtEnded(e: cc.EditBox) {
+        let w = parseInt(e.string);
+        this.UpdateWidthProperty(w);
+    }
+
+    protected UpdateWidthProperty(w: number) {
+        let displayArea = this.displayArea;
+        let mat = displayArea.getComponent(cc.RenderComponent).getMaterial(0);
+        if (mat.getProperty("sz", 0) !== undefined) {
+            mat.setProperty("sz", [w * this._viewScale, displayArea.height * this._viewScale]);
+        }
+    }
+
+    protected OnBtnUp(e: cc.EditBox) {
+        let w = parseInt(this.edtWidth.string);
+        w += 1;
+        this.edtWidth.string = w.toString();
+        this.UpdateWidthProperty(w);
+    }
+
+    protected OnBtnDown(e: cc.EditBox) {
+        let w = parseInt(this.edtWidth.string);
+        w -= 1;
+        this.edtWidth.string = w.toString();
+        this.UpdateWidthProperty(w);
     }
 
     protected UpdateDisplayMatProperties() {
