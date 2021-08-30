@@ -66,14 +66,17 @@ export class TestSDF extends cc.Component {
     start() {
         this._edt = new EDT;
         this._edtaa3 = new EDTAA3;
-        this._imageIndex = -1;
-        this.NextImage();
-        this.UpdateHint(0);
+        this.ApplyImage(this._imageIndex);
+        this.ApplyEffect(this._effectIndex);
     }
 
-    protected _imageIndex: number = 0;
+    protected _imageIndex: number = 3;
     protected NextImage() {
         let index = this._imageIndex = (this._imageIndex + 1) % this.images.length;
+        this.ApplyImage(index);
+    }
+
+    protected ApplyImage(index: number) {
         let sf = this.images[index];
         let sz = sf.getOriginalSize();
 
@@ -127,9 +130,13 @@ export class TestSDF extends cc.Component {
         mat.setProperty("outlineHalfWidth", 3.0 / sdfRadius);
     }
 
-    protected _effectIndex: number = 0;
+    protected _effectIndex: number = 1;
     protected NextEffect() {
         let index = this._effectIndex = (this._effectIndex + 1) % this.materials.length;
+        this.ApplyEffect(index);
+    }
+
+    protected ApplyEffect(index: number) {
         this.UpdateHint(index);
         let mat = this.materials[index];
 
