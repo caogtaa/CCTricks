@@ -1,0 +1,30 @@
+{
+  "__type__": "cc.Material",
+  "_name": "SplineDotPath",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "82b16941-7e29-4937-9b70-37d531b5e944"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "size": {
+          "__type__": "cc.Vec4",
+          "x": 15,
+          "y": 15,
+          "z": 1,
+          "w": 1
+        },
+        "texture": {
+          "__uuid__": "4f696d26-d384-4b76-8fec-f1ebd73e075d"
+        }
+      },
+      "defines": {
+        "USE_TEXTURE": true,
+        "USE_WORLD_POS": true
+      }
+    }
+  }
+}

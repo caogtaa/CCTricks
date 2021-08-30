@@ -72,7 +72,8 @@ CCProgram fs %{
   }
 
   float screenPxRange() {
-    return sz.x / 16. * 2.;    // read github
+    float halfDistDelta = 2. * 0.5;
+    return sz.x / 32. * halfDistDelta;    // read github
   }
 
   void main() {

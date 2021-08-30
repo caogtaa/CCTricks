@@ -6,6 +6,8 @@
 */
 
 import { SmoothTrail } from "../Graphics/Script/SmoothTrail";
+import { SplineParameterization } from "./Script/CatmullRomSpline";
+import { CornerType, SplineTrailRenderer } from "./Script/SplineTrailRenderer";
 
 
 const {ccclass, property} = cc._decorator;
@@ -27,8 +29,14 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
     @property(SmoothTrail)
     ctx: SmoothTrail = null;
 
+    @property(SplineTrailRenderer)
+    trailRenderer: SplineTrailRenderer = null;
+
     @property(cc.EditBox)
     edtK: cc.EditBox = null;
+
+    @property([cc.Material])
+    materials: cc.Material[] = [];
 
     protected _autoRender: boolean = true;
     protected _isDragging: boolean = false;
@@ -76,11 +84,20 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
         // ctx.stroke();
 
         let ctx = this.ctx;
-        ctx.StartPath(cc.v2(0, 0));
-        ctx.AddPathPoint(cc.v2(0, 100));
-        ctx.AddPathPoint(cc.v2(1, 0));
-        ctx.AddPathPoint(cc.v2(100, 0));
-        ctx.EndPath();
+        if (ctx.node.active) {
+            ctx.StartPath(cc.v2(0, 0));
+            ctx.AddPathPoint(cc.v2(0, 100));
+            ctx.AddPathPoint(cc.v2(1, 0));
+            ctx.AddPathPoint(cc.v2(100, 0));
+            ctx.EndPath();
+        }
+
+        let trailRenderer = this.trailRenderer;
+        if (trailRenderer.node.active) {
+            trailRenderer.StartPath(trailRenderer.FromLocalPos(cc.v2(0, 0)));
+            trailRenderer.AddPoint(trailRenderer.FromLocalPos(cc.v2(0, 100)));
+            trailRenderer.AddPoint(trailRenderer.FromLocalPos(cc.v2(100, 0)));
+        }
     }
 
     // protected SetBlendEqToMax(mat: cc.Material) {
@@ -255,7 +272,9 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
     }
 
     public Clear() {
-        this.ctx.clear();
+        if (this.ctx.node.active)
+            this.ctx.clear();
+
         this._bezierParams.length = 0;
     }
 
@@ -341,7 +360,14 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
         this._isDragging = true;
         this._points.length = 0;
         this._points.push(pos);
-        this.ctx.StartPath(pos);
+        if (this.ctx.node.active)
+            this.ctx.StartPath(pos);
+
+        let trailRenderer = this.trailRenderer;
+        if (trailRenderer.node.active) {
+            trailRenderer.StartPath(trailRenderer.FromLocalPos(pos));
+            trailRenderer.AddPoint(trailRenderer.FromLocalPos(pos));
+        }
 
         // if (this.ctx.node.active) {
         //     let localPos = this.node.convertToNodeSpaceAR(e.getLocation());
@@ -359,7 +385,13 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
         let cur = this.TouchPosToGraphicsPos(e.getLocation());
         // console.log(`${cur.x}, ${cur.y}`);
         this._points.push(cur);
-        this.ctx.AddPathPoint(cur);
+        if (this.ctx.node.active)
+            this.ctx.AddPathPoint(cur);
+
+        let trailRenderer = this.trailRenderer;
+        if (trailRenderer.node.active) {
+            trailRenderer.AddPoint(trailRenderer.FromLocalPos(cur));
+        }
 
         // if (this.ctx.node.active) {
         //     let localPos = this.node.convertToNodeSpaceAR(e.getLocation());
@@ -374,9 +406,31 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
         // simply clear points
         // todo: draw last segment
         this._points.length = 0;
-        this.ctx.EndPath();
+        if (this.ctx.node.active)
+            this.ctx.EndPath();
+
+        if (this.trailRenderer.node.active) {
+            console.log(`----- vcount: ${this.trailRenderer._vertices.length}`);
+        }
 
         if (this._debug)
             console.log(`---------------------------- end ------------------------`)
+    }
+
+    protected OnSwitchParam() {
+        if (this.trailRenderer.cornerType === CornerType.Continuous) {
+            this.trailRenderer.cornerType = CornerType.Fragmented;
+        } else {
+            this.trailRenderer.cornerType = CornerType.Continuous;
+        }
+
+        this.trailRenderer.RenderMesh();
+    }
+
+    protected _materialIndex = 0;
+    protected OnSwitchMaterial() {
+        this._materialIndex = (this._materialIndex + 1) % this.materials.length;
+        this.trailRenderer.setMaterial(0, this.materials[this._materialIndex]);
+        this.trailRenderer.RenderMesh();
     }
 }

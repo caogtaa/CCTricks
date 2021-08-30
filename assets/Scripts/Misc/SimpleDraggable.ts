@@ -19,10 +19,10 @@ export default class SimpleDraggable extends cc.Component {
     protected _moveCallback: (pos: cc.Vec2) => void = null;
     
     onLoad() {
-        this.node.on(cc.Node.EventType.TOUCH_START, this.OnTouchStart.bind(this));
-        this.node.on(cc.Node.EventType.TOUCH_MOVE, this.OnTouchMove.bind(this));
-        this.node.on(cc.Node.EventType.TOUCH_END, this.OnTouchEnd.bind(this));
-        this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.OnTouchEnd.bind(this));
+        this.node.on(cc.Node.EventType.TOUCH_START, this.OnTouchStart, this);
+        this.node.on(cc.Node.EventType.TOUCH_MOVE, this.OnTouchMove, this);
+        this.node.on(cc.Node.EventType.TOUCH_END, this.OnTouchEnd, this);
+        this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.OnTouchEnd, this);
     }
 
     public Setup(moveCallback: (pos: cc.Vec2) => void) {

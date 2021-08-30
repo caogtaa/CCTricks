@@ -1,0 +1,37 @@
+{
+  "__type__": "cc.Material",
+  "_name": "SplineDashPath - 001",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "82b16941-7e29-4937-9b70-37d531b5e944"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "size": {
+          "__type__": "cc.Vec4",
+          "x": 15,
+          "y": 20,
+          "z": 0.75,
+          "w": 1.33333
+        },
+        "uv_shift": {
+          "__type__": "cc.Vec2",
+          "x": 0.5,
+          "y": 0
+        },
+        "texture": {
+          "__uuid__": "d74546ef-83ac-4224-9e16-051626153840"
+        }
+      },
+      "defines": {
+        "USE_TEXTURE": true,
+        "UV_CROSS_SEGMENT": true,
+        "UV_SHIFT_BY_TIME": true,
+        "USE_WORLD_POS": true
+      }
+    }
+  }
+}

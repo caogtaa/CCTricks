@@ -22,13 +22,24 @@ declare namespace cc {
 	追加cc.Assembler方法
 	*/
 	export class Assembler {
+		public _renderComp: cc.RenderComponent;
 		public init(comp: cc.RenderComponent);
 		public getVfmt();
 		static public register(renderCompCtor, assembler);
 	}
 
 	export class RenderData {
-		createFlexData(index, verticesFloats, indicesCount, vfmt);
+		init(assembler: cc.Assembler);
+		createQuadData(index, verticesFloats, indicesCount);
+		createFlexData(index, verticesFloats, indicesCount, vfmt): cc.FlexBuffer;
+		initQuadIndices(idata);
+
+		vDatas;
+		uintVDatas;
+		iDatas;
+		meshCount: number;
+		_infos;
+		_flexBuffer;
 	}
 
 	declare interface Game {
@@ -75,17 +86,18 @@ declare namespace cc {
 
 		_resetAssembler(): void;
 	}	
+	
+	declare interface FlexBuffer {
+		usedVertices: number;
+        usedIndices: number;
+        usedVerticesFloats: number;
+		vData: Float32Array;
+		uintVData: Uint32Array;
+		iData: Uint16Array;
 
-	declare interface RenderData {
-		init(assembler: cc.Assembler);
-		createQuadData(index, verticesFloats, indicesCount);
-
-		vDatas;
-		uintVDatas;
-		iDatas;
-		meshCount: number;
-		_infos;
-		_flexBuffer;
+		reset();
+		used(verticesCount: number, indicesCount: number);
+		reserve(verticesCount: number, indicesCount: number);
 	}
 
 	declare interface PhysicsManager {

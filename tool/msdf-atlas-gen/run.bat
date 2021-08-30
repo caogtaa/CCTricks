@@ -1,1 +1,1 @@
-msdf-atlas-gen.exe -font HanYiYuanLongHei60W-new.ttf -charset charset.txt -imageout msdf.png -format png -type msdf -size 32 -fontname HanYiYuan -json msdf.json
+msdf-atlas-gen.exe -font HanYiYuanLongHei60W-new.ttf -charset charset.txt -imageout msdf.png -format png -type msdf -size 32 -pxrange 4 -fontname HanYiYuan -json msdf.json
