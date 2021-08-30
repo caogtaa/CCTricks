@@ -56,7 +56,6 @@ export class TestSDF extends cc.Component {
     ]);
     protected _edt: EDT;
     protected _edtaa3: EDTAA3;
-    protected _textureSize = cc.size(1024, 1024);   // 目前先固定纹理大小，后续如果支持其他途径加载纹理，需要调整大小
     protected _maxDist: number = 17;
 
     onLoad() {
@@ -74,7 +73,6 @@ export class TestSDF extends cc.Component {
 
     protected _imageIndex: number = 0;
     protected NextImage() {
-        // let index = gt.misc.RandomRangeInt(0, this.images.length);
         let index = this._imageIndex = (this._imageIndex + 1) % this.images.length;
         let sf = this.images[index];
         let sz = sf.getOriginalSize();
@@ -86,7 +84,7 @@ export class TestSDF extends cc.Component {
             let maxDist = this._maxDist;
             renderNode.width = this.objNode.width = sz.width;
             renderNode.height = this.objNode.height = sz.height;
-            let texture = this.RenderToMemory(this.objNode/*testLabel*/, null, renderNode, maxDist);
+            let texture = this.RenderToMemory(this.objNode, null, renderNode, maxDist);
 
             let result: { texture: cc.RenderTexture, alpha: Uint8ClampedArray } = null;
             if (i === 0) {
