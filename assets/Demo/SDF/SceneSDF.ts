@@ -57,6 +57,8 @@ export class TestSDF extends cc.Component {
     protected _edt: EDT;
     protected _edtaa3: EDTAA3;
     protected _maxDist: number = 17;
+    protected _imageIndex: number = 3;
+    protected _effectIndex: number = 2;
 
     onLoad() {
         this.btnSwitchImage?.on("click", this.NextImage, this);
@@ -70,7 +72,6 @@ export class TestSDF extends cc.Component {
         this.ApplyEffect(this._effectIndex);
     }
 
-    protected _imageIndex: number = 3;
     protected NextImage() {
         let index = this._imageIndex = (this._imageIndex + 1) % this.images.length;
         this.ApplyImage(index);
@@ -102,35 +103,22 @@ export class TestSDF extends cc.Component {
         }
     }
 
-    // todo: remove sdf Radius
     protected FlushMatProperties(sprite: cc.Sprite, sdfRadius: number, sz: cc.Size, useDualChannel: boolean) {
         let mat = sprite.getMaterial(0);
-        // if (mat.name.startsWith("SDFOutline0") || mat.name.startsWith("SDFRawTestDual8")) {
-        if (true) {
-            let tw = sprite.node.width;
-            let th = sprite.node.height;
-            mat.setProperty("texSize", [tw, th]);
-            mat.setProperty("texStep", [1./tw, 1./th]);
-            mat.setProperty("maxDist", [this._maxDist, 1./this._maxDist]);
-            mat.define("SDF_HI_RES", useDualChannel);
-            mat.define("SDF_DUAL_CHANNEL", useDualChannel);
-        }
+        
+        let tw = sprite.node.width;
+        let th = sprite.node.height;
+        mat.setProperty("texSize", [tw, th, 1./tw, 1./th]);
+        mat.setProperty("maxDist", [this._maxDist, 1./this._maxDist]);
+        mat.define("SDF_HI_RES", useDualChannel);
+        mat.define("SDF_DUAL_CHANNEL", useDualChannel);
 
         //@ts-ignore
         if (mat.getProperty("originTexture") !== undefined) {
             mat.setProperty("originTexture", this.objNode.getComponent(cc.Sprite).spriteFrame.getTexture());
         }
-
-        // 只有Morphy效果需要设置
-        if (this._effectIndex !== 2)
-            return;
-
-        mat.setProperty("yRatio", sz.height / sz.width);
-        mat.setProperty("sdfRatio", sdfRadius * 2.0 / sz.width);       // 'SDF区间/x'
-        mat.setProperty("outlineHalfWidth", 3.0 / sdfRadius);
     }
 
-    protected _effectIndex: number = 1;
     protected NextEffect() {
         let index = this._effectIndex = (this._effectIndex + 1) % this.materials.length;
         this.ApplyEffect(index);

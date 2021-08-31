@@ -74,7 +74,7 @@ CCProgram fs %{
   {
     vec2 uv = v_uv0.xy;
     float D = GetD(texture, uv);
-    float D2 = GetD(texture, uv + texStep * 4.);
+    float D2 = GetD(texture, uv + texSize.zw * 4.);
 
     float aastepD = fwidth(D);
     float aastepD2 = fwidth(D2);

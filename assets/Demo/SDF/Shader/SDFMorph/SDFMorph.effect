@@ -17,10 +17,6 @@ CCEffect %{
         cullMode: none
       properties:
         texture: { value: white }
-        yRatio: { value: 1.0, inspector: { displayName: 'y/x' } }
-        sdfRatio: { value: 1.0, inspector: { displayName: 'SDF区间/x' } }
-        outlineHalfWidth: { value: 0.05, inspector: { displayName: '二分之一轮廓宽度/SDF区间' } }
-        time: { value: 0.0, inspector: { displayName: '时间(秒)' } }
 }%
 
 CCProgram vs %{
@@ -47,73 +43,58 @@ CCProgram vs %{
 }%
 
 CCProgram fs %{
+  #extension GL_OES_standard_derivatives: enable
   precision highp float;
 
   #include <cc-global>
   #include <cc-local>
   #include <sdf>
-
-  #define PI 3.141592653589793
   
   in vec4 v_color;
   in vec2 v_uv0;
-  in vec2 v_uv1;
 
   uniform sampler2D texture;
-  uniform ARGS {
-    float yRatio;
-    float sdfRatio;
-    float outlineHalfWidth;
-    float time;
-  };
 
-  
-  float Remap01(float a, float b, float t) {
-    return (t-a) / (b-a);
-  }
+  // 生成圆形的SDF，SDF距离和纹理保持一致，圆周上dist=0
+  // uv: 范围[-1, 1]的uv坐标
+  // o: 圆心位置
+  // offset: 整体距离场往圆心靠近距离
+  float CircleSDF(vec2 uv, vec2 o, float offset) {
+    // dist范围[-1, 1]
+    float dist = distance(uv, o) * 2. - 1.;
 
-  float Remap(float a, float b, float c, float d, float t) {
-    return Remap01(a, b, t) * (d-c) + c;
-  }
+    // 环往内缩一点
+    dist += offset;
 
-  float Circle(vec2 uv, vec2 o, float r, float blur) {
-    return smoothstep(r, r-blur, distance(uv, o));
-  }
-
-  // 根据到o的距离生成sdf，越接近o则返回值越大，并且在距离是r处刚好是0.5
-  float CircleSDF(vec2 uv, vec2 o, float r) {
-    float s = Remap(r+sdfRatio*0.5, r-sdfRatio*0.5, 0., 1., distance(uv, o));
-    return clamp(s, 0., 1.);
+    // 缩放SDF区间
+    return (-dist) * texSize.x * maxDist.y * 0.25;
+    // return (-dist) * texSize.x / maxDist.x / 4.;
   }
 
   void main()
   {
     vec2 uv = v_uv0.xy;
 
-    // o是以图片中心为原点的uv坐标，范围[-0.5, 0.5]
+    // o是以图片中心为原点的uv坐标，范围[-1, 1]
     vec2 o = uv * 2.0 - 1.0;
-    o.y *= yRatio;
+    o.y *= texSize.y * texSize.z;
 
     float D = GetD(texture, uv);
-    float alpha = D * maxDist.y * 0.5 + 0.5;
-    
-    // 轮廓宽度(0.0, 1.0)
-    // float outlineWidth = 0.05;
 
-    // 选择一个alpha值做为轮廓的中线
-    float centerAlpha = 0.5;
+    // alpha区间[-1, 1], 0是图像边缘
+    float alpha = D * maxDist.y;
 
     // 圆的outline
-    float mask1 = CircleSDF(o, vec2(0., 0.), 0.4);
+    float circle = CircleSDF(o, vec2(0., 0.), 0.15);
 
-
+    // 混合两个sdf，根据时间来回切换
     float t = cc_time.x;
-    alpha = mix(mask1, alpha, smoothstep(0.35, 0.65, sin(t * 2.0) * 0.5 + 0.5));
+    alpha = mix(circle, alpha, smoothstep(0.35, 0.65, sin(t * 2.0) * 0.5 + 0.5));
 
-    float outlineAlphaDist = outlineHalfWidth;
-    float mask = smoothstep(outlineAlphaDist, outlineAlphaDist - 0.02, abs(alpha - centerAlpha));
-    float ring = mask;
-
-    gl_FragColor = vec4(0., 1., 0., ring);
+    // 显示边缘线并AA
+    float outlineWidth = 0.1;
+    float aastep = max(fwidth(alpha), 1e-8);
+    float mask = smoothstep(aastep, -aastep, abs(alpha) - outlineWidth);
+    gl_FragColor = vec4(0., 1., 0., mask);
   }
 }%

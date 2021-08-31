@@ -10,8 +10,7 @@ CCEffect %{
         cullMode: none
       properties:
         texture: { value: white }
-        texSize: { value: [128., 128.] }
-        texStep: { value: [0.01, 0.01] }
+        texSize: { value: [128., 128., 0.0078125, 0.0078125] }
         maxDist: { value: [8., 0.125] }
 }%
 

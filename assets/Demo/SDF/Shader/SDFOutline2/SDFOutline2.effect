@@ -108,7 +108,7 @@ CCProgram fs %{
     vec2 uv2 = vec2(uv.x, 1.0-uv.y);
 
     // 对uv2进行缩放，模拟Distance Texture扩边
-    vec2 ratio = texSize / (texSize - vec2(maxDist.x * 2.));
+    vec2 ratio = texSize.xy / (texSize.xy - vec2(maxDist.x * 2.));
     uv2 = uv2 - 0.5;
     uv2 *= ratio;
     uv2 = uv2 + 0.5;
