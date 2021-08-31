@@ -58,7 +58,7 @@ export default class SceneSDFFont extends cc.Component {
 
     protected UpdateSDFNodeProperty(node: cc.Node) {
         let mat = node.getComponent(cc.RenderComponent).getMaterial(0);
-        mat.setProperty("maxDist", 4);
+        mat.setProperty("maxDist", [4, 1/4]);
         mat.define("SDF_HI_RES", false);
         mat.define("SDF_DUAL_CHANNEL", false);
     }
