@@ -16,7 +16,7 @@ const { ccclass, menu, property } = cc._decorator;
 
 
 @ccclass
-export class TestSDF extends cc.Component {
+export class SceneSDF extends cc.Component {
     @property([cc.Node])
     renderNodes: cc.Node[] = [];
 
@@ -58,7 +58,7 @@ export class TestSDF extends cc.Component {
     protected _edtaa3: EDTAA3;
     protected _maxDist: number = 17;
     protected _imageIndex: number = 3;
-    protected _effectIndex: number = 2;
+    protected _effectIndex: number = 1;
 
     onLoad() {
         this.btnSwitchImage?.on("click", this.NextImage, this);
@@ -99,11 +99,11 @@ export class TestSDF extends cc.Component {
 
             let sprite = renderNode.getComponent(cc.Sprite);
             sprite.spriteFrame = new cc.SpriteFrame(result.texture);
-            this.FlushMatProperties(sprite, maxDist, cc.size(texture.width, texture.height), i === 1 && maxDist > 8);
+            this.FlushMatProperties(sprite, cc.size(texture.width, texture.height), i === 1 && maxDist > 8);
         }
     }
 
-    protected FlushMatProperties(sprite: cc.Sprite, sdfRadius: number, sz: cc.Size, useDualChannel: boolean) {
+    protected FlushMatProperties(sprite: cc.Sprite, sz: cc.Size, useDualChannel: boolean) {
         let mat = sprite.getMaterial(0);
         
         let tw = sprite.node.width;
@@ -135,9 +135,8 @@ export class TestSDF extends cc.Component {
 
             let sf = sprite.spriteFrame;
             let sz = sf.getOriginalSize();
-            let sdfRadius = Math.max(60, sz.height / 3);
             let maxDist = this._maxDist;
-            this.FlushMatProperties(sprite, sdfRadius, sz, i === 1 && maxDist > 8);
+            this.FlushMatProperties(sprite, sz, i === 1 && maxDist > 8);
         }
     }
 
