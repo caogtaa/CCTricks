@@ -111,7 +111,7 @@ export class TestSDF extends cc.Component {
             let th = sprite.node.height;
             mat.setProperty("texSize", [tw, th]);
             mat.setProperty("texStep", [1./tw, 1./th]);
-            mat.setProperty("maxDist", this._maxDist);
+            mat.setProperty("maxDist", [this._maxDist, 1./this._maxDist]);
             mat.define("SDF_HI_RES", useDualChannel);
             mat.define("SDF_DUAL_CHANNEL", useDualChannel);
         }

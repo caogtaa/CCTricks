@@ -5,14 +5,14 @@
 uniform SDFARGS {
   vec2 texSize;
   vec2 texStep;
-  float maxDist;
+  vec2 maxDist;   // (x,y) = (maxDist, 1./maxDist)
 };
 
 #if SDF_HI_RES
   // use EDTAA distance texture
   #if SDF_DUAL_CHANNEL
   // use EDTAA dual 8-bit channel distance texture
-  float GetD(sampler2D texture, vec2 st) {
+  float GetAlpha(sampler2D texture, vec2 st) {
     // Scale texcoords to range ([0,texw], [0,texh])
     vec2 uv = st.xy * texSize;
 
@@ -33,9 +33,10 @@ uniform SDFARGS {
     vec2 rawtex01 = texture2D(texture, st00 + onestep.zy).ar;
     vec2 rawtex11 = texture2D(texture, st00 + onestep.xy).ar;
 
+    // decode r & g channel by (r+g/256)
+    #define DECODE_DUAL_8(raw)  raw.r = raw.g * 0.00390625 + raw.r;
     // decode r & g channel by (r*256+g)
-    // #define DECODE_DUAL_8(raw)  raw.r = raw.g * 0.00390625 + raw.r;
-    #define DECODE_DUAL_8(raw)  raw.r = raw.r * 256. + raw.g
+    // #define DECODE_DUAL_8(raw)  raw.r = raw.r * 256. + raw.g
     DECODE_DUAL_8(rawtex00);
     DECODE_DUAL_8(rawtex10);
     DECODE_DUAL_8(rawtex01);
@@ -47,21 +48,31 @@ uniform SDFARGS {
     // Interpolate along v
     vec2 D0_1 = mix(D00_10, D01_11, uvlerp.y);
     // Interpolate along u
-    float D = mix(D0_1.x, D0_1.y, uvlerp.x);
-    return D - 128.;    // dist(edge) = 0
+    return mix(D0_1.x, D0_1.y, uvlerp.x);
+  }
+
+  float GetD(sampler2D texture, vec2 st) {
+    return GetAlpha(texture, st) * 256. - 128.;    // dist(edge) = 0
   }
   #else
+  float GetAlpha(sampler2D texture, vec2 st) {
+    return texture2D(texture, st).a;
+  }
+
   float GetD(sampler2D texture, vec2 st) {
-    float D = texture2D(texture, st).a;
-    D = 16.0 * (D - 0.5);   // single 8-bit channel
-    return D;
+    float alpha = GetAlpha(texture, st);
+    return 16.0 * (alpha - 0.5);   // single 8-bit channel
   }
   #endif  // end SDF_DUAL_CHANNEL
 #else
   // use EDT low res distance texture
+  float GetAlpha(sampler2D texture, vec2 st) {
+    return texture2D(texture, st).a;
+  }
+
   float GetD(sampler2D texture, vec2 st) {
-    float D = texture2D(texture, st).a;
+    float alpha = GetAlpha(texture, st);
     // map [0, 1] to [-maxDist, maxDist]
-    return (D * 2. - 1.) * maxDist;
+    return (alpha * 2. - 1.) * maxDist.x;
   }
 #endif  // end SDF_HI_RES

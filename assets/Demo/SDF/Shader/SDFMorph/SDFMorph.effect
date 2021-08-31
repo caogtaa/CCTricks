@@ -89,16 +89,13 @@ CCProgram fs %{
   void main()
   {
     vec2 uv = v_uv0.xy;
-    // vec4 col = texture(texture, uv) * v_color;
-
 
     // o是以图片中心为原点的uv坐标，范围[-0.5, 0.5]
     vec2 o = uv * 2.0 - 1.0;
     o.y *= yRatio;
 
-    // float alpha = col.a;
     float D = GetD(texture, uv);
-    float alpha = D / maxDist * 0.5 + 0.5;
+    float alpha = D * maxDist.y * 0.5 + 0.5;
     
     // 轮廓宽度(0.0, 1.0)
     // float outlineWidth = 0.05;

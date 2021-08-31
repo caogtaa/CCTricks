@@ -80,9 +80,10 @@ CCProgram fs %{
     vec2 uv = v_uv0.xy;
     // vec4 col = texture(texture, uv) * v_color;
     float D = GetD(texture, uv);
-    D = D / maxDist * 0.5 + 0.5;
+    D = D * maxDist.y * 0.5 + 0.5;
 
     float alpha = D;
+    // float alpha = GetAlpha(texture, uv);
     
     // 轮廓宽度(0.0, 1.0), 对应alpha区域
     // float outlineWidth = 0.45;
@@ -107,7 +108,7 @@ CCProgram fs %{
     vec2 uv2 = vec2(uv.x, 1.0-uv.y);
 
     // 对uv2进行缩放，模拟Distance Texture扩边
-    vec2 ratio = texSize / (texSize - vec2(maxDist * 2.));
+    vec2 ratio = texSize / (texSize - vec2(maxDist.x * 2.));
     uv2 = uv2 - 0.5;
     uv2 *= ratio;
     uv2 = uv2 + 0.5;

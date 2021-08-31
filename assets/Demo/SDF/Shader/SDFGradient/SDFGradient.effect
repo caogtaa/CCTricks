@@ -4,6 +4,16 @@
 // License text available at https://opensource.org/licenses/MIT
 
 /*
+ * Date: 2021-08-13 01:30:09
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2021-08-31 11:32:40
+*/ 
+// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
  * Date: 2021-07-03 14:09:41
  * LastEditors: GT<caogtaa@gmail.com>
  * LastEditTime: 2021-08-09 23:49:54
@@ -63,7 +73,7 @@ CCProgram fs %{
   {
     vec2 uv = v_uv0.xy;
     float D = GetD(texture, uv);
-    D /= maxDist;
+    D *= maxDist.y;
 
     gl_FragColor = vec4(vec3(1.), D);
   }
