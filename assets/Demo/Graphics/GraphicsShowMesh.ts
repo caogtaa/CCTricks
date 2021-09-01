@@ -1,11 +1,9 @@
-import { SmoothTrail } from "./Script/SmoothTrail";
-import { SmoothTrailAssembler } from "./Script/SmoothTrailAssembler";
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class GraphicsShowMesh extends SmoothTrail {
+export default class GraphicsShowMesh extends cc.Graphics {
     onLoad () {
-        super.onLoad();
+        // super.onLoad();
         let mat = this.getMaterial(0);
         // if (mat.name.startsWith("GraphicsShowMesh"))
         this.InjectAssembler();
@@ -18,7 +16,7 @@ export default class GraphicsShowMesh extends SmoothTrail {
     protected InjectAssembler() {
         let ctx = this;
 
-        let assembler = ctx._assembler as SmoothTrailAssembler;
+        let assembler = ctx._assembler;
         //@ts-ignore
         let originFn = assembler._vset;
 
