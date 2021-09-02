@@ -9,7 +9,11 @@
   "_techniqueIndex": 0,
   "_techniqueData": {
     "0": {
-      "props": {}
+      "props": {},
+      "defines": {
+        "SHOW_SDF": false,
+        "SQUIGGLE": true
+      }
     }
   }
 }

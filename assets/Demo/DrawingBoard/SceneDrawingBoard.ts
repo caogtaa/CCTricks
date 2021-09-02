@@ -211,6 +211,7 @@ export default class SceneDrawingBoard extends cc.Component {
         //     }
         // }
 
+        // TODO: open it
         if (true) {//!useBezier) {
             ping.setMaterial(0, this.matCapsule);
             let mat = ping.getComponent(cc.Sprite).getMaterial(0);
