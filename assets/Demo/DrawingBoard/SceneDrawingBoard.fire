@@ -323,8 +323,8 @@
         "__uuid__": "3d1c64c3-9aea-4cea-8fad-01fde8f4188b"
       }
     ],
-    "_srcBlendFactor": 770,
-    "_dstBlendFactor": 771,
+    "_srcBlendFactor": 1,
+    "_dstBlendFactor": 0,
     "_spriteFrame": {
       "__uuid__": "9efcf6b7-bafa-4bda-a323-e7270fdcdb61"
     },
@@ -417,8 +417,8 @@
         "__uuid__": "3d1c64c3-9aea-4cea-8fad-01fde8f4188b"
       }
     ],
-    "_srcBlendFactor": 770,
-    "_dstBlendFactor": 771,
+    "_srcBlendFactor": 1,
+    "_dstBlendFactor": 0,
     "_spriteFrame": {
       "__uuid__": "9efcf6b7-bafa-4bda-a323-e7270fdcdb61"
     },

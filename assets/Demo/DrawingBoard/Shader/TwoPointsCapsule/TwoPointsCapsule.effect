@@ -119,6 +119,7 @@ CCProgram fs %{
 
         vec4 col = max(vec4(mask) * v_color, texture2D(texture, v_uv0));
         // vec4 col = v_color * mask;
+        // col = vec4(uv, 0., 1.);
         gl_FragColor = col;
     }
 }%

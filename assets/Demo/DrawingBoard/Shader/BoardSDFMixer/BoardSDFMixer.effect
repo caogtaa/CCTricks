@@ -47,14 +47,15 @@ CCProgram fs %{
     in vec2 v_uv0;
 
     uniform sampler2D texture;
+    uniform sampler2D tex2;
 
     void main()
     {
         float blur = 4. / 720.;
-        float threshold = 0.8;
-        vec4 col = texture2D(texture, v_uv0);
+        float threshold = 0.9;      // todo: control width
+        vec4 col = texture2D(tex2, v_uv0);
         col.a = smoothstep(threshold-blur, threshold, col.a);
         // col.a = min(min(col.r, col.g), col.b);
-        gl_FragColor = vec4(col.a);
+        gl_FragColor = vec4(col);
     }
 }%

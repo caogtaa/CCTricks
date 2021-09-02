@@ -99,10 +99,27 @@ export default class SceneDrawingBoard extends cc.Component {
             sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
             sprite.spriteFrame = renderBuff.spriteFrame;
             this._renderBuffMap.set(sprite.node, renderBuff);
+
+            // 设置RT的blend为覆盖模式
+            let mat = sprite.getMaterial(0);
+            //@ts-ignore
+            let gfx = cc.gfx;
+            mat?.setBlend(
+                true,
+                gfx.BLEND_FUNC_ADD,
+                gfx.BLEND_ONE,
+                gfx.BLEND_ZERO,
+                gfx.BLEND_FUNC_ADD,
+                gfx.BLEND_ONE,
+                gfx.BLEND_ZERO,
+                0xffffffff,
+                0);
         }
 
         let ping = this.pingPongBuffer[0];
         let pong = this.pingPongBuffer[1];
+        ping.enabled = false;
+        pong.enabled = false;
         //ping.getMaterial(0).setProperty("tex2", this._renderBuffMap.get(pong.node).texture);
         //pong.getMaterial(0).setProperty("tex2", this._renderBuffMap.get(ping.node).texture);
 
@@ -131,7 +148,7 @@ export default class SceneDrawingBoard extends cc.Component {
     }
 
     OnRender() {
-        this.RenderToNode(this.pen, this.board);
+        // this.RenderToNode(this.pen, this.board);
     }
 
     protected SetBlendEqToMax(mat: cc.Material) {
@@ -259,7 +276,7 @@ export default class SceneDrawingBoard extends cc.Component {
             pong.enabled = false;
 
             // 将最新的render texture赋值给board进行展示
-            this.board.getComponent(cc.Sprite).getMaterial(0).setProperty("texture", this._renderBuffMap.get(pong.node).texture);
+            this.board.getComponent(cc.Sprite).getMaterial(0).setProperty("tex2", this._renderBuffMap.get(pong.node).texture);
         }
 
         this._points.shift();
