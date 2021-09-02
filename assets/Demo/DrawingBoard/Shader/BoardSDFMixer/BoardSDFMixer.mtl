@@ -1,0 +1,15 @@
+{
+  "__type__": "cc.Material",
+  "_name": "BoardSDFMixer",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "0da76b3c-5ab1-4c68-b568-6003a2ab6e35"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {}
+    }
+  }
+}

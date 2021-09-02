@@ -67,8 +67,8 @@ export default class SceneDrawingBoard extends cc.Component {
     @property(cc.Node)
     pen: cc.Node = null;
 
-    @property(cc.Sprite)
-    singlePass: cc.Sprite = null;
+    @property([cc.Sprite])
+    pingPongBuffer: cc.Sprite[] = [];
 
     @property(cc.Material)
     matCapsule: cc.Material = null;
@@ -84,7 +84,7 @@ export default class SceneDrawingBoard extends cc.Component {
     protected _isDragging: boolean = false;
     protected _points: cc.Vec2[] = [];
     protected _debug: boolean = false;
-    protected _lineWidth: number = 0.01;        // ratio of screen width
+    protected _lineWidth: number = 0.02;        // ratio of screen width
 
     onLoad() {
         let renderBuff = RenderBuff.CreateRederBuff(this.board.width, this.board.height);
@@ -92,6 +92,19 @@ export default class SceneDrawingBoard extends cc.Component {
         sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
         sprite.spriteFrame = renderBuff.spriteFrame;
         this._renderBuffMap.set(this.board, renderBuff);
+
+        // create ping pong buffer
+        for (let sprite of this.pingPongBuffer) {
+            let renderBuff = RenderBuff.CreateRederBuff(sprite.node.width, sprite.node.height);
+            sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+            sprite.spriteFrame = renderBuff.spriteFrame;
+            this._renderBuffMap.set(sprite.node, renderBuff);
+        }
+
+        let ping = this.pingPongBuffer[0];
+        let pong = this.pingPongBuffer[1];
+        //ping.getMaterial(0).setProperty("tex2", this._renderBuffMap.get(pong.node).texture);
+        //pong.getMaterial(0).setProperty("tex2", this._renderBuffMap.get(ping.node).texture);
 
         // 设置混合模式为max，主要为了避免线段衔接处颜色叠加导致变厚
         // var ext = gl.getExtension('EXT_blend_minmax');
@@ -122,6 +135,9 @@ export default class SceneDrawingBoard extends cc.Component {
     }
 
     protected SetBlendEqToMax(mat: cc.Material) {
+        // no need max any more
+        return;
+
         if (this._debug)
             return;
 
@@ -142,6 +158,7 @@ export default class SceneDrawingBoard extends cc.Component {
             0);
     }
 
+    protected _pingPong: number = 0;
     protected static _tmpV2 = cc.v2(0, 0);
     update() {
         let points = this._points;
@@ -152,7 +169,7 @@ export default class SceneDrawingBoard extends cc.Component {
         let B = points[1];
         let C = points[2];
         
-        let sprite = this.singlePass;
+        let ping = this.pingPongBuffer[this._pingPong];
         let isValid: boolean = true;
         let useBezier: boolean = true;
         let halfBezier: boolean = true;
@@ -177,9 +194,9 @@ export default class SceneDrawingBoard extends cc.Component {
         //     }
         // }
 
-        if (!useBezier) {
-            sprite.setMaterial(0, this.matCapsule);
-            let mat = sprite.getComponent(cc.Sprite).getMaterial(0);
+        if (true) {//!useBezier) {
+            ping.setMaterial(0, this.matCapsule);
+            let mat = ping.getComponent(cc.Sprite).getMaterial(0);
             this.SetBlendEqToMax(mat);
             // sprite.node.color = cc.Color.WHITE;
             mat.setProperty("width", this._lineWidth);
@@ -190,8 +207,8 @@ export default class SceneDrawingBoard extends cc.Component {
                 this.ctx.moveTo(B.x, B.y);
             }
         } else {
-            sprite.setMaterial(0, this.matBezier);
-            let mat = sprite.getComponent(cc.Sprite).getMaterial(0);
+            ping.setMaterial(0, this.matBezier);
+            let mat = ping.getComponent(cc.Sprite).getMaterial(0);
             this.SetBlendEqToMax(mat);
 
             if (halfBezier) {
@@ -228,12 +245,21 @@ export default class SceneDrawingBoard extends cc.Component {
             console.log(`${A}, ${B}, ${C}, color=${this._colorIndex}, useBezier=${useBezier}`);
 
         if (isValid) {
-            sprite.enabled = true;
+            let pong = this.pingPongBuffer[1-this._pingPong];
+            ping.enabled = true;
+            pong.enabled = true;
             if (this._debug)
-                sprite.node.color = this._colors[this._colorIndex];
+                ping.node.color = this._colors[this._colorIndex];
             this._colorIndex = (this._colorIndex + 1) % this._colors.length;
-            this.RenderToNode(sprite.node, this.board);
-            sprite.enabled = false;
+
+            
+            this.RenderToNode(ping.node, pong.node);
+            this._pingPong = 1 - this._pingPong;
+            ping.enabled = false;
+            pong.enabled = false;
+
+            // 将最新的render texture赋值给board进行展示
+            this.board.getComponent(cc.Sprite).getMaterial(0).setProperty("texture", this._renderBuffMap.get(pong.node).texture);
         }
 
         this._points.shift();
@@ -247,7 +273,7 @@ export default class SceneDrawingBoard extends cc.Component {
     }
     
     protected TouchPosToPassPos(pos: cc.Vec2): cc.Vec2 {
-        let node = this.singlePass.node;
+        let node = this.pingPongBuffer[this._pingPong].node;
         node.convertToNodeSpaceAR(pos, pos);
 
         // map to [-0.5, 0.5]
@@ -274,7 +300,7 @@ export default class SceneDrawingBoard extends cc.Component {
     }
 
     protected _colorIndex: number = 0;
-    protected _colors = [cc.Color.WHITE, cc.Color.RED, cc.Color.GREEN, cc.Color.BLUE, cc.Color.YELLOW, cc.Color.CYAN];
+    protected _colors = [cc.Color.RED, cc.Color.GREEN, cc.Color.BLUE];
 
     protected OnBoardTouchMove(e: cc.Event.EventTouch) {
         if (!this._isDragging)

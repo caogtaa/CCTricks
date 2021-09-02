@@ -21,6 +21,7 @@ CCEffect %{
               cullMode: none
           properties:
               texture: { value: white }
+              tex2: { value: white }
               PP: { value: [0.5, 0., 0., 0.5] }
               width: { value: [0.01] }
 }%
@@ -62,13 +63,13 @@ CCProgram fs %{
     in vec2 v_uv0;
 
     uniform sampler2D texture;
-    // uniform sampler2D tex2;
+    uniform sampler2D tex2;
     uniform UARGS {
         vec4 PP;
         float width;
     };
 
-    float Capsule(vec2 p, float o, float width, float height, float blur) {
+    float Capsule(vec2 p, float o, float width, float height) {
         float d = distance(p, vec2(0., clamp(p.y, o - height * 0.5, o + height * 0.5)));
         return d;
     }
@@ -106,17 +107,18 @@ CCProgram fs %{
         height = sqrt(2.) * 0.5;
     #endif
 
-        float mask = Capsule(uv, 0., width, height, blur);
-        // // float mask = sdBezierIQ(uv, AA, BB, CC);
-        // float mask = sdBezierIQ(uv, AA, BB, CC);
-        mask = smoothstep(width, width-blur, mask);
+        float mask = Capsule(uv, 0., width, height);
+        mask = 1. - mask;
+
+        // keep origin sd
+        // mask = smoothstep(width, width-blur, mask);
 
         // vec3 color = vec3(0.);
         // color.xy += uv.xy;
         // color += mask;
 
-        // vec4 col = max(vec4(mask), texture(tex2, v_uv0));
-        vec4 col = v_color * mask;
+        vec4 col = max(vec4(mask) * v_color, texture2D(texture, v_uv0));
+        // vec4 col = v_color * mask;
         gl_FragColor = col;
     }
 }%

@@ -1,9 +1,14 @@
+// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
 /*
  * Date: 2021-08-21 23:02:49
  * LastEditors: GT<caogtaa@gmail.com>
  * LastEditTime: 2021-08-21 23:03:26
 */
-import { SplineTrailRenderer } from "../GraphicsDrawingBoard/Script/SplineTrailRenderer";
+
+import { SplineTrailRenderer } from "../../GraphicsDrawingBoard/Script/SplineTrailRenderer";
 
  
 
@@ -82,6 +87,7 @@ export default class SceneSDFPhysics extends cc.Component {
 
         for (let ball of this.balls) {
             let trail = ball.getComponentInChildren(SplineTrailRenderer);
+            //@ts-ignore
             let mat = trail.renderer.getMaterial(0);
             let c = colors[this._colorIndex++];
             this._colorIndex %= colors.length;
