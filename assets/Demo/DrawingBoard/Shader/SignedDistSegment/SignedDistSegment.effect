@@ -1,0 +1,113 @@
+// Copyright 2021 Cao Gaoting<caogtaa@gmail.com>
+// https://caogtaa.github.io
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+/*
+ * Date: 2021-09-03 14:25:28
+ * LastEditors: GT<caogtaa@gmail.com>
+ * LastEditTime: 2021-09-03 14:35:42
+*/ 
+
+CCEffect %{
+    techniques:
+    - passes:
+        - vert: vs
+          frag: fs
+          blendState:
+              targets:
+              - blend: true
+          rasterizerState:
+              cullMode: none
+          properties:
+              texture: { value: white }
+              tex2: { value: white }
+              PP: { value: [0.5, 0., 0., 0.5] }
+              width: { value: [0.01] }
+}%
+
+CCProgram vs %{
+    precision highp float;
+
+    #include <cc-global>
+    #include <cc-local>
+
+    in vec3 a_position;
+    in vec4 a_color;
+    out vec4 v_color;
+
+    in vec2 a_uv0;
+    out vec2 v_uv0;
+    
+    void main() {
+        vec4 pos = vec4(a_position, 1);
+        pos = cc_matViewProj * pos;
+        v_uv0 = a_uv0;
+        v_uv0.y = 1.0 - v_uv0.y;  // flip y
+
+        v_color = a_color;
+        gl_Position = pos;
+    }
+}%
+
+// credit to https://www.shadertoy.com/view/3tdSDj
+CCProgram fs %{
+    precision highp float;
+
+    #include <cc-global>
+    #include <cc-local>
+
+    in vec4 v_color;
+    in vec2 v_uv0;
+
+    uniform sampler2D texture;
+    uniform sampler2D tex2;
+    uniform UARGS {
+        vec4 PP;
+        float width;
+    };
+
+    float cross2(vec2 a, vec2 b) {
+        return a.x * b.y - a.y * b.x;
+    }
+
+    float sdSegment(vec2 p, vec2 a, vec2 b) {
+        vec2 ba = b-a;
+        vec2 pa = p-a;
+        float h = clamp(dot(pa,ba)/dot(ba,ba), 0., 1.);
+        float ud = clamp(1. - length(pa-h*ba), 0., 1.);
+        return ud;
+        // float c = cross2(pa, ba);
+        // return c < 0. ? -ud : ud;
+    }
+
+    void main()
+    {
+        vec2 uv = v_uv0.xy;
+        uv = uv * 2. - 1.;
+        uv.y *= 1280./720.;
+
+        float height = 0.01;
+        float blur = 4. / 720.;
+        
+        float dist = sdSegment(uv, PP.xy, PP.zw);
+
+        // map origin dist from [0, 1] to [-1, 1]
+        float originDist = texture2D(texture, v_uv0).a;// * 2. - 1.;
+
+        // merge dist
+        // dist = abs(dist) < abs(originDist) ? dist : originDist;
+        // dist = dist > originDist ? dist : originDist;
+        dist = max(dist, originDist);
+
+        // map from [-1, 1] to [0, 1]
+        float mask = dist;// * 0.5 + 0.5;
+        // float mask = abs(dist);
+
+        // keep origin sd
+        // mask = smoothstep(width, width-blur, mask);
+
+        vec4 col = vec4(mask);
+        gl_FragColor = col;
+    }
+}%

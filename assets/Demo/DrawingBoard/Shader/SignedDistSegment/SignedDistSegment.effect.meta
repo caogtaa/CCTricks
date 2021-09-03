@@ -1,0 +1,17 @@
+{
+  "ver": "1.0.25",
+  "uuid": "3494dfd0-1639-4cce-982a-ea2c60b009d7",
+  "compiledShaders": [
+    {
+      "glsl1": {
+        "vert": "\nprecision highp float;\nuniform mat4 cc_matViewProj;\nattribute vec3 a_position;\nattribute vec4 a_color;\nvarying vec4 v_color;\nattribute vec2 a_uv0;\nvarying vec2 v_uv0;\nvoid main() {\n    vec4 pos = vec4(a_position, 1);\n    pos = cc_matViewProj * pos;\n    v_uv0 = a_uv0;\n    v_uv0.y = 1.0 - v_uv0.y;\n    v_color = a_color;\n    gl_Position = pos;\n}",
+        "frag": "\nprecision highp float;\nvarying vec4 v_color;\nvarying vec2 v_uv0;\nuniform sampler2D texture;\nuniform sampler2D tex2;\nuniform vec4 PP;\nfloat sdSegment(vec2 p, vec2 a, vec2 b) {\n    vec2 ba = b-a;\n    vec2 pa = p-a;\n    float h = clamp(dot(pa,ba)/dot(ba,ba), 0., 1.);\n    float ud = clamp(1. - length(pa-h*ba), 0., 1.);\n    return ud;\n}\nvoid main()\n{\n    vec2 uv = v_uv0.xy;\n    uv = uv * 2. - 1.;\n    uv.y *= 1280./720.;\n    float height = 0.01;\n    float blur = 4. / 720.;\n    float dist = sdSegment(uv, PP.xy, PP.zw);\n    float originDist = texture2D(texture, v_uv0).a;\n    dist = max(dist, originDist);\n    float mask = dist;\n    vec4 col = vec4(mask);\n    gl_FragColor = col;\n}"
+      },
+      "glsl3": {
+        "vert": "\nprecision highp float;\nuniform CCGlobal {\n  mat4 cc_matView;\n  mat4 cc_matViewInv;\n  mat4 cc_matProj;\n  mat4 cc_matProjInv;\n  mat4 cc_matViewProj;\n  mat4 cc_matViewProjInv;\n  vec4 cc_cameraPos;\n  vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nin vec3 a_position;\nin vec4 a_color;\nout vec4 v_color;\nin vec2 a_uv0;\nout vec2 v_uv0;\nvoid main() {\n    vec4 pos = vec4(a_position, 1);\n    pos = cc_matViewProj * pos;\n    v_uv0 = a_uv0;\n    v_uv0.y = 1.0 - v_uv0.y;\n    v_color = a_color;\n    gl_Position = pos;\n}",
+        "frag": "\nprecision highp float;\nuniform CCGlobal {\n  mat4 cc_matView;\n  mat4 cc_matViewInv;\n  mat4 cc_matProj;\n  mat4 cc_matProjInv;\n  mat4 cc_matViewProj;\n  mat4 cc_matViewProjInv;\n  vec4 cc_cameraPos;\n  vec4 cc_time;\n  mediump vec4 cc_screenSize;\n  mediump vec4 cc_screenScale;\n};\nuniform CCLocal {\n  mat4 cc_matWorld;\n  mat4 cc_matWorldIT;\n};\nin vec4 v_color;\nin vec2 v_uv0;\nuniform sampler2D texture;\nuniform sampler2D tex2;\nuniform UARGS {\n    vec4 PP;\n    float width;\n};\nfloat sdSegment(vec2 p, vec2 a, vec2 b) {\n    vec2 ba = b-a;\n    vec2 pa = p-a;\n    float h = clamp(dot(pa,ba)/dot(ba,ba), 0., 1.);\n    float ud = clamp(1. - length(pa-h*ba), 0., 1.);\n    return ud;\n}\nvoid main()\n{\n    vec2 uv = v_uv0.xy;\n    uv = uv * 2. - 1.;\n    uv.y *= 1280./720.;\n    float height = 0.01;\n    float blur = 4. / 720.;\n    float dist = sdSegment(uv, PP.xy, PP.zw);\n    float originDist = texture2D(texture, v_uv0).a;\n    dist = max(dist, originDist);\n    float mask = dist;\n    vec4 col = vec4(mask);\n    gl_FragColor = col;\n}"
+      }
+    }
+  ],
+  "subMetas": {}
+}

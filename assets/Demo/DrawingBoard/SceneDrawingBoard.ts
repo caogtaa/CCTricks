@@ -137,6 +137,7 @@ export default class SceneDrawingBoard extends cc.Component {
         //     0xffffffff,
         //     0);
 
+        this.RedefineBoardMaterial();
         this.board.on(cc.Node.EventType.TOUCH_START, this.OnBoardTouchStart, this);
         this.board.on(cc.Node.EventType.TOUCH_MOVE, this.OnBoardTouchMove, this);
         this.board.on(cc.Node.EventType.TOUCH_END, this.OnBoardTouchEnd, this);
@@ -393,5 +394,23 @@ export default class SceneDrawingBoard extends cc.Component {
         }
 
         return renderBuff.texture;
+    }
+
+    protected OnChangeWidthEnded(e: cc.EditBox) {
+        let w = parseInt(e.string);
+        let mat = this.board.getComponent(cc.Sprite).getMaterial(0);
+        mat.setProperty("width", w);
+    }
+
+    protected OnToggleDefine(e: cc.Toggle) {
+        this.RedefineBoardMaterial();
+    }
+
+    protected RedefineBoardMaterial() {
+        let mat = this.board.getComponent(cc.Sprite).getMaterial(0);
+        let toggles = this.node.getComponentsInChildren(cc.Toggle);
+        for (let t of toggles) {
+            mat.define(t.node.name, t.isChecked);
+        }
     }
 }
