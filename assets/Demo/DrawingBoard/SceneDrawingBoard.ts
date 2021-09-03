@@ -399,7 +399,13 @@ export default class SceneDrawingBoard extends cc.Component {
     protected OnChangeWidthEnded(e: cc.EditBox) {
         let w = parseInt(e.string);
         let mat = this.board.getComponent(cc.Sprite).getMaterial(0);
-        mat.setProperty("width", w);
+        mat.setProperty("u_shift", w);
+    }
+
+    protected OnSliderChange(e: cc.Slider) {
+        let v = e.progress * 10;
+        let mat = this.board.getComponent(cc.Sprite).getMaterial(0);
+        mat.setProperty(e.node.name, v);
     }
 
     protected OnToggleDefine(e: cc.Toggle) {

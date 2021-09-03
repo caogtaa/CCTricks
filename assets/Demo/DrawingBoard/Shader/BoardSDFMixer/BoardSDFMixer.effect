@@ -11,6 +11,8 @@ CCEffect %{
               cullMode: none
           properties:
               texture: { value: white }
+              u_width: { value: 5. }
+              u_shift: { value: 5. }
 }%
 
 CCProgram vs %{
@@ -48,6 +50,10 @@ CCProgram fs %{
 
     uniform sampler2D texture;
     uniform sampler2D tex2;
+    uniform UARGS {
+        float u_width;
+        float u_shift;
+    };
 
     // 2D Random
     float random (in vec2 st) {
@@ -94,11 +100,16 @@ CCProgram fs %{
         float seed = mod(floor(cc_time.x * 3.), 5.);
         float D = (col.a - 1.0) * 360.;
 
-        float grid = 40.;       // 位移的细度
-        float shift = 10.;      // 位移幅度
-        D = D + shift * noise(grid * uv + seed);
-        float mask = 1.0 - smoothstep(-2.0, -1.0, D) + smoothstep(1.0, 2.0, D);
-        col = vec4(1.-mask);
+        float grid = 20.;       // 位移的细度
+        float shift = u_shift;//2.;      // 位移幅度
+        shift *= noise(grid * uv + seed);
+        // D = D + shift * noise(grid * uv + seed);
+
+        float width = u_width;//5.;
+        // float mask = smoothstep(-width-1.+shift, -width+shift, D) - smoothstep(width+shift, width+1.+shift, D);
+        // float mask = smoothstep()
+        float mask = smoothstep(width+1., width, abs(D) - shift);
+        col = vec4(mask);
 #elif BLOOM
 
 #endif
