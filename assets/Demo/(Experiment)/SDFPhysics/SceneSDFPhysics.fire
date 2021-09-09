@@ -183,7 +183,7 @@
       "array": [
         0,
         0,
-        607.1740366517844,
+        749.4043524899764,
         0,
         0,
         0,
@@ -396,6 +396,7 @@
     ],
     "_positionType": 0,
     "cornerType": 1,
+    "_splineParam": 1,
     "maxLength": 500,
     "segmentLength": 30,
     "segmentWidth": 30,
@@ -575,7 +576,7 @@
     "_minSeg": 1,
     "_stroke": 64,
     "_texture": {
-      "__uuid__": "4f696d26-d384-4b76-8fec-f1ebd73e075d"
+      "__uuid__": "7bf21712-973e-4334-82c0-08e6c996f7a7"
     },
     "_color": {
       "__type__": "cc.Color",
@@ -739,6 +740,7 @@
     ],
     "_positionType": 0,
     "cornerType": 0,
+    "_splineParam": 1,
     "maxLength": 500,
     "segmentLength": 20,
     "segmentWidth": 40,

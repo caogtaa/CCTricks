@@ -1,8 +1,8 @@
 
 
-const NbSubSegmentPerSegment: number = 10;
-const Epsilon: number = 0.1;        // 1/NBSubSegmentPerSegment
-const MinimumKnotNb: number = 4;
+const SubSegmentCount: number = 10;
+const Epsilon: number = 0.1;        // 1/SubSegmentCount
+const MinimumKnotCount: number = 4;
 
 // 猜测0号点是CatmullRom算法辅助点，1号点是真正线段开始，2号点是第一个线段的结束
 // 假如存在subsegment(拐点信息)，应该存入这个线段的末尾
@@ -26,7 +26,7 @@ export class Knot {
 	public emitTime: number = 0;					// 节点加入时间
 
     constructor(position: cc.Vec2, emitTime: number = cc.director.getTotalTime()) {
-        this.subKnots = new Array<SubKnot>(NbSubSegmentPerSegment+1);
+        this.subKnots = new Array<SubKnot>(SubSegmentCount+1);
         this.position.set(position);
 		this.emitTime = emitTime;
     }
@@ -49,7 +49,7 @@ export class CatmullRomSpline {
     public knots: Knot[] = [];
 
     // Catmull-Rom算法的有效控制点数是总点数-2，有效线段数是有效控制点数-1。所以这里-3
-    public get NbSegments(): number {
+    public get SegmentCount(): number {
         return Math.max(0, this.knots.length - 3);
     }
 
@@ -85,9 +85,9 @@ export class CatmullRomSpline {
     }
 
     public Length(): number {
-        if (this.NbSegments === 0)
+        if (this.SegmentCount === 0)
             return 0;
-        return Math.max(0, this.GetSegmentDistanceFromStart(this.NbSegments-1));
+        return Math.max(0, this.GetSegmentDistanceFromStart(this.SegmentCount-1));
     }
 
     public Clear(): void {
@@ -100,7 +100,7 @@ export class CatmullRomSpline {
 
     public GetPosition(marker: Marker, out?: cc.Vec2): cc.Vec2 {
         let pos = out || cc.Vec2.ZERO;
-        if (this.NbSegments === 0)
+        if (this.SegmentCount === 0)
             return pos;
 
         let subKnots = this.GetSegmentSubKnots(marker.segmentIndex);
@@ -118,7 +118,7 @@ export class CatmullRomSpline {
 
     public GetTangent(marker: Marker, out?: cc.Vec2): cc.Vec2 {
         let tangent = out || cc.Vec2.ZERO;
-        if (this.NbSegments === 0)
+        if (this.SegmentCount === 0)
             return tangent;
         
         let subKnots = this.GetSegmentSubKnots(marker.segmentIndex);
@@ -145,10 +145,10 @@ export class CatmullRomSpline {
     // 注意线段的index和顶点的index是错位的
     // segmentIndex=0的线段结束点对应vertexIndex=2
     public Parametrize(fromSegmentIndex: number, toSegmentIndex: number) {
-        if (this.knots.length < MinimumKnotNb)
+        if (this.knots.length < MinimumKnotCount)
             return;
 
-        let nbSegments: number = Math.min(toSegmentIndex+1, this.NbSegments);
+        let segmentCount: number = Math.min(toSegmentIndex+1, this.SegmentCount);
         fromSegmentIndex = Math.max(0, fromSegmentIndex);
         let totalDistance: number = 0;
 
@@ -158,7 +158,7 @@ export class CatmullRomSpline {
         }
 
         let knots = this.knots;
-        for (let i=fromSegmentIndex; i<nbSegments; ++i) {
+        for (let i=fromSegmentIndex; i<segmentCount; ++i) {
             let subKnots = this.GetSegmentSubKnots(i);
             
             // subknot固定11个，对应10个线段（挺浪费的，蛮多顶点都是重叠的）
@@ -176,8 +176,8 @@ export class CatmullRomSpline {
     }
 
     public PlaceMarker(result: Marker, distance: number, from: Marker = null): boolean {
-		let nbSegments = this.NbSegments;
-		if (nbSegments === 0)
+		let segmentCount = this.SegmentCount;
+		if (segmentCount === 0)
             return false;
 
 		if (distance <= 0) {
@@ -187,8 +187,8 @@ export class CatmullRomSpline {
 			result.lerpRatio = 0;
 			return true;
 		} else if (distance >= this.Length()) {
-			let subKnots = this.GetSegmentSubKnots(nbSegments-1);
-			result.segmentIndex = nbSegments-1;
+			let subKnots = this.GetSegmentSubKnots(segmentCount-1);
+			result.segmentIndex = segmentCount-1;
 			result.subKnotAIndex = subKnots.length-2;
 			result.subKnotBIndex = subKnots.length-1;
 			result.lerpRatio = 1;
@@ -201,7 +201,7 @@ export class CatmullRomSpline {
 			fromSegmentIndex = from.segmentIndex;
 		}
 
-		for (let i=fromSegmentIndex; i<nbSegments; ++i) {
+		for (let i=fromSegmentIndex; i<segmentCount; ++i) {
 			if (distance > this.GetSegmentDistanceFromStart(i))
                 continue;
 
@@ -234,8 +234,8 @@ export class CatmullRomSpline {
      
         let length: number = 0;
   
-        let nbSegments = this.NbSegments;
-		for (let i=0; i<nbSegments; ++i) {
+        let n = this.SegmentCount;
+		for (let i=0; i<n; ++i) {
 			length += this.ComputeLengthOfSegment(i, 0, 1);
 		}
 

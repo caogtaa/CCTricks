@@ -74,7 +74,7 @@ export default class SceneSDFPhysics extends cc.Component {
         collider.enabled = true;
 
         let trail = ball.getComponentInChildren(SplineTrailRenderer);
-        console.log(`----- vcount: ${trail._vertices.length}`);
+        console.log(`----- vcount: ${trail._a_vertices.length}`);
     }
 
     _colorIndex: number = 0;

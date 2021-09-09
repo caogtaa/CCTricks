@@ -51,7 +51,7 @@ export class SplineTrailRendererAssembler extends cc.Assembler {
         if (comp._vertsDirty) {
             // this.updateVerts(comp);
             // todo: fetch vertex data
-            let vertices = comp._vertices;
+            let vertices = comp._a_vertices;
             let vertexCount = vertices.length;
             let indicesCount = vertexCount / 4 * 6;
 
@@ -82,9 +82,9 @@ export class SplineTrailRendererAssembler extends cc.Assembler {
 
     updateVerts(comp: SplineTrailRenderer) {
         let floatsPerVert = this._floatsPerVert;
-        let vertices = comp._vertices;
-        let sideDist = comp._sideDist;
-        let dist = comp._dist;
+        let vertices = comp._a_vertices;
+        let sideDist = comp._a_width;
+        let dist = comp._a_dist;
 
         let vertexCount = vertices.length;
 

@@ -410,7 +410,7 @@ export default class SceneGraphicsDrawingBoard extends cc.Component {
             this.ctx.EndPath();
 
         if (this.trailRenderer.node.active) {
-            console.log(`----- vcount: ${this.trailRenderer._vertices.length}`);
+            console.log(`----- vcount: ${this.trailRenderer._a_vertices.length}`);
         }
 
         if (this._debug)

@@ -1,7 +1,7 @@
 const { ccclass, property } = cc._decorator;
 import { CacheArray, Resetable } from "./CacheArray";
 import { CatmullRomSpline, Knot, Marker, SplineParameterization } from "./CatmullRomSpline"
-import { SplineTrailRendererAssembler } from "./SplineTrailAssembler";
+import { SplineTrailRendererAssembler } from "./SplineTrailRendererAssembler";
 
 export class ResetableVec2 extends cc.Vec2 implements Resetable {
     public Reset() {
@@ -10,7 +10,7 @@ export class ResetableVec2 extends cc.Vec2 implements Resetable {
 }
 
 export enum CornerType {
-	// Mesh在拐角处连续 / 断开。目前只有原点效果是用后者，原点效果用连续的话，原点会被拉伸
+	// Mesh在拐角处连续 / 断开。目前只有圆点效果是用后者
 	Continuous = 0,
 	Fragmented = 1,
 }
@@ -117,7 +117,7 @@ export class SplineTrailRenderer extends cc.RenderComponent {
     // 如果重绘距离越长，头部越平滑，但是会看到明显的Mesh侧移
     // 如果重绘距离很短，折角会比较明显，同时跨Mesh的效果会出现拉伸（uv不平均）
     // 目测取值=3的情况下，折角Mesh效果较好，头部侧移可以通过宽度渐变来掩盖
-    public nbSegmentToParametrize = 3; //0 means all segments
+    public headSegmentsToRedraw: number = 3;	// 0 means all segments
 	
 	public fadeType: FadeType = FadeType.None;
 	public fadeLengthBegin: number = 5;
@@ -127,9 +127,9 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 	public spline: CatmullRomSpline;
 
 	// Mesh数据，CC里需要设置进MeshData
-	_vertices = new CacheArray<ResetableVec2>();
-	_sideDist: number[] = [];		// a_width attribute
-	_dist: number[] = [];			// a_dist attribute
+	_a_vertices = new CacheArray<ResetableVec2>();
+	_a_width: number[] = [];		// a_width attribute
+	_a_dist: number[] = [];			// a_dist attribute
 	
 	// uv: cc.Vec2[] = [];
     // _colors: cc.Color[] = [];
@@ -198,7 +198,7 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 		this._lastStartingQuad = 0;
 		this._quadOffset = 0;
 
-		this._vertices.Reset();
+		this._a_vertices.Reset();
 		// this.uv.length = 0;
 		// this._colors.length = 0;
 
@@ -317,18 +317,18 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 
 		let segmentLength = this.segmentLength;
 		let segmentWidth = this.segmentWidth;
-		if (this.nbSegmentToParametrize === 0) {
-			spline.Parametrize(0, spline.NbSegments-1);
+		if (this.headSegmentsToRedraw === 0) {
+			spline.Parametrize(0, spline.SegmentCount-1);
 		} else {
 			// 倒数第3个线段开始重新计算，主要内容是细分线段（subsegment），计算每个细分线段的距离
-			spline.Parametrize(spline.NbSegments-this.nbSegmentToParametrize, spline.NbSegments);
+			spline.Parametrize(spline.SegmentCount-this.headSegmentsToRedraw, spline.SegmentCount);
 		}
 
 		let length = Math.max(spline.Length() - 0.1, 0);		// TODO: 此处0.1是干嘛的？0.1刚好是Epsilon
 			
         // _quadOffset只在重分配buff的时候有用
-        // nbQuad表示渲染当前长度的线段需要的总quad数（包含已过期的quad）
-		let nbQuad = Math.floor(1./segmentLength * length) + 1 - this._quadOffset;
+        // quads表示渲染当前长度的线段需要的总quad数（包含已过期的quad）
+		let quads = Math.floor(1./segmentLength * length) + 1 - this._quadOffset;
 
 		let startingQuad = this._lastStartingQuad;
 		let lastDistance = startingQuad * segmentLength + this._quadOffset * segmentLength;			// 不需要绘制的线段已经经过的距离。每个quad表示的距离大小固定，都是segmentLength=0.2
@@ -344,14 +344,11 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 		// Vector3 lastTangent = spline.GetTangent(marker);
 		// Vector3 lastBinormal = CatmullRomSpline.ComputeBinormal(lastTangent, normal);
 		
-		// let drawingEnd = (this.meshDisposition === MeshDisposition.Fragmented) ? nbQuad-1 : nbQuad-1;
-		let drawingEnd = nbQuad-1;
-		// int drawingEnd = meshDisposition == MeshDisposition.Fragmented ? nbQuad-1 : nbQuad-1;
-
+		let drawingEnd = quads-1;
 		let vertexPerQuad = 4;
-		this._vertices.Resize((drawingEnd - startingQuad) * vertexPerQuad, ResetableVec2);
-		this._sideDist.length = this._vertices.length;
-		this._dist.length = this._vertices.length;
+		this._a_vertices.Resize((drawingEnd - startingQuad) * vertexPerQuad, ResetableVec2);
+		this._a_width.length = this._a_vertices.length;
+		this._a_dist.length = this._a_vertices.length;
 		// this._colors.length = this._vertices.length;
 
 		for (let i=startingQuad; i<drawingEnd; i++) {
@@ -392,28 +389,28 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 
                 // quad是一个四边形，每个途经点沿自己的两侧延伸
 				let halfWidth = preBinormal.mul(rh * 0.5, this._halfWidthVec2);
-				this._vertices.Get(firstVertexIndex).set(prePosition.add(halfWidth, tmpVec2));
-				this._vertices.Get(firstVertexIndex + 1).set(prePosition.add(halfWidth.neg(tmpVec2), tmpVec2));
+				this._a_vertices.Get(firstVertexIndex).set(prePosition.add(halfWidth, tmpVec2));
+				this._a_vertices.Get(firstVertexIndex + 1).set(prePosition.add(halfWidth.neg(tmpVec2), tmpVec2));
 
 				halfWidth = binormal.mul(rh2 * 0.5, halfWidth);
-        		this._vertices.Get(firstVertexIndex + 2).set(position.add(halfWidth, tmpVec2));
-				this._vertices.Get(firstVertexIndex + 3).set(position.add(halfWidth.neg(tmpVec2), tmpVec2));
+        		this._a_vertices.Get(firstVertexIndex + 2).set(position.add(halfWidth, tmpVec2));
+				this._a_vertices.Get(firstVertexIndex + 3).set(position.add(halfWidth.neg(tmpVec2), tmpVec2));
 
 				// 注释部分是以上代码的易读版本
-				// this._vertices[firstVertexIndex] = lastPosition.add(lastBinormal.mul(rh * 0.5));
-				// this._vertices[firstVertexIndex + 1] = lastPosition.add(lastBinormal.mul(-rh * 0.5));
-        		// this._vertices[firstVertexIndex + 2] = position.add(binormal.mul(rh2 * 0.5));
-				// this._vertices[firstVertexIndex + 3] = position.add(binormal.mul(-rh2 * 0.5));
+				// this._a_vertices[firstVertexIndex] = lastPosition.add(lastBinormal.mul(rh * 0.5));
+				// this._a_vertices[firstVertexIndex + 1] = lastPosition.add(lastBinormal.mul(-rh * 0.5));
+        		// this._a_vertices[firstVertexIndex + 2] = position.add(binormal.mul(rh2 * 0.5));
+				// this._a_vertices[firstVertexIndex + 3] = position.add(binormal.mul(-rh2 * 0.5));
 
-				this._sideDist[firstVertexIndex] = 0;
-				this._sideDist[firstVertexIndex + 1] = segmentWidth;
-				this._sideDist[firstVertexIndex + 2] = 0;
-				this._sideDist[firstVertexIndex + 3] = segmentWidth;
+				this._a_width[firstVertexIndex] = 0;
+				this._a_width[firstVertexIndex + 1] = segmentWidth;
+				this._a_width[firstVertexIndex + 2] = 0;
+				this._a_width[firstVertexIndex + 3] = segmentWidth;
 
-				this._dist[firstVertexIndex] = lastDistance;
-				this._dist[firstVertexIndex + 1] = lastDistance;
-				this._dist[firstVertexIndex + 2] = distance;
-				this._dist[firstVertexIndex + 3] = distance;
+				this._a_dist[firstVertexIndex] = lastDistance;
+				this._a_dist[firstVertexIndex + 1] = lastDistance;
+				this._a_dist[firstVertexIndex + 2] = distance;
+				this._a_dist[firstVertexIndex + 3] = distance;
             
 				// this.uv[firstVertexIndex] =  new Vector2(lastDistance/segmentWidth, 1);  
 				// this.uv[firstVertexIndex + 1] = new Vector2(lastDistance/segmentWidth, 0);
@@ -430,29 +427,29 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 
 				// 注意此处值已经覆盖，后面不要用
 				let halfWidth = preBinormal.mul(rh * 0.5, this._halfWidthVec2);
-				this._vertices.Get(firstVertexIndex).set(prePosition.add(halfWidth, tmpVec2));
-				this._vertices.Get(firstVertexIndex + 1).set(prePosition.add(halfWidth.neg(tmpVec2), tmpVec2));
+				this._a_vertices.Get(firstVertexIndex).set(prePosition.add(halfWidth, tmpVec2));
+				this._a_vertices.Get(firstVertexIndex + 1).set(prePosition.add(halfWidth.neg(tmpVec2), tmpVec2));
 
 				// prePosition向后移动一个segment
 				prePosition.addSelf(preTangent.mul(segmentLength, tmpVec2));
-				this._vertices.Get(firstVertexIndex + 2).set(prePosition.add(halfWidth, tmpVec2));
-				this._vertices.Get(firstVertexIndex + 3).set(prePosition.add(halfWidth.neg(tmpVec2), tmpVec2));
+				this._a_vertices.Get(firstVertexIndex + 2).set(prePosition.add(halfWidth, tmpVec2));
+				this._a_vertices.Get(firstVertexIndex + 3).set(prePosition.add(halfWidth.neg(tmpVec2), tmpVec2));
 
 				// 注释部分是以上代码的易读版本
-				// this._vertices[firstVertexIndex] = pos.add(lastBinormal.mul(rh * 0.5));
-			    // this._vertices[firstVertexIndex + 1] = pos.add(lastBinormal.mul(-rh * 0.5));
-        	    // this._vertices[firstVertexIndex + 2] = pos.add(preTangent.mul(segmentLength)).add(lastBinormal.mul(rh * 0.5));
-			    // this._vertices[firstVertexIndex + 3] = pos.add(preTangent.mul(segmentLength)).add(lastBinormal.mul(-rh * 0.5));
+				// this._a_vertices[firstVertexIndex] = pos.add(lastBinormal.mul(rh * 0.5));
+			    // this._a_vertices[firstVertexIndex + 1] = pos.add(lastBinormal.mul(-rh * 0.5));
+        	    // this._a_vertices[firstVertexIndex + 2] = pos.add(preTangent.mul(segmentLength)).add(lastBinormal.mul(rh * 0.5));
+			    // this._a_vertices[firstVertexIndex + 3] = pos.add(preTangent.mul(segmentLength)).add(lastBinormal.mul(-rh * 0.5));
 
-				this._sideDist[firstVertexIndex] = 0;
-				this._sideDist[firstVertexIndex + 1] = segmentWidth;
-				this._sideDist[firstVertexIndex + 2] = 0;
-				this._sideDist[firstVertexIndex + 3] = segmentWidth;
+				this._a_width[firstVertexIndex] = 0;
+				this._a_width[firstVertexIndex + 1] = segmentWidth;
+				this._a_width[firstVertexIndex + 2] = 0;
+				this._a_width[firstVertexIndex + 3] = segmentWidth;
 
-				this._dist[firstVertexIndex] = lastDistance;
-				this._dist[firstVertexIndex + 1] = lastDistance;
-				this._dist[firstVertexIndex + 2] = distance;
-				this._dist[firstVertexIndex + 3] = distance;
+				this._a_dist[firstVertexIndex] = lastDistance;
+				this._a_dist[firstVertexIndex + 1] = lastDistance;
+				this._a_dist[firstVertexIndex + 2] = distance;
+				this._a_dist[firstVertexIndex + 3] = distance;
 				
 				// this.uv[firstVertexIndex] =  cc.v2(0, 1);  
 			    // this.uv[firstVertexIndex + 1] = cc.v2(0, 0);
@@ -480,7 +477,7 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 		}
 
         // 根据maxLength计算下次刷新计算的第一个quad，如果总长度很长了，下次计算会出现一些截断
-		this._lastStartingQuad = Math.max(0, nbQuad - (Math.floor(this.maxLength / segmentLength) + 5));
+		this._lastStartingQuad = Math.max(0, quads - (Math.floor(this.maxLength / segmentLength) + 5));
 
 		// update mesh parameter
 		let renderer = this;
