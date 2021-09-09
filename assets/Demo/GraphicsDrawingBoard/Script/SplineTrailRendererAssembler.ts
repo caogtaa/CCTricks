@@ -6,7 +6,7 @@ import { SplineTrailRenderer } from './SplineTrailRenderer';
 let gfx = cc.gfx;
 let vfmtSplineTrail = new gfx.VertexFormat([
     { name: 'a_position', type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
-    { name: 'a_width', type: gfx.ATTR_TYPE_FLOAT32, num: 1 },		// 旁侧相对于中心线的距离，范围（0, segmentWidth）
+    { name: 'a_width', type: gfx.ATTR_TYPE_FLOAT32, num: 1 },		// 线段宽度，范围（0, segmentWidth）
     { name: 'a_dist', type: gfx.ATTR_TYPE_FLOAT32, num: 1 },		// 距离线段起始点的距离（累积线段长度）
     { name: gfx.ATTR_COLOR, type: gfx.ATTR_TYPE_UINT8, num: 4, normalize: true },       // 4个uint8
 ]);
@@ -49,8 +49,6 @@ export class SplineTrailRendererAssembler extends cc.Assembler {
 
     updateRenderData(comp: SplineTrailRenderer) {
         if (comp._vertsDirty) {
-            // this.updateVerts(comp);
-            // todo: fetch vertex data
             let vertices = comp._a_vertices;
             let vertexCount = vertices.length;
             let indicesCount = vertexCount / 4 * 6;
@@ -83,23 +81,21 @@ export class SplineTrailRendererAssembler extends cc.Assembler {
     updateVerts(comp: SplineTrailRenderer) {
         let floatsPerVert = this._floatsPerVert;
         let vertices = comp._a_vertices;
-        let sideDist = comp._a_width;
+        let width = comp._a_width;
         let dist = comp._a_dist;
 
         let vertexCount = vertices.length;
-
         let vData = this._flexBuffer.vData;
         let baseIndex: number = 0;
-        for (let i=0, n=vertexCount; i<n; ++i) {
+        for (let i=0; i<vertexCount; ++i) {
             baseIndex = i * floatsPerVert;
             vData[baseIndex++] = vertices.Get(i).x;
             vData[baseIndex++] = vertices.Get(i).y;
-            vData[baseIndex++] = sideDist[i];
+            vData[baseIndex++] = width[i];
             vData[baseIndex++] = dist[i];
             // vData[baseIndex++] = color[i];
         }
 
-        
         this.updateWorldVerts(comp);
     }
 
@@ -231,7 +227,7 @@ export class SplineTrailRendererAssembler extends cc.Assembler {
         this._renderNode = node;
     }
 
-        // 将准备好的顶点数据填充进 VertexBuffer 和 IndiceBuffer
+    // 将准备好的顶点数据填充进 VertexBuffer 和 IndiceBuffer
     fillBuffers(comp, renderer) {
         let flexBuffer = this._flexBuffer;
         if (!flexBuffer?.usedVertices)
@@ -243,15 +239,6 @@ export class SplineTrailRendererAssembler extends cc.Assembler {
 
         let buffer = this.getBuffer(/*renderer*/);
         let offsetInfo = buffer.request(flexBuffer.usedVertices, flexBuffer.usedIndices);
-
-        // if (!this.useWorldPos) {
-        //     // vData里不是世界坐标，需要做一次转换
-        //     if (renderer.worldMatDirty || !this._worldDatas[0]) {
-        //         // 从本地坐标更新成世界坐标
-        //         this._updateWorldVertices(0, flexBuffer.usedVertices, vData, this.getVfmt(), comp.node._worldMatrix);
-        //         vData = this._worldDatas[0];
-        //     }
-        // }
 
         // fill vertices
         let vertexOffset = offsetInfo.byteOffset >> 2,
@@ -270,53 +257,6 @@ export class SplineTrailRendererAssembler extends cc.Assembler {
             vertexId = offsetInfo.vertexOffset;             // vertexId是已经在buffer里的顶点数，也是当前顶点序号的基数
         for (let i = 0, l = iData.length; i < l; i++) {
             ibuf[indiceOffset++] = vertexId + iData[i];
-        }
-    }
-
-    protected _tmpVec3 = new cc.Vec3();
-    _updateWorldVertices(dataIndex, vertexCount, local, vtxFormat, wolrdMatrix) {
-        let world = this._worldDatas[dataIndex];
-        if (!world) {
-            world = this._worldDatas[dataIndex] = new Float32Array(local.length);
-            // world.set(local);    // not necessary
-        }
-
-        let floatCount = vtxFormat._bytes / 4;
-
-        let elements = vtxFormat._elements;
-        let tmpVec3 = this._tmpVec3;
-        for (let i = 0, n = elements.length; i < n; i++) {
-            let element = elements[i];
-            let attrOffset = element.offset / 4;
-
-            if (element.name === gfx.ATTR_POSITION || element.name === gfx.ATTR_NORMAL) {
-                let transformMat4 = element.name === gfx.ATTR_NORMAL ? cc.Vec3.transformMat4Normal : cc.Vec3.transformMat4;
-                for (let j = 0; j < vertexCount; j++) {
-                    let offset = j * floatCount + attrOffset;
-
-                    tmpVec3.x = local[offset];
-                    tmpVec3.y = local[offset + 1];
-                    tmpVec3.z = local[offset + 2];
-
-                    transformMat4(tmpVec3, tmpVec3, wolrdMatrix);
-
-                    world[offset] = tmpVec3.x;
-                    world[offset + 1] = tmpVec3.y;
-                    world[offset + 2] = tmpVec3.z;
-                }
-            }
-        }
-    }
-
-    _drawDebugDatas(comp, renderer, name) {
-        let debugDatas = comp._debugDatas[name];
-        if (!debugDatas) return;
-        for (let i = 0; i < debugDatas.length; i++) {
-            let debugData = debugDatas[i];
-            if (!debugData) continue;
-            let material = debugData.material;
-            renderer.material = material;
-            renderer._flushIA(debugData.ia);
         }
     }
 }

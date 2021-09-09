@@ -113,6 +113,13 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 	})
 	showDuration: number = -1;
 
+	@property({
+		displayName: '每帧自动更新',
+		tooltip: 'off: 路径发生变化后刷新Mesh；on: 每帧总是刷新Mesh。'
+	})
+	updateMeshEveryFrame: boolean = false;
+
+
     // 每次重绘的头部线段数。
     // 如果重绘距离越长，头部越平滑，但是会看到明显的Mesh侧移
     // 如果重绘距离很短，折角会比较明显，同时跨Mesh的效果会出现拉伸（uv不平均）
@@ -164,6 +171,13 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 		if (this.selfEmit && !CC_EDITOR) {
 			let pos = this.FromLocalPos(cc.Vec2.ZERO);
 			this.AddPoint(pos);
+		}
+	}
+	
+	lateUpdate() {
+		if (this.updateMeshEveryFrame || this._pointsDirty) {
+			this.RenderMesh();
+			this._pointsDirty = false;
 		}
 	}
 
@@ -237,6 +251,8 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 	protected _fixedPointIndex: number = 0;
 	protected _distTolerance: number = 4;
 
+	// 路径是否发生变化
+	protected _pointsDirty: boolean = false;
 	public AddPoint(point: cc.Vec2) {
 		// console.warn(`x: ${point.x}, y: ${point.y}`);
 		let knots = this.spline.knots;
@@ -297,9 +313,8 @@ export class SplineTrailRenderer extends cc.RenderComponent {
 			}
 		}
 
-		// todo: 如果没有新增节点，考虑不要进行重算。时间相关的消失通过shader控制
-		// 4个控制点，最后一个点是占位用的，和P3相等
-		this.RenderMesh();
+		// 在lateUpdate里更新Mesh信息
+		this._pointsDirty = true;
 	}
 
 	protected _tmpVec2 = new cc.Vec2;
