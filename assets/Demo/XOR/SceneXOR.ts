@@ -35,8 +35,6 @@ export default class SceneXOR extends cc.Component {
                 gfx.BLEND_ONE_MINUS_SRC_ALPHA,
                 0x00000000,
                 0);
-
-            console.log('enter');
         }
     }
 }
