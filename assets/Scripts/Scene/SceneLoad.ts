@@ -6,7 +6,7 @@
 /*
  * Date: 2021-05-02 11:45:22
  * LastEditors: GT<caogtaa@gmail.com>
- * LastEditTime: 2021-05-02 11:46:07
+ * LastEditTime: 2022-01-18 00:10:10
 */ 
 
 const { ccclass, property } = cc._decorator;
@@ -27,8 +27,15 @@ export default class SceneLoad extends cc.Component {
         let search = window.location.search;
         if (search) {
             let param = new URLSearchParams(search);
+            let gameName = param.get("game");
+            if (gameName) {
+                window.location.assign("./games/hexapipe/index.html");
+                return true;
+            }
+
             let sceneName = param.get("scene");
-            return cc.director.loadScene(sceneName);
+            if (sceneName)
+                return cc.director.loadScene(sceneName);
         }
 
         return false;

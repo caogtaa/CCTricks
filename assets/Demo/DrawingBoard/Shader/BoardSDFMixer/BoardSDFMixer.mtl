@@ -12,7 +12,8 @@
       "props": {},
       "defines": {
         "SHOW_SDF": false,
-        "SQUIGGLE": true
+        "SQUIGGLE": false,
+        "BLOOM": true
       }
     }
   }

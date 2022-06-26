@@ -111,7 +111,7 @@ CCProgram fs %{
         float mask = smoothstep(width+1., width, abs(D) - shift);
         col = vec4(mask);
 #elif BLOOM
-
+        col = smoothstep(0.92, 0.98, col);
 #endif
 
         gl_FragColor = vec4(col);
